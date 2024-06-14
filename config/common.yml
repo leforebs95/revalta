@@ -1,0 +1,5 @@
+db:
+  db-name: health_app_db
+  host: health-app-db.c3g2k2aceolp.us-east-2.rds.amazonaws.com
+  user: admin
+  password: test_pass123

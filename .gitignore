@@ -1,0 +1,7 @@
+envs/*
+**.ipynb
+milvus_compose/
+medium_article_search/
+articles_meta/
+articles/
+**/__pycache__/*
