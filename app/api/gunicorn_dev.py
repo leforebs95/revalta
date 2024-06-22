@@ -1,13 +1,13 @@
 """Gunicorn *development* config file"""
 
 # Falcon WSGI application path in pattern MODULE_NAME:VARIABLE_NAME
-wsgi_app = "main:app"
+wsgi_app = "flask_app:app"
 # The granularity of Error log outputs
 loglevel = "debug"
 # The number of worker processes for handling requests
 workers = 3
 # The socket to bind
-bind = "localhost:5000"
+bind = "0.0.0.0:5000"
 # Restart workers when code changes (development only!)
 reload = True
 # Write access and error info to /var/log

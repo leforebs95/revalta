@@ -1,7 +1,10 @@
+import secrets
+
 from flask import Flask
 from flask import request
 from flask import render_template
 from flask import redirect
+from flask import session
 from flask_login import (
     LoginManager,
     login_required,
@@ -16,7 +19,7 @@ from resources import data
 
 
 app = Flask(__name__)
-app.secret_key = "f380ccba8d0086f84db495f24836de56512438cb8deb0cf5a45aa5487fa8a56f"
+app.secret_key = secrets.token_hex()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
