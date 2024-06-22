@@ -10,7 +10,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-COPY nivalta-test.conf /etc/nginx/sites-available/nivalta.conf
+COPY nivalta.conf /etc/nginx/sites-available/nivalta.conf
 
 RUN ln -s /etc/nginx/sites-available/nivalta.conf /etc/nginx/sites-enabled
 
