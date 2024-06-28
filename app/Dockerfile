@@ -16,6 +16,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
+# Add curl for healthcheck
+RUN apt-get update && apt-get install -y curl
+
 WORKDIR /app
 
 # Copy the source code into the container.
@@ -36,13 +39,13 @@ RUN adduser \
     appuser
 
 # Install dependencies for MariabDB Connector/C
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y \
 gcc \
 python3-dev \
 openssl
 
 # Install MariaDB Connector/C
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y \
 libmariadb3 \
 libmariadb-dev
 

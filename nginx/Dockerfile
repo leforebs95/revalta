@@ -6,8 +6,6 @@ RUN mkdir -pv /etc/nginx/sites-available/ && \
 RUN mkdir -pv /var/run/ && \
     chown -R nginx:nginx /var/run/
 
-RUN rm /etc/nginx/conf.d/default.conf
-
 COPY nginx.conf /etc/nginx/nginx.conf
 
 COPY nivalta.conf /etc/nginx/sites-available/nivalta.conf
