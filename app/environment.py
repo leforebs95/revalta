@@ -20,7 +20,7 @@ def get_aws_secret(secret_name, region_name):
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
         raise e
 
-    return get_secret_value_response["SecretString"]
+    return json.loads(get_secret_value_response["SecretString"])
 
 
 def read_common_config():
@@ -45,7 +45,7 @@ def get_db_connection_vars():
     region_name = "us-west-2"
     user_pass_secret = get_aws_secret(secret_name, region_name)
 
-    return json.loads(user_pass_secret)
+    return user_pass_secret
 
 
 def get_config():
