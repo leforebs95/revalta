@@ -1,19 +1,55 @@
 import os
+import json
 import yaml
 
+import boto3
+from botocore.exceptions import ClientError
 
-def resolve_code_path(parts=[]):
-    path_components = [os.path.dirname(__file__), ".."]
-    path_components.extend(parts)
-    return os.path.join(*path_components)
+web_app_env = os.getenv("WEB_APP_ENV")
 
 
-os.environ["CONFIG_DIR"] = resolve_code_path(["config"])
+def get_aws_secret(secret_name, region_name):
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    return get_secret_value_response["SecretString"]
+
+
+def read_common_config():
+    # current_dir = os.path.dirname(os.path.abspath(__file__))
+    execution_dir = os.getcwd()
+    config_path = os.path.join(execution_dir, "config", "common.yml")
+
+    with open(config_path, "r") as file:
+        config_data = yaml.safe_load(file)
+
+    return config_data
+
+
+def get_db_connection_vars():
+    if web_app_env == "prod":
+        secret_name = "rds!db-6f91a809-0708-4d6c-a1b8-cf954efb2d29"
+    elif web_app_env == "development":
+        secret_name = ""
+    else:
+        raise ValueError("Invalid environment")
+
+    region_name = "us-west-2"
+    user_pass_secret = get_aws_secret(secret_name, region_name)
+
+    return json.loads(user_pass_secret)
 
 
 def get_config():
-    config_dir = os.environ["CONFIG_DIR"]
-    config = {}
-    with open(os.path.join(config_dir, "common.yml")) as common_config_file:
-        config = yaml.safe_load(common_config_file)
-    return config
+    common_config = read_common_config()
+    common_config["db"].update(get_db_connection_vars())
+
+    return common_config
