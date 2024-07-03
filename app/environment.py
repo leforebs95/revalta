@@ -5,8 +5,6 @@ import yaml
 import boto3
 from botocore.exceptions import ClientError
 
-web_app_env = os.getenv("WEB_APP_ENV")
-
 
 def get_aws_secret(secret_name, region_name):
     # Create a Secrets Manager client
@@ -33,12 +31,7 @@ def read_common_config():
 
 
 def get_db_connection_vars():
-    if web_app_env == "prod":
-        secret_name = "rds!db-6f91a809-0708-4d6c-a1b8-cf954efb2d29"
-    elif web_app_env == "development":
-        secret_name = ""
-    else:
-        raise ValueError("Invalid environment")
+    secret_name = "rds!db-6f91a809-0708-4d6c-a1b8-cf954efb2d29"
 
     region_name = "us-west-2"
     user_pass_secret = get_aws_secret(secret_name, region_name)
