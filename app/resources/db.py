@@ -73,7 +73,7 @@ class DatabaseConnection:
         return mariadb.connect(
             host=self._config["host"],
             port=3306,
-            user=self._config["user"],
+            user=self._config["username"],
             database=self._db_name,
             password=self._config["password"],
         )
