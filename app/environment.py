@@ -31,7 +31,7 @@ def read_common_config():
 
 
 def get_db_connection_vars():
-    secret_name = "rds!db-6f91a809-0708-4d6c-a1b8-cf954efb2d29"
+    secret_name = "rds!db-8c5cf11e-e74e-40e8-aa10-2b53b54c8a71"
 
     region_name = "us-west-2"
     user_pass_secret = get_aws_secret(secret_name, region_name)
