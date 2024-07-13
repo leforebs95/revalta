@@ -63,5 +63,7 @@ RUN mkdir -p /var/log/gunicorn/ && chown -R appuser:appuser /var/log/gunicorn/
 # Switch to the non-privileged user to run the application.
 USER appuser
 
+EXPOSE 5000
+
 # Run the application.
 CMD ["gunicorn", "--chdir", "/usr/src/api", "-c", "/usr/src/api/gunicorn_dev.py"]

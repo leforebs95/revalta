@@ -11,3 +11,5 @@ node_modules
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+app/sveltekit/build
+app/sveltekit/.svelte-kit

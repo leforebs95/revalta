@@ -88,6 +88,14 @@ def login():
     return jsonify({"login": login_status}), 200
 
 
+@app.route("/api/getsession")
+def check_session():
+    if current_user.is_authenticated:
+        return jsonify({"login": True})
+
+    return jsonify({"login": False})
+
+
 @app.route("/api/logout")
 def logout():
     logout_user()

@@ -1,7 +1,5 @@
 from flask_login import UserMixin
 
-from resources.objects import User
-
 
 class UserSession(UserMixin):
 

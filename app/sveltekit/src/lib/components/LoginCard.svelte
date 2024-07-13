@@ -1,6 +1,54 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
+
+
+	let username;
+	let password;
+	let csrfToken;
+	let isAuthenticated = false;
+
+	const testRoute = () => {
+		fetch("/api/testRoute")
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data)
+		})
+
+	}
+
+	onMount(() => {
+		fetch("/api/getsession", {
+		credentials: "same-origin",
+		})
+		.then((res) => res.json())
+		.then((data) => {
+		console.log(data);
+		if (data.login == true) {
+			isAuthenticated = true;
+		} else {
+			isAuthenticated = false;
+			csrf();
+		}
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	});
+
+	const csrf = () => {
+		fetch("/api/getcsrf", {
+		credentials: "same-origin",
+		})
+		.then((res) => {
+		csrfToken = res.headers.get(["X-CSRFToken"]);
+		// console.log(csrfToken);
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	} 
 </script>
 
 <div
@@ -54,6 +102,7 @@
 					<button
 						type="submit"
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+						on:click={testRoute}
 						>Sign In</button
 					>
 				</div>
