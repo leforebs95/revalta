@@ -102,60 +102,13 @@ class BaseTable:
         return False
 
 
-class Book(BaseTable):
-    title = None
-    author_id = None
-    year = None
-    genre = None
-    book_id = None
-    created_at = None
-
-
-class Author(BaseTable):
-    name = None
-    birth = None
-    nationality = None
-    author_id = None
-    created_at = None
-
-
 class User(BaseTable):
+    user_id = str()
     username = None
     password = None
     user_email = None
     is_email_verified = bool()
-    is_authenticated = bool()
-    is_active = bool()
-    is_anoymous = bool()
-    user_id = str()
     created_at = None
-
-    def set_is_authenticated(self, is_authenticated: bool):
-        self.update_instance(self.user_id, {"is_authenticated": is_authenticated})
-        self.is_authenticated = is_authenticated
-
-    def get_is_authenticated(self):
-        db_authenticated = self.get_single_value("is_authenticated", self.user_id)
-        assert self.is_authenticated == db_authenticated
-        return self.is_authenticated
-
-    def set_is_active(self, is_active: bool):
-        self.update_instance(self.user_id, {"is_active": is_active})
-        self.is_active = is_active
-
-    def get_is_active(self):
-        db_active = self.get_single_value("is_active", self.user_id)
-        assert self.is_active == db_active
-        return self.is_active
-
-    def set_is_anonymous(self, is_anonymous: bool):
-        self.update_instance(self.user_id, {"is_anonymous": is_anonymous})
-        self.is_anonymous = is_anonymous
-
-    def get_is_anonymous(self):
-        db_anonymous = self.get_single_value("is_anonymous", self.user_id)
-        assert self.is_anonymous == db_anonymous
-        return self.is_anonymous
 
 
 _tables_initialized = False
