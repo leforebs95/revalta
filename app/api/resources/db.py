@@ -1,7 +1,7 @@
 import logging
 import time
 import mariadb
-from api import environment
+import environment
 
 
 def _generate_insert_query(

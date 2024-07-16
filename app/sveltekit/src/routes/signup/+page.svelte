@@ -1,6 +1,56 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+
+	let firstName: string;
+	let lastName: string;
+	let username: string;
+	let password: string;
+	let csrfToken: string | null;
+	let isAuthenticated: boolean = false;
+
+	onMount(() => {
+		fetch("/api/getsession", {
+		credentials: "same-origin",
+		})
+		.then((res) => res.json())
+		.then((data) => {
+		console.log(data);
+		if (data.login == true) {
+			isAuthenticated = true;
+		} else {
+			isAuthenticated = false;
+			csrf();
+		}
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	});
+
+	const csrf = () => {
+		fetch("/api/getcsrf", {
+		credentials: "same-origin",
+		})
+		.then((res) => {
+		
+		csrfToken = res.headers.get("X-CSRFToken");
+		console.log(csrfToken);
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	}
+	
+	const signup = () => {
+		fetch("./api/signup")
+		.then((res) => {
+			res.json()
+			console.log(res.json())
+		})
+	}
+
 </script>
 
 <div class="flex h-screen w-screen justify-center items-center">
@@ -95,8 +145,9 @@
 					on:click={() => goto('/')}>Cancel</button
 				>
 				<button
-					type="submit"
+					type="button"
 					class="rounded-md bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+					on:click={signup}
 					>Save</button
 				>
 			</div>

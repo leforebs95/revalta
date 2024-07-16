@@ -5,8 +5,6 @@ from flask import (
     Flask,
     jsonify,
     request,
-    render_template,
-    redirect,
 )
 from flask_login import (
     LoginManager,
@@ -23,7 +21,12 @@ from objects import UserSession
 
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex()
+app.config.update(
+    SECRET_KEY=secrets.token_hex(),
+    SESSION_COOKIE_HTTPONLY=True,
+    REMEMBER_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Strict",
+)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
@@ -71,13 +74,15 @@ def login():
     import hashlib
 
     login_data = request.json
+    print(f"login_data: {login_data}")
     username = login_data.get("username")
     password = login_data.get("password")
 
     user = actions.get_user_from_username(username=username)
     login_status = False
+    print(f"User: {user}")
     if not user:
-        return jsonify({"login": login_status}), 404
+        return jsonify({"login": login_status, "message": "User not found"}), 404
     try:
         assert hashlib.sha256(password.encode()).hexdigest() == user.password
     except AssertionError:

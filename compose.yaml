@@ -3,6 +3,7 @@ services:
     build: ./app/api
     volumes:
       - ./app/api:/usr/src/api
+      - ./app/config:/usr/src/config
     expose:
       - 5000
   svelte-server:
