@@ -1,6 +1,81 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
+
+
+	let username: string;
+	let password: string;
+	let csrfToken: string | null;
+	let isAuthenticated: boolean = false;
+
+	const testRoute = () => {
+		fetch("/api/testRoute")
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data)
+		})
+
+	}
+
+	onMount(() => {
+		fetch("/api/getsession", {
+		credentials: "same-origin",
+		})
+		.then((res) => res.json())
+		.then((data) => {
+		console.log(data);
+		if (data.login == true) {
+			isAuthenticated = true;
+		} else {
+			isAuthenticated = false;
+			csrf();
+		}
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	});
+
+	const csrf = () => {
+		fetch("/api/getcsrf", {
+		credentials: "same-origin",
+		})
+		.then((res) => {
+		
+		csrfToken = res.headers.get("X-CSRFToken");
+		console.log(csrfToken);
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+	}
+
+	const login = () => {
+		fetch("/api/login", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-CSRFToken": csrfToken
+		},
+		credentials: "same-origin",
+		body: JSON.stringify({ username: username, password: password }),
+		})
+		.then((res) => {
+			res.json()
+			console.log(res.json())
+			console.log(csrfToken)
+		})
+		.then((data) => {
+		console.log(data);
+		if (data.login == true) {
+			isAuthenticated = true;
+		}
+		})
+		.catch((err) => {
+		console.log(err);
+		});
+  }
 </script>
 
 <div
@@ -23,6 +98,7 @@
 							type="email"
 							autocomplete="email"
 							placeholder="Email address"
+							bind:value={username}
 							class="block w-full rounded-md border-0 py-1.5 pl-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 						/>
 					</div>
@@ -36,6 +112,7 @@
 							type="password"
 							autocomplete="current-password"
 							placeholder="Password"
+							bind:value={password}
 							class="block pl-4 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 						/>
 					</div>
@@ -52,8 +129,9 @@
 
 				<div>
 					<button
-						type="submit"
+						type="button"
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+						on:click={login}
 						>Sign In</button
 					>
 				</div>

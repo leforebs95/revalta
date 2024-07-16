@@ -19,12 +19,12 @@ ENV PYTHONUNBUFFERED=1
 # Add curl for healthcheck
 RUN apt-get update && apt-get install -y curl
 
-WORKDIR /app
+WORKDIR /usr/src/api
 
 # Copy the source code into the container.
 COPY . .
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/usr/src/api
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -39,13 +39,13 @@ RUN adduser \
     appuser
 
 # Install dependencies for MariabDB Connector/C
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
 gcc \
 python3-dev \
 openssl
 
 # Install MariaDB Connector/C
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
 libmariadb3 \
 libmariadb-dev
 
@@ -55,7 +55,7 @@ libmariadb-dev
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r /app/requirements.txt
+    python -m pip install -r /usr/src/api/requirements.txt
 
 # Create log dirs
 RUN mkdir -p /var/log/gunicorn/ && chown -R appuser:appuser /var/log/gunicorn/
@@ -63,8 +63,7 @@ RUN mkdir -p /var/log/gunicorn/ && chown -R appuser:appuser /var/log/gunicorn/
 # Switch to the non-privileged user to run the application.
 USER appuser
 
-# Expose the port that the application listens on.
 EXPOSE 5000
 
 # Run the application.
-CMD gunicorn --workers 3 --chdir /app/api/ -c /app/api/gunicorn_dev.py
+CMD ["gunicorn", "--chdir", "/usr/src/api", "-c", "/usr/src/api/gunicorn_dev.py"]
