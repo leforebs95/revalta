@@ -2,46 +2,27 @@
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { csrf, getSession, login } from '../../session_data';
 
 	let firstName: string;
 	let lastName: string;
-	let username: string;
+	let email: string;
 	let password: string;
+	let confirmPassword: string;
 	let csrfToken: string | null;
 	let isAuthenticated: boolean = false;
 
 	onMount(() => {
-		fetch("/api/getsession", {
-		credentials: "same-origin",
-		})
-		.then((res) => res.json())
-		.then((data) => {
-		console.log(data);
-		if (data.login == true) {
-			isAuthenticated = true;
-		} else {
-			isAuthenticated = false;
-			csrf();
+		getSession().then(authentication =>{
+			isAuthenticated = authentication;
+		});
+		console.log(isAuthenticated)
+		if (!isAuthenticated) {
+			csrf().then(token => {
+				csrfToken = token;
+			});
 		}
-		})
-		.catch((err) => {
-		console.log(err);
-		});
 	});
-
-	const csrf = () => {
-		fetch("/api/getcsrf", {
-		credentials: "same-origin",
-		})
-		.then((res) => {
-		
-		csrfToken = res.headers.get("X-CSRFToken");
-		console.log(csrfToken);
-		})
-		.catch((err) => {
-		console.log(err);
-		});
-	}
 	
 	const signup = () => {
 		fetch("./api/signup")
@@ -72,6 +53,7 @@
 									name="first-name"
 									id="first-name"
 									autocomplete="given-name"
+									bind:value={firstName}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
@@ -87,6 +69,7 @@
 									name="last-name"
 									id="last-name"
 									autocomplete="family-name"
+									bind:value={lastName}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
@@ -102,6 +85,7 @@
 									name="email"
 									type="email"
 									autocomplete="email"
+									bind:value={email}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
@@ -116,6 +100,7 @@
 									id="password"
 									name="password"
 									type="password"
+									bind:value={password}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
@@ -130,6 +115,7 @@
 									id="password"
 									name="password"
 									type="password"
+									bind:value={confirmPassword}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>

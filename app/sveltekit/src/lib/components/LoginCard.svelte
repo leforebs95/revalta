@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { csrf, getSession, login } from '../../session_data';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
 
@@ -9,73 +10,17 @@
 	let csrfToken: string | null;
 	let isAuthenticated: boolean = false;
 
-	const testRoute = () => {
-		fetch("/api/testRoute")
-		.then((res) => res.json())
-		.then((data) => {
-			console.log(data)
-		})
-
-	}
-
 	onMount(() => {
-		fetch("/api/getsession", {
-		credentials: "same-origin",
-		})
-		.then((res) => res.json())
-		.then((data) => {
-		console.log(data);
-		if (data.login == true) {
-			isAuthenticated = true;
-		} else {
-			isAuthenticated = false;
-			csrf();
-		}
-		})
-		.catch((err) => {
-		console.log(err);
+		getSession().then(authentication =>{
+			isAuthenticated = authentication;
 		});
+		console.log(isAuthenticated)
+		if (!isAuthenticated) {
+			csrf().then(token => {
+				csrfToken = token;
+			});
+		}
 	});
-
-	const csrf = () => {
-		fetch("/api/getcsrf", {
-		credentials: "same-origin",
-		})
-		.then((res) => {
-		
-		csrfToken = res.headers.get("X-CSRFToken");
-		console.log(csrfToken);
-		})
-		.catch((err) => {
-		console.log(err);
-		});
-	}
-
-	const login = () => {
-		fetch("/api/login", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-CSRFToken": csrfToken
-		},
-		credentials: "same-origin",
-		body: JSON.stringify({ username: username, password: password }),
-		})
-		.then((res) => {
-			res.json()
-			console.log(res.json())
-			console.log(csrfToken)
-		})
-		.then((data) => {
-		console.log(data);
-		if (data.login == true) {
-			isAuthenticated = true;
-		}
-		})
-		.catch((err) => {
-		console.log(err);
-		});
-  }
 </script>
 
 <div
@@ -131,7 +76,12 @@
 					<button
 						type="button"
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-						on:click={login}
+						on:click={() => {
+							console.log(csrfToken)
+							login(csrfToken, username, password).then(authentication => {
+								isAuthenticated = authentication
+							});
+						}}
 						>Sign In</button
 					>
 				</div>
@@ -193,7 +143,7 @@
 				<p class="mt-10 text-center text-sm text-gray-500">
 					Not a member?
 					<a
-						href="/login/signup"
+						href="/signup"
 						class="font-semibold leading-6 text-nivaltaBlue hover:text-indigo-600">Sign up</a
 					>
 				</p>
