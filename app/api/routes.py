@@ -58,12 +58,15 @@ def user_loader(user_id: str) -> Optional[UserSession]:
 @app.route("/api/signup", methods=["POST"])
 def signup():
     signup_data = request.json
-    username = signup_data.get("username")
+    user_email = signup_data.get("user_email")
     password = signup_data.get("password")
-    email = signup_data.get("email")
+    first_name = signup_data.get("first_name")
+    last_name = signup_data.get("last_name")
 
     try:
-        user = actions.add_user(username, password, email)
+        user = actions.add_user(
+            user_email, password, first_name=first_name, last_name=last_name
+        )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({user.get_dict()}), 201
@@ -75,10 +78,10 @@ def login():
 
     login_data = request.json
     print(f"login_data: {login_data}")
-    username = login_data.get("username")
+    user_email = login_data.get("userEmail")
     password = login_data.get("password")
 
-    user = actions.get_user_from_username(username=username)
+    user = actions.get_user_from_email(user_email=user_email)
     login_status = False
     print(f"User: {user}")
     if not user:

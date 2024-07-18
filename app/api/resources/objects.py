@@ -104,9 +104,10 @@ class BaseTable:
 
 class User(BaseTable):
     user_id = str()
-    username = None
-    password = None
+    first_name = None
+    last_name = None
     user_email = None
+    password = None
     is_email_verified = bool()
     created_at = None
 
