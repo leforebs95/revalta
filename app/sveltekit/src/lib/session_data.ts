@@ -31,7 +31,7 @@ export const csrf = async () => {
     }
 }
 
-export const login = async (csrfToken: string, username: string, password: string) => {
+export const login = async (csrfToken: string, userEmail: string, password: string) => {
     try {
         const res = await fetch("/api/login", {
             method: "POST",
@@ -40,7 +40,7 @@ export const login = async (csrfToken: string, username: string, password: strin
                 "X-CSRFToken": csrfToken
             },
             credentials: "same-origin",
-            body: JSON.stringify({ username: username, password: password }),
+            body: JSON.stringify({ userEmail: userEmail, password: password }),
         });
         const data = await res.json();
         console.log(data);

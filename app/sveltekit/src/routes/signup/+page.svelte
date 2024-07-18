@@ -2,34 +2,61 @@
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { csrf, getSession, login } from '../../session_data';
+	import { csrf, getSession, login } from '$lib/session_data';
+	/** @type {import('./$types').PageData} */
+	export let data;
 
 	let firstName: string;
 	let lastName: string;
-	let email: string;
+	let userEmail: string;
 	let password: string;
 	let confirmPassword: string;
-	let csrfToken: string | null;
 	let isAuthenticated: boolean = false;
 
-	onMount(() => {
-		getSession().then(authentication =>{
-			isAuthenticated = authentication;
-		});
-		console.log(isAuthenticated)
-		if (!isAuthenticated) {
-			csrf().then(token => {
-				csrfToken = token;
-			});
-		}
-	});
+	const csrfToken: string | null = data.token;
+	console.log("SignUp page token: " + csrfToken)
 	
+	const validatePassword = () => {
+		if (password !== confirmPassword) {
+			// Passwords do not match, handle the error
+			console.log("Passwords do not match");
+			// You can display an error message to the user or perform any other action
+		} else {
+			// Passwords match, continue with the signup process
+			console.log("Passwords match");
+			// You can proceed with the signup logic here
+		}
+	}
+
 	const signup = () => {
-		fetch("./api/signup")
-		.then((res) => {
-			res.json()
-			console.log(res.json())
+		validatePassword();
+		fetch("./api/signup", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-CSRFToken": csrfToken
+			},
+			body: JSON.stringify({
+				firstName,
+				lastName,
+				userEmail,
+				password
+			})
 		})
+		.then((res) => {
+			return res.json();
+		})
+		.then((data) => {
+			console.log(data);
+			login(csrfToken, data.user_email, data.password)
+			.then(authentication => {
+				isAuthenticated = authentication
+			});
+		})
+		.catch((error) => {
+			console.log(error);
+			// Handle any errors here
+		});
 	}
 
 </script>
@@ -85,7 +112,7 @@
 									name="email"
 									type="email"
 									autocomplete="email"
-									bind:value={email}
+									bind:value={userEmail}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
@@ -112,8 +139,8 @@
 							>
 							<div class="mt-2">
 								<input
-									id="password"
-									name="password"
+									id="confirmPassword"
+									name="confirmPassword"
 									type="password"
 									bind:value={confirmPassword}
 									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"

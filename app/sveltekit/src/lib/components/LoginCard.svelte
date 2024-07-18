@@ -1,26 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { csrf, getSession, login } from '../../session_data';
+	import { csrf, getSession, login } from '../session_data';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
 
-
-	let username: string;
+	let userEmail: string;
 	let password: string;
-	let csrfToken: string | null;
 	let isAuthenticated: boolean = false;
 
-	onMount(() => {
-		getSession().then(authentication =>{
-			isAuthenticated = authentication;
-		});
-		console.log(isAuthenticated)
-		if (!isAuthenticated) {
-			csrf().then(token => {
-				csrfToken = token;
-			});
-		}
-	});
+	export let csrfToken: string | null;
+	console.log("Login Card token: " + csrfToken)
 </script>
 
 <div
@@ -43,7 +31,7 @@
 							type="email"
 							autocomplete="email"
 							placeholder="Email address"
-							bind:value={username}
+							bind:value={userEmail}
 							class="block w-full rounded-md border-0 py-1.5 pl-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 						/>
 					</div>
@@ -78,7 +66,7 @@
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 						on:click={() => {
 							console.log(csrfToken)
-							login(csrfToken, username, password).then(authentication => {
+							login(csrfToken, userEmail, password).then(authentication => {
 								isAuthenticated = authentication
 							});
 						}}
