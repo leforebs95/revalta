@@ -4,9 +4,10 @@ from typing import Optional
 from resources.objects import User
 
 
-def get_user_from_email(email: str) -> Optional[User]:
-    user = User.get_instance_where(where_clause=f"user_email = '{email}'")
-    if user.user_email == email:
+def get_user_from_email(user_email: str) -> Optional[User]:
+    print(f"Fetching user with email: {user_email}")
+    user = User.get_instance_where(where_clause=f"user_email = '{user_email}'")
+    if user.user_email == user_email:
         return user
     return None
 
@@ -16,7 +17,8 @@ def get_user_from_id(user_id: str) -> User:
 
 
 def add_user(email: str, password: str, first_name: str, last_name: str) -> User:
-    if get_user_from_email(email=email):
+    if user := get_user_from_email(user_email=email):
+        print(user)
         raise ValueError(f"User with {email} already exists")
     hash_pass = hashlib.sha256(password.encode()).hexdigest()
     return User.create_instance(

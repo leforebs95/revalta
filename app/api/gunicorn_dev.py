@@ -6,6 +6,7 @@ wsgi_app = "routes:app"
 loglevel = "debug"
 # The number of worker processes for handling requests
 workers = 3
+threads = 12
 # The socket to bind
 bind = "0.0.0.0:5000"
 # Restart workers when code changes (development only!)
