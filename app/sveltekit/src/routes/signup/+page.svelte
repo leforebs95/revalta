@@ -28,36 +28,73 @@
 		}
 	}
 
-	const signup = () => {
-		validatePassword();
-		fetch("./api/signup", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-CSRFToken": csrfToken
-			},
-			body: JSON.stringify({
-				firstName,
-				lastName,
-				userEmail,
-				password
-			})
-		})
-		.then((res) => {
-			return res.json();
-		})
-		.then((data) => {
-			console.log(data);
-			login(csrfToken, data.user_email, data.password)
-			.then(authentication => {
-				isAuthenticated = authentication
-			});
-		})
-		.catch((error) => {
-			console.log(error);
-			// Handle any errors here
-		});
+	const validateFields = () => {
+		if (!firstName || !lastName || !userEmail || !password) {
+			// Handle the error when any field is empty
+			console.log("Please fill in all fields");
+			// You can display an error message to the user or perform any other action
+		} else {
+			// All fields have values, continue with the signup process
+			console.log("All fields have values");
+			// You can proceed with the signup logic here
+		}
 	}
+
+	const signup = async () => {
+		try{
+			const res = await fetch("/api/signup", {
+				method: "POST",
+				headers: {
+                	"Content-Type": "application/json",
+                	"X-CSRFToken": csrfToken
+            	},
+				credentials: "same-origin",
+				body: JSON.stringify({
+					firstName,
+					lastName,
+					userEmail,
+					password
+				}),
+			});
+			const data = await res.json();
+			console.log("Signup data: " + data.user_email)
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
+	// const signup = () => {
+	// 	validatePassword();
+	// 	validateFields();
+	// 	fetch("./api/signup", {
+	// 		method: "POST",
+	// 		headers: {
+	// 			"Content-Type": "application/json",
+	// 			"X-CSRFToken": csrfToken
+	// 		},
+	// 		body: JSON.stringify({
+	// 			firstName,
+	// 			lastName,
+	// 			userEmail,
+	// 			password
+	// 		})
+	// 	})
+	// 	.then((res) => {
+	// 		console.log("Signup Res: " + res.json())
+	// 		// return res.json();
+	// 	})
+	// 	.then((data) => {
+	// 		console.log("Signup Data: " + data.json());
+	// 	// 	// login(csrfToken, data.user_email, data.password)
+	// 	// 	// .then(authentication => {
+	// 	// 	// 	isAuthenticated = authentication
+	// 	// 	// });
+	// 	})
+	// 	.catch((error) => {
+	// 		console.log(error);
+	// 		// Handle any errors here
+	// 	});
+	// }
 
 </script>
 

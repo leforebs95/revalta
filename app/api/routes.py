@@ -58,10 +58,21 @@ def user_loader(user_id: str) -> Optional[UserSession]:
 @app.route("/api/signup", methods=["POST"])
 def signup():
     signup_data = request.json
-    user_email = signup_data.get("user_email")
+    user_email = signup_data.get("userEmail")
     password = signup_data.get("password")
-    first_name = signup_data.get("first_name")
-    last_name = signup_data.get("last_name")
+    first_name = signup_data.get("firstName")
+    last_name = signup_data.get("lastName")
+
+    if not user_email:
+        return jsonify({"error": "User email is required"}), 400
+    if not password:
+        return jsonify({"error": "Password is required"}), 400
+    if not first_name:
+        return jsonify({"error": "First name is required"}), 400
+    if not last_name:
+        return jsonify({"error": "Last name is required"}), 400
+
+    print(f"Creating user with {user_email}, {password}, {first_name}, {last_name}")
 
     try:
         user = actions.add_user(
@@ -69,7 +80,7 @@ def signup():
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    return jsonify({user.get_dict()}), 201
+    return user.get_json(), 201
 
 
 @app.route("/api/login", methods=["POST"])
@@ -89,7 +100,7 @@ def login():
     try:
         assert hashlib.sha256(password.encode()).hexdigest() == user.password
     except AssertionError:
-        return jsonify({"login": login_status}), 401
+        return jsonify({"login": login_status, "message": "Invalid Password"}), 401
     user_session = UserSession(user.get_id())
     login_user(user_session)
     login_status = True
