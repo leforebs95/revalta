@@ -4,7 +4,7 @@
 			<div class="flex lg:flex-1">
 				<a href="/" class="-m-1.5 p-1.5">
 					<span class="sr-only">Nivalta</span>
-					<h1 class="text-[#3237a7] text-[36px] font-bold">Nivalta</h1>
+					<h1 class="text-[/3237a7] text-[36px] font-bold">Nivalta</h1>
 					<!-- <img
 						class="h-8 w-auto"
 						src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
@@ -35,10 +35,10 @@
 				</button>
 			</div>
 			<div class="hidden lg:flex lg:gap-x-12">
-				<a href="#" class="text-sm font-semibold leading-6 text-gray-900">Product</a>
-				<a href="#" class="text-sm font-semibold leading-6 text-gray-900">Features</a>
-				<a href="#" class="text-sm font-semibold leading-6 text-gray-900">Marketplace</a>
-				<a href="#" class="text-sm font-semibold leading-6 text-gray-900">Company</a>
+				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Product</a>
+				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Features</a>
+				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Marketplace</a>
+				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Company</a>
 			</div>
 			<div class="hidden lg:flex lg:flex-1 lg:justify-end">
 				<a href="/login" class="text-sm font-semibold leading-6 text-gray-900"
@@ -54,7 +54,7 @@
 				class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10"
 			>
 				<div class="flex items-center justify-between">
-					<a href="#" class="-m-1.5 p-1.5">
+					<a href="/" class="-m-1.5 p-1.5">
 						<span class="sr-only">Your Company</span>
 						<img
 							class="h-8 w-auto"
@@ -80,29 +80,29 @@
 					<div class="-my-6 divide-y divide-gray-500/10">
 						<div class="space-y-2 py-6">
 							<a
-								href="#"
+								href="/"
 								class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 								>Product</a
 							>
 							<a
-								href="#"
+								href="/"
 								class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 								>Features</a
 							>
 							<a
-								href="#"
+								href="/"
 								class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 								>Marketplace</a
 							>
 							<a
-								href="#"
+								href="/"
 								class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 								>Company</a
 							>
 						</div>
 						<div class="py-6">
 							<a
-								href="#"
+								href="/"
 								class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 								>Log in</a
 							>
@@ -119,7 +119,7 @@
 			aria-hidden="true"
 		>
 			<div
-				class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+				class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[/ff80b5] to-[/9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
 				style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
 			></div>
 		</div>
@@ -134,11 +134,11 @@
 					</p>
 					<div class="mt-10 flex items-center justify-center gap-x-6">
 						<a
-							href="#"
+							href="/"
 							class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 							>Get started</a
 						>
-						<a href="#" class="text-sm font-semibold leading-6 text-gray-900"
+						<a href="/" class="text-sm font-semibold leading-6 text-gray-900"
 							>Learn more <span aria-hidden="true">→</span></a
 						>
 					</div>
@@ -173,7 +173,7 @@
 								width="100%"
 								height="100%"
 								stroke-width="0"
-								fill="url(#e813992c-7d03-4cc4-a2bd-151760b470a0)"
+								fill="url(/e813992c-7d03-4cc4-a2bd-151760b470a0)"
 							/>
 						</svg>
 					</div>
@@ -319,7 +319,7 @@
 			aria-hidden="true"
 		>
 			<div
-				class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+				class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[/ff80b5] to-[/9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
 				style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
 			></div>
 		</div>
@@ -330,26 +330,26 @@
 	<div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
 		<nav class="-mb-6 columns-2 sm:flex sm:justify-center sm:space-x-12" aria-label="Footer">
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">About</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">About</a>
 			</div>
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Blog</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Blog</a>
 			</div>
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Jobs</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Jobs</a>
 			</div>
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Press</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Press</a>
 			</div>
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Accessibility</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Accessibility</a>
 			</div>
 			<div class="pb-6">
-				<a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Partners</a>
+				<a href="/" class="text-sm leading-6 text-gray-600 hover:text-gray-900">Partners</a>
 			</div>
 		</nav>
 		<div class="mt-10 flex justify-center space-x-10">
-			<a href="#" class="text-gray-400 hover:text-gray-500">
+			<a href="/" class="text-gray-400 hover:text-gray-500">
 				<span class="sr-only">Facebook</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
@@ -359,7 +359,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="#" class="text-gray-400 hover:text-gray-500">
+			<a href="/" class="text-gray-400 hover:text-gray-500">
 				<span class="sr-only">Instagram</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
@@ -369,7 +369,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="#" class="text-gray-400 hover:text-gray-500">
+			<a href="/" class="text-gray-400 hover:text-gray-500">
 				<span class="sr-only">X</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
@@ -377,7 +377,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="#" class="text-gray-400 hover:text-gray-500">
+			<a href="/" class="text-gray-400 hover:text-gray-500">
 				<span class="sr-only">GitHub</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
@@ -387,7 +387,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="#" class="text-gray-400 hover:text-gray-500">
+			<a href="/" class="text-gray-400 hover:text-gray-500">
 				<span class="sr-only">YouTube</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
