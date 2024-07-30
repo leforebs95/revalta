@@ -13,7 +13,7 @@
 	let confirmPassword: string;
 	let isAuthenticated: boolean = false;
 
-	const csrfToken: string | null = data.token;
+	const csrfToken: string | null = data.csrfToken;
 	console.log("SignUp page token: " + csrfToken)
 	
 	const validatePassword = () => {
@@ -44,11 +44,11 @@
 		try{
 			const res = await fetch("/api/signup", {
 				method: "POST",
-				headers: {
-                	"Content-Type": "application/json",
-                	"X-CSRFToken": csrfToken
-            	},
 				credentials: "same-origin",
+				headers: {
+					"Content-Type": "application/json",
+					"X-CSRFToken": csrfToken
+            	},
 				body: JSON.stringify({
 					firstName,
 					lastName,

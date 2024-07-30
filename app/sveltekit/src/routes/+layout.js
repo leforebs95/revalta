@@ -1,12 +1,21 @@
 import { csrf } from '$lib/session_data';
 
 /** @type {import('./$types').LayoutLoad} */
-export function load() {
+export async function load(){
 
-    return csrf().then(token => {
-        console.log("CSRFToken Creation: " + token);
+    if (typeof window !== 'undefined') {
+        let csrfToken = window.localStorage.getItem('csrfToken');
+
+        if (!csrfToken) {
+            csrfToken = await csrf();
+            window.localStorage.setItem('csrfToken', csrfToken)
+        }
+        console.log(csrfToken)
         return {
-            token: token
-        };
-    });
+            csrfToken: csrfToken
+        }
+      }
+    return {
+        csrfToken: 'WRONG'
+    }
 }
