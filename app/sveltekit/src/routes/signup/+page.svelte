@@ -192,7 +192,7 @@
 				<button
 					type="button"
 					class="text-sm font-semibold leading-6 text-gray-900"
-					on:click={() => goto('/')}>Cancel</button
+					on:click={() => goto('/login')}>Cancel</button
 				>
 				<button
 					type="button"

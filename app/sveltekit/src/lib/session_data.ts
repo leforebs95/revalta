@@ -31,20 +31,6 @@ export const csrf = async () => {
     }
 }
 
-// export const csrf = () => {
-//     return fetch("/api/getcsrf", {
-//         credentials: "same-origin",
-//     })
-//         .then((res) => {
-//             const csrfToken = res.headers.get("X-CSRFToken");
-//             return csrfToken;
-//         })
-//         .catch((err) => {
-//             console.log(err);
-//             return null;
-//         });
-// };
-
 export const login = async (csrfToken: string, userEmail: string, password: string) => {
     try {
         const res = await fetch("/api/login", {

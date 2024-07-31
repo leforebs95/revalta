@@ -1,16 +1,17 @@
 import { csrf } from '$lib/session_data';
 
-/** @type {import('./$types').LayoutLoad} */
+/** @type {import('./$types').PageLoad} */
 export async function load(){
 
     if (typeof window !== 'undefined') {
-        let csrfToken = window.localStorage.getItem('csrfToken');
+        let csrfToken = window.sessionStorage.getItem('csrfToken');
 
         if (!csrfToken) {
+            console.log("Retrieving new CSRF Token")
             csrfToken = await csrf();
-            window.localStorage.setItem('csrfToken', csrfToken)
+            window.sessionStorage.setItem('csrfToken', csrfToken)
         }
-        console.log(csrfToken)
+        console.log("Current CSRF Token is: " + csrfToken)
         return {
             csrfToken: csrfToken
         }
