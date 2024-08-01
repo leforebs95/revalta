@@ -4,7 +4,7 @@
     /** @type {import('./$types').PageData} */
 	export let data;
     
-	let csrfToken: string | null = data.token;
+	let csrfToken: string | null = data.csrfToken;
     console.log("Login Page token: " + csrfToken)
 </script>
 
