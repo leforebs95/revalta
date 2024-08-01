@@ -16,7 +16,4 @@ export async function load(){
             csrfToken: csrfToken
         }
       }
-    return {
-        csrfToken: 'WRONG'
-    }
 }
