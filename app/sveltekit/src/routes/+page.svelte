@@ -41,7 +41,7 @@
 				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Company</a>
 			</div>
 			<div class="hidden lg:flex lg:flex-1 lg:justify-end">
-				<a href="/signup" class="text-sm font-semibold leading-6 pr-6 text-nivaltaBlue">Sign In </a>
+				<a href="/signup" class="text-sm font-bold leading-6 pr-6 text-nivaltaBlue">Sign In </a>
 				<a href="/login" class="text-sm font-semibold leading-6 text-gray-900"
 					>Log in <span aria-hidden="true">&rarr;</span></a
 				>
