@@ -14,7 +14,7 @@ reload = True
 # Write access and error info to /var/log
 accesslog = errorlog = "/var/log/gunicorn/dev.log"
 # Redirect stdout/stderr to log file
-# capture_output = True
+capture_output = True
 # PID file so you can easily fetch process ID
 # pidfile = "/var/run/gunicorn/dev.pid" Only necessary when not running as a service
 # We will systemd to monitor the process, so no need for a daemon

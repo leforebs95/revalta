@@ -38,16 +38,16 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-# Install dependencies for MariabDB Connector/C
-RUN apt-get update && apt-get install -y \
-gcc \
-python3-dev \
-openssl
+# # Install dependencies for MariabDB Connector/C
+# RUN apt-get update && apt-get install -y \
+# gcc \
+# python3-dev \
+# openssl
 
-# Install MariaDB Connector/C
-RUN apt-get update && apt-get install -y \
-libmariadb3 \
-libmariadb-dev
+# # Install MariaDB Connector/C
+# RUN apt-get update && apt-get install -y \
+# libmariadb3 \
+# libmariadb-dev
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.

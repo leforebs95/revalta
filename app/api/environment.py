@@ -21,7 +21,7 @@ def get_aws_secret(aws_session, secret_name, region_name):
 
 
 def read_common_config():
-    config_path = os.path.join(os.path.dirname(__file__), "..", "config/common.yml")
+    config_path = os.path.join(os.path.dirname(__file__), "config/common.yml")
 
     with open(config_path, "r") as file:
         config_data = yaml.safe_load(file)
