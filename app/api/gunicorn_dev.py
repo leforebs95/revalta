@@ -1,7 +1,7 @@
 """Gunicorn *development* config file"""
 
 # Falcon WSGI application path in pattern MODULE_NAME:VARIABLE_NAME
-wsgi_app = "routes:app"
+wsgi_app = "run:flask_app"
 # The granularity of Error log outputs
 loglevel = "debug"
 # The number of worker processes for handling requests

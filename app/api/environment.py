@@ -6,10 +6,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def get_aws_secret(secret_name, region_name):
+def get_aws_secret(aws_session, secret_name, region_name):
     # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
+    client = aws_session.client(service_name="secretsmanager", region_name=region_name)
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
@@ -22,7 +21,7 @@ def get_aws_secret(secret_name, region_name):
 
 
 def read_common_config():
-    config_path = os.path.join(os.path.dirname(__file__), "..", "config/common.yml")
+    config_path = os.path.join(os.path.dirname(__file__), "config/common.yml")
 
     with open(config_path, "r") as file:
         config_data = yaml.safe_load(file)
@@ -30,17 +29,18 @@ def read_common_config():
     return config_data
 
 
-def get_db_connection_vars():
+def get_db_connection_vars(aws_session):
     secret_name = "rds!db-8c5cf11e-e74e-40e8-aa10-2b53b54c8a71"
 
     region_name = "us-west-2"
-    user_pass_secret = get_aws_secret(secret_name, region_name)
+    user_pass_secret = get_aws_secret(aws_session, secret_name, region_name)
 
     return user_pass_secret
 
 
 def get_config():
     common_config = read_common_config()
-    common_config["db"].update(get_db_connection_vars())
+    aws_session = boto3.session.Session(**common_config["aws_session"])
+    common_config["db"].update(get_db_connection_vars(aws_session))
 
     return common_config
