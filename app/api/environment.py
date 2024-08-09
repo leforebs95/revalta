@@ -7,14 +7,11 @@ from botocore.exceptions import ClientError
 
 
 def get_aws_secret(aws_session, secret_name, region_name):
-    # Create a Secrets Manager client
     client = aws_session.client(service_name="secretsmanager", region_name=region_name)
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
         raise e
 
     return json.loads(get_secret_value_response["SecretString"])
@@ -41,6 +38,7 @@ def get_db_connection_vars(aws_session):
 def get_config():
     common_config = read_common_config()
     aws_session = boto3.session.Session(**common_config["aws_session"])
+
     common_config["db"].update(get_db_connection_vars(aws_session))
 
     return common_config
