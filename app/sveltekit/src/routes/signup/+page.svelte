@@ -14,54 +14,54 @@
 	let isAuthenticated: boolean = false;
 
 	const csrfToken: string | null = data.csrfToken;
-	console.log("SignUp page token: " + csrfToken)
-	
+	console.log('SignUp page token: ' + csrfToken);
+
 	const validatePassword = () => {
 		if (password !== confirmPassword) {
 			// Passwords do not match, handle the error
-			console.log("Passwords do not match");
+			console.log('Passwords do not match');
 			// You can display an error message to the user or perform any other action
 		} else {
 			// Passwords match, continue with the signup process
-			console.log("Passwords match");
+			console.log('Passwords match');
 			// You can proceed with the signup logic here
 		}
-	}
+	};
 
 	const validateFields = () => {
 		if (!firstName || !lastName || !userEmail || !password) {
 			// Handle the error when any field is empty
-			console.log("Please fill in all fields");
+			console.log('Please fill in all fields');
 			// You can display an error message to the user or perform any other action
 		} else {
 			// All fields have values, continue with the signup process
-			console.log("All fields have values");
+			console.log('All fields have values');
 			// You can proceed with the signup logic here
 		}
-	}
+	};
 
 	const signup = async () => {
-		try{
-			const res = await fetch("/api/signup", {
-				method: "POST",
-				credentials: "same-origin",
+		try {
+			const res = await fetch('/api/signup', {
+				method: 'POST',
+				credentials: 'same-origin',
 				headers: {
-					"Content-Type": "application/json",
-					"X-CSRFToken": csrfToken
-            	},
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken
+				},
 				body: JSON.stringify({
 					firstName,
 					lastName,
 					userEmail,
 					password
-				}),
+				})
 			});
 			const data = await res.json();
-			console.log("Signup data: " + data.user_email)
+			console.log('Signup data: ' + data.user_email);
 		} catch (err) {
 			console.log(err);
 		}
-	}
+	};
 
 	// const signup = () => {
 	// 	validatePassword();
@@ -95,7 +95,6 @@
 	// 		// Handle any errors here
 	// 	});
 	// }
-
 </script>
 
 <div class="flex h-screen w-screen justify-center items-center">
@@ -118,7 +117,7 @@
 									id="first-name"
 									autocomplete="given-name"
 									bind:value={firstName}
-									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+									class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
 						</div>
@@ -134,7 +133,7 @@
 									id="last-name"
 									autocomplete="family-name"
 									bind:value={lastName}
-									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+									class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
 						</div>
@@ -150,7 +149,7 @@
 									type="email"
 									autocomplete="email"
 									bind:value={userEmail}
-									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+									class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
 						</div>
@@ -165,7 +164,7 @@
 									name="password"
 									type="password"
 									bind:value={password}
-									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+									class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
 						</div>
@@ -180,7 +179,7 @@
 									name="confirmPassword"
 									type="password"
 									bind:value={confirmPassword}
-									class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+									class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
 						</div>
@@ -197,8 +196,10 @@
 				<button
 					type="button"
 					class="rounded-md bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-					on:click={signup}
-					>Save</button
+					on:click={() => {
+						signup();
+						goto('/login');
+					}}>Save</button
 				>
 			</div>
 		</form>
