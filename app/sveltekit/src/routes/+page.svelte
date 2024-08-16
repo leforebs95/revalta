@@ -1,3 +1,6 @@
+<script>
+</script>
+
 <div class="bg-white">
 	<header class="absolute inset-x-0 top-0 z-50">
 		<nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
@@ -41,8 +44,11 @@
 				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Company</a>
 			</div>
 			<div class="hidden lg:flex lg:flex-1 lg:justify-end">
-				<a href="/signup" class="text-sm font-bold leading-6 pr-6 text-nivaltaBlue">Sign In </a>
-				<a href="/login" class="text-sm font-semibold leading-6 text-gray-900"
+				<a
+					href="/signup"
+					class="text-sm font-bold leading-6 pr-6 text-nivaltaBlue hover:text-indigo-500">Sign Up</a
+				>
+				<a href="/login" class="text-sm font-bold leading-6 text-nivaltaBlue"
 					>Log in <span aria-hidden="true">&rarr;</span></a
 				>
 			</div>
