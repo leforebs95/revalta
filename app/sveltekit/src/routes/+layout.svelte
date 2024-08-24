@@ -1,7 +1,7 @@
 <script>
 	import { isOverlayOpen } from './../stores/Overlay.js';
 	import '../app.css';
-	import Overlay from '$lib/components/Overlay.svelte';
+	// import Overlay from '$lib/components/Overlay.svelte';
 </script>
 
 <header>
