@@ -15,7 +15,7 @@ services:
       - 8080
     depends_on:
       - flask-server
-  reverse-proxy:
+  nginx:
     build: ./nginx
     ports:
       - 80:80

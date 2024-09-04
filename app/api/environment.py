@@ -1,9 +1,13 @@
 import os
+import logging
 import json
 import yaml
 
 import boto3
 from botocore.exceptions import ClientError
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_aws_secret(aws_session, secret_name, region_name):
@@ -37,6 +41,9 @@ def get_db_connection_vars(aws_session):
 
 def get_config():
     common_config = read_common_config()
+
+    logging.info(f"Starting AWS Session with: {common_config['aws_session']}")
+
     aws_session = boto3.session.Session(**common_config["aws_session"])
 
     common_config["db"].update(get_db_connection_vars(aws_session))
