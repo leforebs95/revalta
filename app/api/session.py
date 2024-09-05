@@ -17,6 +17,10 @@ from models import User
 
 def register_session_routes(app, db, bcrypt):
 
+    @app.route("/api/version", methods=["GET"])
+    def version():
+        return jsonify({"version": "0.0.1"})
+
     @app.route("/api/signup", methods=["POST"])
     def signup():
         signup_data = request.json

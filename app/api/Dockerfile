@@ -7,7 +7,7 @@
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
 ARG PYTHON_VERSION=3.11.7
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-slim AS base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -37,17 +37,6 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
-
-# # Install dependencies for MariabDB Connector/C
-# RUN apt-get update && apt-get install -y \
-# gcc \
-# python3-dev \
-# openssl
-
-# # Install MariaDB Connector/C
-# RUN apt-get update && apt-get install -y \
-# libmariadb3 \
-# libmariadb-dev
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
