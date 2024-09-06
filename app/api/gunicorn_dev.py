@@ -5,8 +5,8 @@ wsgi_app = "run:flask_app"
 # The granularity of Error log outputs
 loglevel = "info"
 # The number of worker processes for handling requests
-workers = 3
-threads = 12
+workers = 4
+threads = 16
 # The socket to bind
 bind = "0.0.0.0:5000"
 # Restart workers when code changes (development only!)

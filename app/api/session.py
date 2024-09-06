@@ -15,7 +15,7 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from models import User
 
 
-def register_session_routes(app, db, bcrypt):
+def register_session_routes(app, db, bcrypt, logger):
 
     @app.route("/api/version", methods=["GET"])
     def version():
@@ -29,7 +29,9 @@ def register_session_routes(app, db, bcrypt):
         first_name = signup_data.get("firstName")
         last_name = signup_data.get("lastName")
 
-        print(f"Creating user with {user_email}, {password}, {first_name}, {last_name}")
+        logger.info(
+            f"Creating user with {user_email}, {password}, {first_name}, {last_name}"
+        )
         hashed_password = bcrypt.generate_password_hash(password)
         user = User(
             user_email=user_email,
@@ -47,14 +49,18 @@ def register_session_routes(app, db, bcrypt):
     def login():
         import hashlib
 
+        crsf_token = request.headers.get("X-Csrftoken")
+        logger.info(f"Login CSRFToken: {crsf_token}")
         login_data = request.json
-        print(f"login_data: {login_data}")
+        logger.info(f"login_data: {login_data}")
         user_email = login_data.get("userEmail")
         password = login_data.get("password")
 
-        user = User.query.filter_by(user_email=user_email).first()
         login_status = False
-        print(f"User: {user}")
+        user = User.query.filter_by(user_email=user_email).first()
+        logger.info(f"User: {user}")
+        if user is None:
+            return jsonify({"login": login_status, "message": "Invalid User"}), 401
         if bcrypt.check_password_hash(user.password, password):
             login_user(user)
             login_status = True

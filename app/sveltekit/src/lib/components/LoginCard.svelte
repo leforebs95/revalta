@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { login } from '../session_data';
+	import { csrf, getSession, login } from '../session_data';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
 
 	let userEmail: string;
 	let password: string;
 	let isAuthenticated: boolean = false;
+
+	export let csrfToken: string | null;
+	console.log("Login Card token: " + csrfToken)
 </script>
 
 <div
@@ -30,6 +33,7 @@
 							placeholder="Email address"
 							bind:value={userEmail}
 							class="block w-full rounded-md border-0 py-1.5 pl-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+							required
 						/>
 					</div>
 				</div>
@@ -44,6 +48,7 @@
 							placeholder="Password"
 							bind:value={password}
 							class="block pl-4 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+							required
 						/>
 					</div>
 					<div class="flex items-center justify-between">
@@ -62,7 +67,8 @@
 						type="button"
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 						on:click={() => {
-							login(userEmail, password).then(authentication => {
+							console.log(csrfToken)
+							login(csrfToken, userEmail, password).then(authentication => {
 								isAuthenticated = authentication
 							});
 						}}
