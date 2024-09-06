@@ -8,7 +8,6 @@
 	let isAuthenticated: boolean = false;
 
 	export let csrfToken: string | null;
-	console.log("Login Card token: " + csrfToken)
 </script>
 
 <div
@@ -33,6 +32,7 @@
 							placeholder="Email address"
 							bind:value={userEmail}
 							class="block w-full rounded-md border-0 py-1.5 pl-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+							required
 						/>
 					</div>
 				</div>
@@ -47,6 +47,7 @@
 							placeholder="Password"
 							bind:value={password}
 							class="block pl-4 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+							required
 						/>
 					</div>
 					<div class="flex items-center justify-between">

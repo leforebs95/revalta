@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { csrf, getSession, login } from '$lib/session_data';
+	import { signup } from '$lib/session_data';
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -14,7 +14,6 @@
 	let isAuthenticated: boolean = false;
 
 	const csrfToken: string | null = data.csrfToken;
-	console.log('SignUp page token: ' + csrfToken);
 
 	const validatePassword = () => {
 		if (password !== confirmPassword) {
@@ -40,61 +39,6 @@
 		}
 	};
 
-	const signup = async () => {
-		try {
-			const res = await fetch('/api/signup', {
-				method: 'POST',
-				credentials: 'same-origin',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken
-				},
-				body: JSON.stringify({
-					firstName,
-					lastName,
-					userEmail,
-					password
-				})
-			});
-			const data = await res.json();
-			console.log('Signup data: ' + data.user_email);
-		} catch (err) {
-			console.log(err);
-		}
-	};
-
-	// const signup = () => {
-	// 	validatePassword();
-	// 	validateFields();
-	// 	fetch("./api/signup", {
-	// 		method: "POST",
-	// 		headers: {
-	// 			"Content-Type": "application/json",
-	// 			"X-CSRFToken": csrfToken
-	// 		},
-	// 		body: JSON.stringify({
-	// 			firstName,
-	// 			lastName,
-	// 			userEmail,
-	// 			password
-	// 		})
-	// 	})
-	// 	.then((res) => {
-	// 		console.log("Signup Res: " + res.json())
-	// 		// return res.json();
-	// 	})
-	// 	.then((data) => {
-	// 		console.log("Signup Data: " + data.json());
-	// 	// 	// login(csrfToken, data.user_email, data.password)
-	// 	// 	// .then(authentication => {
-	// 	// 	// 	isAuthenticated = authentication
-	// 	// 	// });
-	// 	})
-	// 	.catch((error) => {
-	// 		console.log(error);
-	// 		// Handle any errors here
-	// 	});
-	// }
 </script>
 
 <div class="flex h-screen w-screen justify-center items-center">
@@ -197,8 +141,8 @@
 					type="button"
 					class="rounded-md bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 					on:click={() => {
-						signup();
-						goto('/login');
+						signup(csrfToken, firstName, lastName, userEmail, password);
+						// goto('/login');
 					}}>Save</button
 				>
 			</div>

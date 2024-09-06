@@ -49,10 +49,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Create log dirs
 RUN mkdir -p /var/log/gunicorn/ && chown -R appuser:appuser /var/log/gunicorn/
 
+# Make the entrypoint script executable
+RUN chmod +x /usr/src/api/flask_entry.sh
+
 # Switch to the non-privileged user to run the application.
 USER appuser
 
 EXPOSE 5000
 
 # Run the application.
-CMD ["gunicorn", "--chdir", "/usr/src/api", "-c", "/usr/src/api/gunicorn_dev.py"]
+CMD [ "bash", "/usr/src/api/flask_entry.sh" ]
