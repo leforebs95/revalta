@@ -1,5 +1,6 @@
 import { getCsrf, validatecsrf } from '$lib/session_data';
 
+
 /** @type {import('./$types').PageLoad} */
 export async function load(){
 

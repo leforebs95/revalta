@@ -54,6 +54,7 @@ export const getCsrf = async () => {
     }
 }
 
+
 export const signup = async (csrfToken: string, firstName: string, lastName: string, userEmail: string, password: string) => {
     try {
         const res = await fetch('/api/signup', {
