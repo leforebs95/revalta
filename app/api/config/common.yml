@@ -2,6 +2,6 @@ db:
   db-name: nivalta_test
   host: nivalta-test-db.cnckemmgqzy7.us-west-2.rds.amazonaws.com
 aws_session:
-  aws_access_key_id: ASIA6GBMARJ6GPGUFU7W
-  aws_secret_access_key: YsmyiPy/c2DeMZMtXn9Qc3Uj4ki96n2Za44GnKhW
-  aws_session_token: IQoJb3JpZ2luX2VjEOb//////////wEaCXVzLXdlc3QtMiJGMEQCIGOrCNor4GN0drPZ1L/KQom8dVXgtti/mkFqsH6lVWA0AiBp6CsAm6Cu8htRvfSsaUbnhiZ7k/hYjfhmleBK0xTmNCr0Agj+//////////8BEAAaDDk3NTA0OTg4NjMzMiIMrBJChLbRW8dDw/tpKsgCdkCSvmHy5c88cW7YPqUrm6qskHnc2e/FDtmizZo/+ypdA2cAeoEg+Rl2cuFzdycDKarQRlZuWMHXBLuiKyMkW5ml1FCsm1zuWfJ4+1VhMntHgHH4laL/jAL5XYZKgRdJ+GDHmNH0C4gyAPT42/oP82PiGwF+511840GqnmEUQj1W71I9SerLMgMf1otUaSZ9N6NXDAx//UOmiCXcD19C/NWeaT4cq3mWQcFjiD2MbYPbenn4bDFPFyIzJzwm/5p+UdUkwaQJBzxXnIKEl+hNrrwy4D3RmBzMDFu0EuFwsCJdkoohNwAJ3kLs2y0TOWQS9eob06fvl0YVa4etTlj06kAf16B/rGom/sjomrLqIcAKjmjNtOZ1ax2U1DNEd9fqn1Nby1g6m84iWP2SG7tvxDSprS6xrT5Fqs9mTgGXa9Mnxa3mMqxigjDeoeq2BjqoAesmDNQW0WG0JjK7yIKaB2qU6JZfLWiOV2M7pG/5sYCPtsa5U1ASbsn0kzk5am9GZsXFU4kv8rPcwc+eQ1D+U6TaVUWLUk7f5PlLfbso4C51nfXEFBPVMjcbjcyK3kPrJWCxnl+HMqjGI9VOqKNafr8csh9vRv3GT125aU6m8MZuZNm58Wupo9irll0zk/j/SMgGqZfMg/dJPgy7IpvORh+agGNqBeji2Q==
+  aws_access_key_id: null
+  aws_secret_access_key: null
+  aws_session_token: null
