@@ -31,8 +31,7 @@ export const csrf = async () => {
     }
 }
 
-export const login = async (userEmail: string, password: string) => {
-    const csrfToken = await csrf();
+export const login = async (csrfToken: string, userEmail: string, password: string) => {
     try {
         const res = await fetch("/api/login", {
             method: "POST",
