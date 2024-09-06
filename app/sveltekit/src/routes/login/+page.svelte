@@ -1,11 +1,5 @@
 <script lang="ts">
     import LoginCard from "$lib/components/LoginCard.svelte";
-	import { onMount } from "svelte";
-    /** @type {import('./$types').PageData} */
-	export let data;
-    
-	let csrfToken: string | null = data.csrfToken;
-    console.log("Login Page token: " + csrfToken)
 </script>
 
 <header class="absolute">
@@ -21,7 +15,7 @@
         <p class="text-white font-sans text-2xl text-wrap text-center">Discover the power of personalized health insights and seamless tracking with Nivalta.</p>
     </div>
     <div class="rounded-lg">
-        <LoginCard bind:csrfToken/>
+        <LoginCard/>
     </div>
 
 </main>
