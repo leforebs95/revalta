@@ -1,7 +1,6 @@
 import os
 import logging
 import json
-import secrets
 import yaml
 
 import boto3

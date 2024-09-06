@@ -47,10 +47,6 @@ def register_session_routes(app, db, bcrypt, logger):
 
     @app.route("/api/login", methods=["POST"])
     def login():
-        import hashlib
-
-        crsf_token = request.headers.get("X-Csrftoken")
-        logger.info(f"Login CSRFToken: {crsf_token}")
         login_data = request.json
         logger.info(f"login_data: {login_data}")
         user_email = login_data.get("userEmail")
