@@ -8,9 +8,6 @@ services:
   svelte-server:
     stdin_open: true
     build: ./app/sveltekit
-    volumes:
-      - ./app/sveltekit:/usr/src/sveltekit
-      - /usr/src/sveltekit/node_modules
     expose:
       - 8080
     depends_on:

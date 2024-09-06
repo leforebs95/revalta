@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { csrf, getSession, login } from '../session_data';
+	import { login } from '../session_data';
 	import { goto } from '$app/navigation';
 	import { isOverlayOpen } from '../../stores/Overlay';
 
