@@ -14,7 +14,6 @@
 	let isAuthenticated: boolean = false;
 
 	const csrfToken: string | null = data.csrfToken;
-	console.log('SignUp page token: ' + csrfToken);
 
 	const validatePassword = () => {
 		if (password !== confirmPassword) {

@@ -7,14 +7,11 @@ export async function load(){
         let csrfToken = window.sessionStorage.getItem('csrfToken');
 
         const validation =  await validatecsrf(csrfToken);
-        console.log("Current csrf token status: " + validation)
         if (!validation) {
             csrfToken = await getCsrf();
-            console.log("New csrf token: " + csrfToken)
             window.sessionStorage.setItem('csrfToken', csrfToken)
         }
         
-        console.log("Current CSRF Token is: " + csrfToken)
         return {
             csrfToken: csrfToken
         }
