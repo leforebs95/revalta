@@ -40,10 +40,6 @@ def create_app():
     # Use an environment variable for the secret key
     secret_key = os.environ.get("FLASK_SECRET_KEY")
 
-    # if not secret_key:
-    # If the environment variable is not set, generate a new key
-
-    logger.info(f"Secret Key: {secret_key}")
     app.config.update(
         SECRET_KEY=secret_key,
         SESSION_COOKIE_HTTPONLY=True,
