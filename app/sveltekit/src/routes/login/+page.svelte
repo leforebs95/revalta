@@ -8,9 +8,9 @@
 </script>
 
 <header class="absolute">
-    <div class="mt-10 mb-10 ml-10 col-span-1 text-whisper font-sans font-bold text-4xl">
+    <button class="mt-10 mb-10 ml-10 col-span-1 text-whisper font-sans font-bold text-4xl" on:click={() => {window.location.href = '/'}}>
         Nivalta
-    </div>
+    </button>
 </header>
 
 
