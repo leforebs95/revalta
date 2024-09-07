@@ -38,10 +38,8 @@
 				</button>
 			</div>
 			<div class="hidden lg:flex lg:gap-x-12">
-				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Product</a>
-				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Features</a>
-				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Marketplace</a>
-				<a href="/" class="text-sm font-semibold leading-6 text-gray-900">Company</a>
+				<a href="/product" class="text-sm font-semibold leading-6 text-gray-900">Product</a>
+				<a href="/about_us" class="text-sm font-semibold leading-6 text-gray-900">About Us</a>
 			</div>
 			<div class="hidden lg:flex lg:flex-1 lg:justify-end">
 				<a
@@ -146,11 +144,11 @@
 					</p>
 					<div class="mt-10 flex items-center justify-center gap-x-6">
 						<a
-							href="/"
+							href="/signup"
 							class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 							>Get started</a
 						>
-						<a href="/" class="text-sm font-semibold leading-6 text-gray-900"
+						<a href="/product" class="text-sm font-semibold leading-6 text-gray-900"
 							>Learn more <span aria-hidden="true">→</span></a
 						>
 					</div>
@@ -197,13 +195,13 @@
 						>
 							<div class="lg:pr-4">
 								<div class="lg:max-w-lg">
-									<p class="text-base font-semibold leading-7 text-indigo-600">Deploy faster</p>
+									<p class="text-base font-semibold leading-7 text-indigo-600">Profile your Health</p>
 									<h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-										A better workflow
+										A better health journal
 									</h1>
 									<p class="mt-6 text-xl leading-8 text-gray-700">
-										Aliquet nec orci mattis amet quisque ullamcorper neque, nibh sem. At arcu, sit
-										dui mi, nibh dui, diam eget aliquam. Quisque id at vitae feugiat egestas.
+										Nivalta provides you with a single repository to store and manage all information about your personal health.
+										From personal symptom logging to tracking your family health history, Nivalta empowers you to track and monitor your health.
 									</p>
 								</div>
 							</div>
@@ -223,11 +221,10 @@
 							<div class="lg:pr-4">
 								<div class="max-w-xl text-base leading-7 text-gray-700 lg:max-w-lg">
 									<p>
-										Faucibus commodo massa rhoncus, volutpat. Dignissim sed eget risus enim. Mattis
-										mauris semper sed amet vitae sed turpis id. Id dolor praesent donec est. Odio
-										penatibus risus viverra tellus varius sit neque erat velit. Faucibus commodo
-										massa rhoncus, volutpat. Dignissim sed eget risus enim. Mattis mauris semper sed
-										amet vitae sed turpis id.
+										With Nivalta you can build a comprehensive health profile. Nivalta supports building out a
+										family health tree, logging your own daily symptoms, uploading health documents and more! We
+										believe developing these complete profiles will enable patients to approach doctors with a better
+										idea of the health issues they are facing.
 									</p>
 									<ul role="list" class="mt-8 space-y-8 text-gray-600">
 										<li class="flex gap-x-3">
