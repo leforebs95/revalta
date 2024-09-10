@@ -10,8 +10,6 @@ from flask_login import (
     logout_user,
 )
 
-from flask_wtf.csrf import CSRFProtect, generate_csrf
-
 from models import User
 
 
