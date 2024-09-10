@@ -30,18 +30,18 @@ aws ecr get-login-password --region $REGION | docker login --username AWS --pass
 
 NGINX_URI="nginx_proxy"
 docker build -t $NGINX_URI ../nginx/
-docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
+docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
 
 SVELTE_URI="sveltekit_server"
 docker build -t $SVELTE_URI ../app/sveltekit/
-docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
+docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
 
 FLASK_URI="flask_server"
 docker build -t $FLASK_URI ../app/api/
-docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
+docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
 
 # Build container definitions
 CPU=256
