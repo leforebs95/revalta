@@ -28,32 +28,32 @@ ECR_DOMAIN="975049886332.dkr.ecr.$REGION.amazonaws.com"
 
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_DOMAIN
 
-NGINX_URI="nginx_proxy"
-docker build -t $NGINX_URI ../nginx/
-docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
+NGINX_URI="nivalta/nginx-proxy"
+docker build -t $NGINX_URI:$GIT_BRANCH ../nginx/
+docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
 
-SVELTE_URI="sveltekit_server"
-docker build -t $SVELTE_URI ../app/sveltekit/
-docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
+SVELTE_URI="nivalta/sveltekit-server"
+docker build -t $SVELTE_URI:$GIT_BRANCH ../app/sveltekit/
+docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
 
-FLASK_URI="flask_server"
-docker build -t $FLASK_URI ../app/api/
-docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
-docker push $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
+FLASK_URI="nivalta/flask-server"
+docker build -t $FLASK_URI:$GIT_BRANCH ../app/api/
+docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
 
 # Build container definitions
 CPU=256
 MEMORY=512
 
 NGINX_IMAGE_URL="$ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH"
-NGINX_TEMPLATE_FILE="../infra/nginx_container.template.json"
+NGINX_TEMPLATE_FILE="../infra/nginx_proxy.template.json"
 NGINX_CONTAINER=$(
     jq \
         --arg image "$NGINX_IMAGE_URL" \
-        --arg cpu "$CPU" \
-        --arg memory "$MEMORY" \
+        --argjson cpu $CPU \
+        --argjson memory $MEMORY \
         '.image = $image | .cpu = $cpu | .memory = $memory' \
         $NGINX_TEMPLATE_FILE
 )
@@ -63,8 +63,8 @@ SVELTE_TEMPLATE_FILE="../infra/sveltekit_server.template.json"
 SVELTE_CONTAINER=$(
     jq \
         --arg image "$SVELTE_IMAGE_URL" \
-        --arg cpu "$CPU" \
-        --arg memory "$MEMORY" \
+        --argjson cpu $CPU \
+        --argjson memory $MEMORY \
         '.image = $image | .cpu = $cpu | .memory = $memory' \
         $SVELTE_TEMPLATE_FILE
 )
@@ -74,8 +74,8 @@ FLASK_TEMPLATE_FILE="../infra/flask_server.template.json"
 FLASK_CONTAINER=$(
     jq \
         --arg image "$FLASK_IMAGE_URL" \
-        --arg cpu "$CPU" \
-        --arg memory "$MEMORY" \
+        --argjson cpu $CPU \
+        --argjson memory $MEMORY \
         '.image = $image | .cpu = $cpu | .memory = $memory' \
         $FLASK_TEMPLATE_FILE
 )
@@ -89,7 +89,7 @@ CONTAINER_DEFINITIONS=$(
         '[$svelte, $flask, $nginx]'
 )
 
-TASK_DEFINITION_FILE="../infra/web_app_definition.template.json"
+TASK_DEFINITION_FILE="../infra/nivalta_production.template.json"
 
 # Create task definition
 TASK_DEFINITION=$(
