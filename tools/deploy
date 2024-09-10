@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# Parse command line arguments
+REGION="us-west-2" # Default value
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+    --git-branch)
+        GIT_BRANCH="$2"
+        shift
+        ;;
+    --region)
+        REGION="$2"
+        shift
+        ;;
+    *)
+        # Unknown option
+        echo "Unknown option: $key"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+git checkout $GIT_BRANCH
+
+ECR_DOMAIN="975049886332.dkr.ecr.$REGION.amazonaws.com"
+
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_DOMAIN
+
+NGINX_URI="nginx_proxy"
+docker build -t $NGINX_URI ../nginx/
+docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$NGINX_URI:$GIT_BRANCH
+
+SVELTE_URI="sveltekit_server"
+docker build -t $SVELTE_URI ../app/sveltekit/
+docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$SVELTE_URI:$GIT_BRANCH
+
+FLASK_URI="flask_server"
+docker build -t $FLASK_URI ../app/api/
+docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/nivalta/$FLASK_URI:$GIT_BRANCH
+
+# Build container definitions
+CPU=256
+MEMORY=512
+
+NGINX_IMAGE_URL="$ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH"
+NGINX_TEMPLATE_FILE="../infra/nginx_container.template.json"
+NGINX_CONTAINER=$(
+    jq \
+        --arg image "$NGINX_IMAGE_URL" \
+        --arg cpu "$CPU" \
+        --arg memory "$MEMORY" \
+        '.image = $image | .cpu = $cpu | .memory = $memory' \
+        $NGINX_TEMPLATE_FILE
+)
+
+SVELTE_IMAGE_URL="$ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH"
+SVELTE_TEMPLATE_FILE="../infra/sveltekit_server.template.json"
+SVELTE_CONTAINER=$(
+    jq \
+        --arg image "$SVELTE_IMAGE_URL" \
+        --arg cpu "$CPU" \
+        --arg memory "$MEMORY" \
+        '.image = $image | .cpu = $cpu | .memory = $memory' \
+        $SVELTE_TEMPLATE_FILE
+)
+
+FLASK_IMAGE_URL="$ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH"
+FLASK_TEMPLATE_FILE="../infra/flask_server.template.json"
+FLASK_CONTAINER=$(
+    jq \
+        --arg image "$FLASK_IMAGE_URL" \
+        --arg cpu "$CPU" \
+        --arg memory "$MEMORY" \
+        '.image = $image | .cpu = $cpu | .memory = $memory' \
+        $FLASK_TEMPLATE_FILE
+)
+
+# Ensure CONTAINER_DEFINITIONS is a proper JSON string
+CONTAINER_DEFINITIONS=$(
+    jq -n \
+        --argjson svelte "$SVELTE_CONTAINER" \
+        --argjson flask "$FLASK_CONTAINER" \
+        --argjson nginx "$NGINX_CONTAINER" \
+        '[$svelte, $flask, $nginx]'
+)
+
+TASK_DEFINITION_FILE="../infra/web_app_definition.template.json"
+
+# Create task definition
+TASK_DEFINITION=$(
+    jq \
+        --argjson containers "$CONTAINER_DEFINITIONS" \
+        '.containerDefinitions = $containers' \
+        $TASK_DEFINITION_FILE
+)
+
+# Register a new task definition revision
+TASK_DEFINITION_ARN=$(
+    aws ecs register-task-definition \
+        --cli-input-json "$TASK_DEFINITION" \
+        --query 'taskDefinition.taskDefinitionArn' \
+        --output text
+)
+
+# Update an ECS service to use this task definition.
+CLUSTER="ProductionWebApp"
+SERVICE="web-app"
+
+aws ecs update-service \
+    --cluster $CLUSTER \
+    --service $SERVICE \
+    --task-definition $TASK_DEFINITION_ARN
