@@ -1,5 +1,5 @@
 {
-    "family": "web_nginx",
+    "family": "nivalta-production",
     "containerDefinitions": null,
     "taskRoleArn": "arn:aws:iam::975049886332:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::975049886332:role/ecsTaskExecutionRole"

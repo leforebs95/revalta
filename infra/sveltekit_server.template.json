@@ -1,8 +1,8 @@
 {
   "name": "svelte-server",
-  "image": "975049886332.dkr.ecr.us-west-2.amazonaws.com//nivalta_ui_server:production_240909",
-  "cpu": "256",
-  "memory": "512",
+  "image": null,
+  "cpu": null,
+  "memory": null,
   "portMappings": [],
   "essential": true,
   "environment": [],

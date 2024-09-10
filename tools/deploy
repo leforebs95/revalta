@@ -22,33 +22,28 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-# Put in your own ECR repository URI
+git checkout $GIT_BRANCH
+
 ECR_DOMAIN="975049886332.dkr.ecr.$REGION.amazonaws.com"
-NGINX_URI="nivalta_nginx"
-SVELTE_URI="nivalta_ui_server"
-FLASK_URI="nivalta_web_server"
 
-# Define an array of URIs
-URIS=(
-    $NGINX_URI
-    $SVELTE_URI
-    $FLASK_URI
-)
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_DOMAIN
 
-# aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_DOMAIN
+NGINX_URI="nginx_proxy"
+docker build -t $NGINX_URI ../nginx/
+docker tag $NGINX_URI:$GIT_BRANCH $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$NGINX_URI:$GIT_BRANCH
 
-# Iterate over the URIs and perform the desired operations
-# for URI in "${URIS[@]}"; do
-#     # Docker Login
+SVELTE_URI="sveltekit_server"
+docker build -t $SVELTE_URI ../app/sveltekit/
+docker tag $SVELTE_URI:$GIT_BRANCH $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH
 
-#     # Build and push the container image using Docker CLI
-#     docker build -t $URI .
-#     docker tag $URI:$GIT_BRANCH $ECR_DOMAIN/$URI:$GIT_BRANCH
-#     docker push $ECR_DOMAIN/$URI:$GIT_BRANCH
+FLASK_URI="flask_server"
+docker build -t $FLASK_URI ../app/api/
+docker tag $FLASK_URI:$GIT_BRANCH $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
+docker push $ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH
 
-# done
-
-# Build a container definitions
+# Build container definitions
 CPU=256
 MEMORY=512
 
@@ -64,7 +59,7 @@ NGINX_CONTAINER=$(
 )
 
 SVELTE_IMAGE_URL="$ECR_DOMAIN/$SVELTE_URI:$GIT_BRANCH"
-SVELTE_TEMPLATE_FILE="../infra/svelte_container.template.json"
+SVELTE_TEMPLATE_FILE="../infra/sveltekit_server.template.json"
 SVELTE_CONTAINER=$(
     jq \
         --arg image "$SVELTE_IMAGE_URL" \
@@ -75,7 +70,7 @@ SVELTE_CONTAINER=$(
 )
 
 FLASK_IMAGE_URL="$ECR_DOMAIN/$FLASK_URI:$GIT_BRANCH"
-FLASK_TEMPLATE_FILE="../infra/flask_container.template.json"
+FLASK_TEMPLATE_FILE="../infra/flask_server.template.json"
 FLASK_CONTAINER=$(
     jq \
         --arg image "$FLASK_IMAGE_URL" \
@@ -94,8 +89,9 @@ CONTAINER_DEFINITIONS=$(
         '[$svelte, $flask, $nginx]'
 )
 
-TASK_DEFINITION_FILE="../infra/web_nginx_definition.template.json"
+TASK_DEFINITION_FILE="../infra/web_app_definition.template.json"
 
+# Create task definition
 TASK_DEFINITION=$(
     jq \
         --argjson containers "$CONTAINER_DEFINITIONS" \
@@ -103,21 +99,19 @@ TASK_DEFINITION=$(
         $TASK_DEFINITION_FILE
 )
 
-echo $TASK_DEFINITION
+# Register a new task definition revision
+TASK_DEFINITION_ARN=$(
+    aws ecs register-task-definition \
+        --cli-input-json "$TASK_DEFINITION" \
+        --query 'taskDefinition.taskDefinitionArn' \
+        --output text
+)
 
-# # Register a new task definition revision
-# TASK_DEFINITION_ARN=$(
-#     aws ecs register-task-definition \
-#         --cli-input-json "$TASK_DEFINITION" \
-#         --query 'taskDefinition.taskDefinitionArn' \
-#         --output text
-# )
+# Update an ECS service to use this task definition.
+CLUSTER="ProductionWebApp"
+SERVICE="web-app"
 
-# # Update an ECS service to use this task definition.
-# CLUSTER="default"
-# SERVICE="my-app"
-
-# aws ecs update-service \
-#     --cluster $CLUSTER \
-#     --service $SERVICE \
-#     --task-definition $TASK_DEFINITION_ARN
+aws ecs update-service \
+    --cluster $CLUSTER \
+    --service $SERVICE \
+    --task-definition $TASK_DEFINITION_ARN
