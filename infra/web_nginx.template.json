@@ -104,7 +104,7 @@
                 "condition": "HEALTHY"
               },
               {
-                "containerName": "svelte-server",
+                "containerName": "sveltekit-server",
                 "condition": "HEALTHY"
               }
             ],
