@@ -52,11 +52,11 @@ jobs:
       matrix:
         include:
           - ecr_repository: nivalta/sveltekit-server
-            docker_file: ../../app/sveltekit/Dockerfile
+            docker_file: ./app/sveltekit/Dockerfile
           - ecr_repository: nivalta/flask-server
-            docker_file: ../../app/api/Dockerfile
+            docker_file: ./app/api/Dockerfile
           - ecr_repository: nivalta/nginx-proxy
-            docker_file: ../../nginx/Dockerfile
+            docker_file: ./nginx/Dockerfile
 
     steps:
     - name: Checkout
