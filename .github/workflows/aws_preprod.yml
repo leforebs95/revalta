@@ -34,7 +34,7 @@ env:
   AWS_REGION: us-west-2
   ECS_SERVICE: nivalta-web-app
   ECS_CLUSTER: DevWebApp
-  ECS_TASK_DEFINITION: infra/nivalta_production_w_containers.template.json
+  ECS_TASK_DEFINITION: infra/web_nginx.template.json
   
   FLASK_CONTAINER_NAME: flask-server
   NGINX_CONTAINER_NAME: nginx                         
@@ -95,7 +95,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-        CONTAINER_NAME: svelte-server
+        CONTAINER_NAME: sveltekit-server
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.CONTAINER_NAME }}
