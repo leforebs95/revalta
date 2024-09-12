@@ -121,9 +121,6 @@ jobs:
         task-definition: ${{ steps.render-flask-container.outputs.task-definition }}
         container-name: ${{ env.NGINX_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.NGINX_CONTAINER_NAME }}:$IMAGE_TAG
-
-    - name: Validate Amazon ECS task definition
-      run: echo ${{ steps.render-nginx-container.outputs.task-definition }}
     
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
