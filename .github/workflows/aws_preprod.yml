@@ -34,7 +34,7 @@ env:
   AWS_REGION: us-west-2
   ECS_SERVICE: nivalta-web-app
   ECS_CLUSTER: DevWebApp
-  ECS_TASK_DEFINITION: ../../infra/nivalta_production_w_containers.template.json
+  ECS_TASK_DEFINITION: infra/nivalta_production_w_containers.template.json
   SVELTE_CONTAINER_NAME: svelte-server
   FLASK_CONTAINER_NAME: flask-server
   NGINX_CONTAINER_NAME: nginx                         
@@ -93,7 +93,7 @@ jobs:
       id: render-svelte-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: infra/nivalta_production_w_containers.template.json
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.SVELTE_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}
 
@@ -101,7 +101,7 @@ jobs:
       id: render-flask-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        task-definition: ${{ steps.render-svelte-container.outputs.task-definition }}
         container-name: ${{ env.FLASK_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.FLASK_CONTAINER_NAME }}
 
@@ -109,14 +109,14 @@ jobs:
       id: render-nginx-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        task-definition: ${{ steps.render-flask-container.outputs.task-definition }}
         container-name: ${{ env.NGINX_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.NGINX_CONTAINER_NAME }}:$IMAGE_TAG
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        task-definition: ${{ steps.render-nginx-container.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
