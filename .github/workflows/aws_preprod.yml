@@ -35,7 +35,7 @@ env:
   ECS_SERVICE: nivalta-web-app
   ECS_CLUSTER: DevWebApp
   ECS_TASK_DEFINITION: ../../infra/nivalta_production_w_containers.template.json
-  SVELTE_CONTAINER_NAME: svlete-server
+  SVELTE_CONTAINER_NAME: svelte-server
   FLASK_CONTAINER_NAME: flask-server
   NGINX_CONTAINER_NAME: nginx                         
 
