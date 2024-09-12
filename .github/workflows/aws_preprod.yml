@@ -92,27 +92,39 @@ jobs:
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: render-svelte-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.SVELTE_CONTAINER_NAME }}
-        image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}
+        image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}:$IMAGE_TAG
 
     - name: Modify Amazon ECS task definition with Flask container
       id: render-flask-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       with:
         task-definition: ${{ steps.render-svelte-container.outputs.task-definition }}
         container-name: ${{ env.FLASK_CONTAINER_NAME }}
-        image: $ECR_REGISTRY/nivalta/${{ env.FLASK_CONTAINER_NAME }}
+        image: $ECR_REGISTRY/nivalta/${{ env.FLASK_CONTAINER_NAME }}:$IMAGE_TAG
 
     - name: Modify Amazon ECS task definition with NGINX container
       id: render-nginx-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       with:
         task-definition: ${{ steps.render-flask-container.outputs.task-definition }}
         container-name: ${{ env.NGINX_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.NGINX_CONTAINER_NAME }}:$IMAGE_TAG
 
+    - name: Validate Amazon ECS task definition
+      run: echo ${{ steps.render-nginx-container.outputs.task-definition }}
+    
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
