@@ -90,11 +90,11 @@ jobs:
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
     - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
+      id: render-svelte-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: task-definition.json
-        container-name: web
+        task-definition: infra/nivalta_production_w_containers.template.json
+        container-name: ${{ env.SVELTE_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}
 
     - name: Modify Amazon ECS task definition with Flask container
