@@ -67,7 +67,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
     
-      - name: Build, tag, and push image to Amazon ECR
+    - name: Build, tag, and push image to Amazon ECR
       id: build-svelte-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -89,7 +89,7 @@ jobs:
         container-name: web
         image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}
 
-    name: Modify Amazon ECS task definition with Flask container
+    - name: Modify Amazon ECS task definition with Flask container
       id: render-flask-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
@@ -97,7 +97,7 @@ jobs:
         container-name: ${{ env.FLASK_CONTAINER_NAME }}
         image: $ECR_REGISTRY/nivalta/${{ env.FLASK_CONTAINER_NAME }}
 
-      name: Modify Amazon ECS task definition with NGINX container
+    - name: Modify Amazon ECS task definition with NGINX container
       id: render-nginx-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
