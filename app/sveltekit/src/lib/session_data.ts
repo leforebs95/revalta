@@ -92,7 +92,7 @@ export const login = async (csrfToken: string, userEmail: string, password: stri
         const data = await res.json();
         console.log(data);
         if (data.login == true) {
-            return true;
+            return data;
         } else {
             return false;
         }

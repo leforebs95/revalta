@@ -60,7 +60,7 @@ def register_session_routes(app, db, bcrypt, logger):
             login_status = True
         else:
             return jsonify({"login": login_status, "message": "Invalid Password"}), 401
-        return jsonify({"login": login_status}), 200
+        return jsonify({"login": login_status, "user": user.to_json()}), 200
 
     @app.route("/api/getsession")
     def check_session():
