@@ -1,0 +1,145 @@
+{
+    "family": "nivalta-production",
+    "containerDefinitions": [
+        {
+            "name": "svelte-server",
+            "image": null,
+            "cpu": null,
+            "memory": null,
+            "portMappings": [],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+              "logDriver": "awslogs",
+              "options": {
+                "awslogs-group": "/ecs/web_nginx",
+                "awslogs-create-group": "true",
+                "awslogs-region": "us-west-2",
+                "awslogs-stream-prefix": "ecs"
+              },
+              "secretOptions": []
+            },
+            "healthCheck": {
+              "command": [
+                "CMD-SHELL",
+                "curl -f http://localhost:8080 || exit 1"
+              ],
+              "interval": 30,
+              "timeout": 5,
+              "retries": 3,
+              "startPeriod": 60
+            },
+            "systemControls": []
+        },
+        {
+            "name": "flask-server",
+            "image": null,
+            "cpu": null,
+            "memory": null,
+            "portMappings": [],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/web_nginx",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "us-west-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:5000/api/version || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3
+            },
+            "systemControls": []
+        },
+        {
+            "name": "nginx",
+            "image": null,
+            "cpu": null,
+            "memory": null,
+            "portMappings": [
+              {
+                "name": "nginx-80-tcp",
+                "containerPort": 80,
+                "hostPort": 80,
+                "protocol": "tcp",
+                "appProtocol": "http"
+              },
+              {
+                "name": "nginx-443-tcp",
+                "containerPort": 443,
+                "hostPort": 443,
+                "protocol": "tcp",
+                "appProtocol": "http"
+              }
+            ],
+            "essential": true,
+            "environment": [
+              {
+                "name": "FLASK_HOST",
+                "value": "localhost"
+              },
+              {
+                "name": "SVELTE_HOST",
+                "value": "localhost"
+              }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "dependsOn": [
+              {
+                "containerName": "flask-server",
+                "condition": "HEALTHY"
+              },
+              {
+                "containerName": "svelte-server",
+                "condition": "HEALTHY"
+              }
+            ],
+            "logConfiguration": {
+              "logDriver": "awslogs",
+              "options": {
+                "awslogs-group": "/ecs/web_nginx",
+                "awslogs-create-group": "true",
+                "awslogs-region": "us-west-2",
+                "awslogs-stream-prefix": "ecs"
+              },
+              "secretOptions": []
+            },
+            "healthCheck": {
+              "command": [
+                "CMD-SHELL",
+                "curl -f http://localhost:80 || exit 1"
+              ],
+              "interval": 30,
+              "timeout": 5,
+              "retries": 3
+            },
+            "systemControls": []
+          }                    
+    ],
+    "taskRoleArn": "arn:aws:iam::975049886332:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::975049886332:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "3072",
+    "runtimePlatform": {
+        "cpuArchitecture": "ARM64",
+        "operatingSystemFamily": "LINUX"
+    }
+}
