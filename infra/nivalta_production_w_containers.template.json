@@ -4,8 +4,8 @@
         {
             "name": "svelte-server",
             "image": null,
-            "cpu": null,
-            "memory": null,
+            "cpu": 256,
+            "memory": 512,
             "portMappings": [],
             "essential": true,
             "environment": [],
@@ -36,8 +36,8 @@
         {
             "name": "flask-server",
             "image": null,
-            "cpu": null,
-            "memory": null,
+            "cpu": 256,
+            "memory": 512,
             "portMappings": [],
             "essential": true,
             "environment": [],
@@ -67,8 +67,8 @@
         {
             "name": "nginx",
             "image": null,
-            "cpu": null,
-            "memory": null,
+            "cpu": 256,
+            "memory": 512,
             "portMappings": [
               {
                 "name": "nginx-80-tcp",
