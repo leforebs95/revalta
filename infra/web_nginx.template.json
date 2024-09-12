@@ -65,7 +65,7 @@
             "systemControls": []
         },
         {
-            "name": "nginx",
+            "name": "nginx-proxy",
             "image": null,
             "cpu": 256,
             "memory": 512,

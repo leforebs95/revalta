@@ -119,7 +119,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-        CONTAINER_NAME: nginx
+        CONTAINER_NAME: nginx-proxy
       with:
         task-definition: ${{ steps.render-flask-container.outputs.task-definition }}
         container-name: ${{ env.CONTAINER_NAME }}
