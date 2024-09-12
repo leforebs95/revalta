@@ -24,30 +24,33 @@
 #    See the documentation for each action used below for the recommended IAM policies for this IAM user,
 #    and best practices on handling the access key credentials.
 
-name: Deploy to Amazon ECS
+name: Deploy Nginx, Sveltekit, and Flask to Production Amazon ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "production_*" ]
 
 env:
-  AWS_REGION: us-west-2                  # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: 975049886332.dkr.ecr.us-west-2.amazonaws.com           # set this to your Amazon ECR repository name
-  ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
-                                               # file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
-                                               # containerDefinitions section of your task definition
+  AWS_REGION: us-west-2
+  ECS_SERVICE: web-app
+  ECS_CLUSTER: ProductionWebApp
+  ECS_TASK_DEFINITION: ../../infra/nivalta_production_w_containers.template.json
+  SVELTE_CONTAINER_NAME: svlete-server
+  FLASK_CONTAINER_NAME: flask-server
+  NGINX_CONTAINER_NAME: nginx                         
 
 permissions:
   contents: read
 
 jobs:
   deploy:
-    name: Deploy
+    name: DeployFlask
     runs-on: ubuntu-latest
     environment: production
+
+    strategy:
+      matrix:
+        ecr_repository: [nivalta/sveltekit-server, nivalta/flask-server, nivalta/nginx-proxy]
 
     steps:
     - name: Checkout
@@ -63,12 +66,13 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
+    
+      - name: Build, tag, and push image to Amazon ECR
+      id: build-svelte-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ github.branch }}
+        ECR_REPOSITORY: ${{ matrix.ecr_repository }}
       run: |
         # Build a docker container and
         # push it to ECR so that it can
@@ -81,9 +85,25 @@ jobs:
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.image }}
+        task-definition: task-definition.json
+        container-name: web
+        image: $ECR_REGISTRY/nivalta/${{ env.SVELTE_CONTAINER_NAME }}
+
+    name: Modify Amazon ECS task definition with Flask container
+      id: render-flask-container
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        container-name: ${{ env.FLASK_CONTAINER_NAME }}
+        image: $ECR_REGISTRY/nivalta/${{ env.FLASK_CONTAINER_NAME }}
+
+      name: Modify Amazon ECS task definition with NGINX container
+      id: render-nginx-container
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        container-name: ${{ env.NGINX_CONTAINER_NAME }}
+        image: $ECR_REGISTRY/nivalta/${{ env.NGINX_CONTAINER_NAME }}:$IMAGE_TAG
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
