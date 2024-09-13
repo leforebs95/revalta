@@ -32,12 +32,9 @@ on:
 
 env:
   AWS_REGION: us-west-2
-  ECS_SERVICE: nivalta-web-app
+  ECS_SERVICE: preprod-web-app
   ECS_CLUSTER: DevWebApp
-  ECS_TASK_DEFINITION: infra/web_nginx.template.json
-  
-  FLASK_CONTAINER_NAME: flask-server
-  NGINX_CONTAINER_NAME: nginx                         
+  ECS_TASK_DEFINITION: infra/nivalta_preprod.template.json                  
 
 permissions:
   contents: read
@@ -52,11 +49,11 @@ jobs:
       matrix:
         include:
           - ecr_repository: nivalta/sveltekit-server
-            docker_file: app/sveltekit/
+            docker_file: ./app/sveltekit/
           - ecr_repository: nivalta/flask-server
-            docker_file: app/api/
+            docker_file: ./app/api/
           - ecr_repository: nivalta/nginx-proxy
-            docker_file: nginx/
+            docker_file: ./nginx/
 
     steps:
     - name: Checkout
