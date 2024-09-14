@@ -13,8 +13,6 @@ services:
       - ./app/sveltekit/tsconfig.json:/usr/src/sveltekit/tsconfig.json
       - ./app/sveltekit/svelte.config.js:/usr/src/sveltekit/svelte.config.js
     build: ./app/sveltekit
-    expose:
-      - 8080
     environment:
       - PROD=false
       - HOST=0.0.0.0
