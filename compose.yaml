@@ -3,8 +3,10 @@ services:
     build: ./app/api
     volumes:
       - ./app/api:/usr/src/api
-    expose:
-      - 5000
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
   svelte-server:
     volumes:
       - ./app/sveltekit/src:/usr/src/sveltekit/src

@@ -41,8 +41,11 @@ def get_db_connection_vars(aws_session):
 
 def get_config():
     common_config = read_common_config()
-
-    logging.info(f"Starting AWS Session with: {common_config['aws_session']}")
+    common_config["aws_session"] = {
+        "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "aws_session_token": os.environ.get("AWS_SESSION_TOKEN"),
+    }
 
     aws_session = boto3.session.Session(**common_config["aws_session"])
 

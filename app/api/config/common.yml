@@ -1,7 +1,3 @@
 db:
   db-name: nivalta_test
   host: nivalta-test-db.cnckemmgqzy7.us-west-2.rds.amazonaws.com
-aws_session:
-  aws_access_key_id: null
-  aws_secret_access_key: null
-  aws_session_token: null
