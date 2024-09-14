@@ -6,12 +6,19 @@ services:
     expose:
       - 5000
   svelte-server:
-    stdin_open: true
+    volumes:
+      - ./app/sveltekit/src:/usr/src/sveltekit/src
+      - ./app/sveltekit/static:/usr/src/sveltekit/static
+      - ./app/sveltekit/vite.config.js:/usr/src/sveltekit/vite.config.js
+      - ./app/sveltekit/tsconfig.json:/usr/src/sveltekit/tsconfig.json
+      - ./app/sveltekit/svelte.config.js:/usr/src/sveltekit/svelte.config.js
     build: ./app/sveltekit
     expose:
       - 8080
-    depends_on:
-      - flask-server
+    environment:
+      - PROD=false
+      - HOST=0.0.0.0
+      - PORT=8080
   nginx:
     build: ./nginx
     environment:
