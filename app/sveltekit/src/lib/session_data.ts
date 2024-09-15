@@ -1,5 +1,3 @@
-
-
 export const getSession = async () => {
     try {
         const res = await fetch("/api/getsession", {
@@ -18,30 +16,7 @@ export const getSession = async () => {
     }
 }
 
-export const validatecsrf = async (csrfToken: string) => {
-    try {
-        const res = await fetch("/api/validatecsrf", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken
-            },
-            credentials: "same-origin",
-        });
-        const data = await res.json();
-        console.log(data);
-        if (data.valid == true) {
-            return true;
-        } else {
-            return false;
-        }
-    }catch (err) {
-        console.log(err);
-        return false;
-    }
-}
-
-export const getCsrf = async () => {
+export const csrf = async () => {
     try {
         const res = await fetch("/api/getcsrf", {
             credentials: "same-origin",
@@ -53,30 +28,6 @@ export const getCsrf = async () => {
         return null
     }
 }
-
-
-export const signup = async (csrfToken: string, firstName: string, lastName: string, userEmail: string, password: string) => {
-    try {
-        const res = await fetch('/api/signup', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                firstName,
-                lastName,
-                userEmail,
-                password
-            })
-        });
-        const data = await res.json();
-        console.log('Signup data: ' + data.user_email);
-    } catch (err) {
-        console.log(err);
-    }
-};
 
 export const login = async (csrfToken: string, userEmail: string, password: string) => {
     try {
