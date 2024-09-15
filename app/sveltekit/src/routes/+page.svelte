@@ -57,6 +57,8 @@
     </div>
     </header>
 
+
+    <!-- Hero Section -->
     <div class="relative overflow-hidden pb-32 pt-16 bg-slate-100">
         <div aria-hidden="true" class="absolute inset-x-0 top-0 h-48 from-gray-100"></div>
         <div class="relative">
@@ -74,7 +76,7 @@
                   <h2 class="text-3xl font-bold tracking-tight text-gray-900">Transform your health data into personalized insights</h2>
                   <p class="mt-4 text-lg text-gray-500">Seamlessly combine your health records, symptoms, habits, and history to unlock personalized wellness strategies.</p>
                   <div class="mt-6">
-                    <a href="#" class="inline-flex rounded-3xl border border-transparent bg-nivaltaBlue from-purple-600 to-indigo-600 bg-origin-border px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-indigo-700">Wait List</a>
+                    <a href="#" class="inline-flex rounded-3xl border border-transparent bg-nivaltaBlue  px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:bg-indigo-600">Wait List</a>
                   </div>
                 </div>
               </div>
