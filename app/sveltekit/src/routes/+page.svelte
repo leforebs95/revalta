@@ -1,5 +1,4 @@
 <script>
-	import { HOME } from './../../.svelte-kit/ambient.d.ts';
 
 </script>
 
