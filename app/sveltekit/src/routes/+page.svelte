@@ -118,7 +118,7 @@
                   <h2 class="text-3xl font-bold tracking-tight text-gray-900">Better understand your customers</h2>
                   <p class="mt-4 text-lg text-gray-500">Semper curabitur ullamcorper posuere nunc sed. Ornare iaculis bibendum malesuada faucibus lacinia porttitor. Pulvinar laoreet sagittis viverra duis. In venenatis sem arcu pretium pharetra at. Lectus viverra dui tellus ornare pharetra.</p>
                   <div class="mt-6">
-                    <a href="#" class="inline-flex rounded-md border border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 bg-origin-border px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-indigo-700">Get started</a>
+                    <a href="#" class="inline-flex rounded-md border border-transparent bg-nivaltaBlue  bg-origin-border px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:bg-indigo-600">Get started</a>
                   </div>
                 </div>
               </div>
