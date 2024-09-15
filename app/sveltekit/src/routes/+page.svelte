@@ -9,9 +9,9 @@
         </div>
         <div class="hidden lg:flex lg:gap-x-12">
         <a href="/" class="text-md font-semibold leading-6 text-gray-900">Home</a>
-        <a href="/" class="text-sm font-semibold leading-6 text-gray-900">Features</a>
-        <a href="/" class="text-sm font-semibold leading-6 text-gray-900">About Us</a>
-        <a href="/" class="text-sm font-semibold leading-6 text-gray-900">Contact</a>
+        <a href="/" class="text-md font-semibold leading-6 text-gray-900">Features</a>
+        <a href="/" class="text-md font-semibold leading-6 text-gray-900">About Us</a>
+        <a href="/" class="text-md font-semibold leading-6 text-gray-900">Contact</a>
         </div>
         <div class="flex flex-1 items-center justify-end gap-x-6">
         <a href="/" class="rounded-3xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
