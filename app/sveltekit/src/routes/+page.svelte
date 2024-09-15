@@ -60,7 +60,7 @@
     </div>
     </header>
 
-    <div class="relative overflow-hidden pb-32 pt-16">
+    <div class="relative overflow-hidden pb-32 pt-16 bg-slate-100">
         <div aria-hidden="true" class="absolute inset-x-0 top-0 h-48 from-gray-100"></div>
         <div class="relative">
           <div class="lg:mx-auto lg:grid lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-2 lg:gap-24 lg:px-8">
@@ -75,9 +75,9 @@
                 </div>
                 <div class="mt-6">
                   <h2 class="text-3xl font-bold tracking-tight text-gray-900">Transform your health data into personalized insights</h2>
-                  <p class="mt-4 text-lg text-gray-500">Semper curabitur ullamcorper posuere nunc sed. Ornare iaculis bibendum malesuada faucibus lacinia porttitor. Pulvinar laoreet sagittis viverra duis. In venenatis sem arcu pretium pharetra at. Lectus viverra dui tellus ornare pharetra.</p>
+                  <p class="mt-4 text-lg text-gray-500">Seamlessly combine your health records, symptoms, habits, and history to unlock personalized wellness strategies.</p>
                   <div class="mt-6">
-                    <a href="#" class="inline-flex rounded-md border border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 bg-origin-border px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-indigo-700">Get started</a>
+                    <a href="#" class="inline-flex rounded-3xl border border-transparent bg-nivaltaBlue from-purple-600 to-indigo-600 bg-origin-border px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-indigo-700">Wait List</a>
                   </div>
                 </div>
               </div>
