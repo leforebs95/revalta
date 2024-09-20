@@ -7,11 +7,11 @@
       NumberSelector,
     } from './SurveyLib';
     
-    // let textAreaValue1;
-    // let textAreaValue2;
-    // const numberSelectorValue = writable<number | null>(null);
-    // let radioGroupValue1;
-    // let radioGroupValue2;
+    let textAreaValue1;
+    let textAreaValue2;
+    const numberSelectorValue = writable<number | null>(null);
+    let radioGroupValue1;
+    let radioGroupValue2;
     
     const timeOptions = ['Morning', 'Afternoon', 'Night'];
     const durationOptions = ['Less than 5 minutes', '5-15 minutes', '15-30 minutes'];
