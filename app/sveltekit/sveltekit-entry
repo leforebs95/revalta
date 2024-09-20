@@ -11,7 +11,7 @@ else
     echo "No Build Required"
 fi
 
-adduser -D sveltekituser && chown -R svelteuser /usr/src/sveltekit
+adduser -D sveltekituser && chown -R sveltekituser /usr/src/sveltekit
 
 if [ $PROD = true ]; then
     echo "Starting Production Grade Sveltekit"
