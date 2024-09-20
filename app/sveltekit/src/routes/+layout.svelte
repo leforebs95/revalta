@@ -36,8 +36,5 @@
 	{/if}
 </header>
 
-<div class="grid min-h-screen grid-cols-12 bg-nivaltaBlue">
-	<main class="col-span-12">
-		<slot />
-	</main>
-</div>
+<slot />
+
