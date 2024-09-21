@@ -1,13 +1,13 @@
-<script>
+<script lang="ts">
   let anchor = '';
 
-  function handleAnchorClick (event) {
+  function handleAnchorClick (event: { preventDefault: () => void; currentTarget: any; }) {
     event.preventDefault()
     const link = event.currentTarget
     const anchorId = new URL(link.href).hash.replace('#', '')
     const anchor = document.getElementById(anchorId)
     window.scrollTo({
-      top: anchor.offsetTop,
+      top: anchor?.offsetTop,
       behavior: 'smooth'
     })
   }
