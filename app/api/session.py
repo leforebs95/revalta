@@ -65,11 +65,14 @@ def register_session_routes(app, db, bcrypt, logger):
     @app.route("/api/getsession")
     def check_session():
         if current_user.is_authenticated:
+            logger.info(f"Current User: {current_user}")
             return jsonify({"login": True})
-
+        logger.info("No current User")
         return jsonify({"login": False})
 
     @app.route("/api/logout")
+    @login_required
     def logout():
+        logger.info(f"Logging out user: {current_user}")
         logout_user()
         return jsonify({"logout": True}), 200

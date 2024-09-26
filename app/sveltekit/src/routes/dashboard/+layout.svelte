@@ -1,5 +1,19 @@
 <script>
 	import '../../app.css';
+  import { afterNavigate, goto } from '$app/navigation';
+  /** @type {import('./$types').LayoutData} */
+	export let data;
+
+  afterNavigate(() => {
+    const session = data.sessionData;
+    console.log('Login Status:', session);
+    if (!session) {
+      goto('/login');
+    }
+  });
+
+  import { logout } from '$lib/session_data';
+
 </script>
 
 
@@ -24,7 +38,9 @@
       <div class="Btn w-[146px] py-2 rounded-[40px] justify-start items-center gap-3 inline-flex">
         <div class="VuesaxLinearFolderOpen w-4 h-4 justify-center items-center flex">
           <div class="FolderOpen w-4 h-4 relative">
-			<img src="/images/vuesax-linear-open-folder.svg">
+			<a href="/dashboard/symptoms">
+				<img src="/images/vuesax-linear-open-folder.svg">
+			</a>
           </div>
         </div>
         <div class="Dashboard grow shrink basis-0 text-[#202020] text-base font-medium font-['Poppins']">
@@ -33,11 +49,14 @@
       <div class="Btn w-[146px] py-2 rounded-[40px] justify-start items-center gap-3 inline-flex">
         <div class="VuesaxLinearTaskSquare w-4 h-4 justify-center items-center flex">
           <div class="TaskSquare w-4 h-4 relative">
+			<a href="/dashboard/lab-results">
 				<img src="/images/vuesax-linear-task-square.svg">
-			</div>
+			</a>
+		  </div>
         </div>
         <div class="Dashboard grow shrink basis-0 text-[#202020] text-base font-medium font-['Poppins']">
-			<a href="/dashboard/lab-results">Lab Results</a></div>
+			<a href="/dashboard/lab-results">Lab Results</a>
+		</div>
       </div>
       <div class="Btn w-[146px] py-2 rounded-[40px] justify-start items-center gap-3 inline-flex">
         <div class="VuesaxLinearPeople w-4 h-4 justify-center items-center flex">
@@ -87,7 +106,9 @@
 			<img src="/images/vuesax-linear-logout.svg">
 		</div>
       </div>
-      <div class="Dashboard grow shrink basis-0 text-[#f13e3e] text-base font-medium font-['Poppins']">Logout</div>
+      <div class="Dashboard grow shrink basis-0 text-[#f13e3e] text-base font-medium font-['Poppins']">
+		<a href="/login" on:click={logout}>Logout</a>
+	</div>
     </div>
   </div>
   <slot />

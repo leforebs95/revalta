@@ -69,7 +69,7 @@
 							login(csrfToken, userEmail, password).then(loginData => {
 								isAuthenticated = loginData.login
 								if (isAuthenticated == true) {
-									goto('/' + loginData.user.userId);
+									goto('/dashboard');
 								}
 						}
 					);	
