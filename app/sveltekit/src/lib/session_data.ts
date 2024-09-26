@@ -6,12 +6,7 @@ export const getSession = async () => {
             credentials: "same-origin",
         });
         const data = await res.json();
-        console.log(data);
-        if (data.login == true) {
-            return true;
-        } else {
-            return false;
-        }
+        return data.login;
     } catch (err) {
         console.log(err);
         return false
@@ -90,14 +85,29 @@ export const login = async (csrfToken: string, userEmail: string, password: stri
             body: JSON.stringify({ userEmail: userEmail, password: password }),
         });
         const data = await res.json();
-        console.log(data);
         if (data.login == true) {
-            return true;
+            return data;
         } else {
             return false;
         }
     } catch (err) {
         console.log(err);
         return false;
+    }
+}
+
+export const logout = async ( ) => {
+    try {
+        const res = await fetch("/api/logout", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+        })
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.log(err);
     }
 }
