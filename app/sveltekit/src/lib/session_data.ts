@@ -67,7 +67,8 @@ export const signup = async (csrfToken: string, firstName: string, lastName: str
             })
         });
         const data = await res.json();
-        console.log('Signup data: ' + data.user_email);
+        console.log("Signup response:" + data);
+        return data;
     } catch (err) {
         console.log(err);
     }
