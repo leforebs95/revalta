@@ -4,10 +4,12 @@
   /** @type {import('./$types').LayoutData} */
 	export let data;
 
+  console.log('Layout Data:', data);
+
   afterNavigate(() => {
     const session = data.sessionData;
     console.log('Login Status:', session);
-    if (!session) {
+    if (!session.login) {
       goto('/login');
     }
   });
