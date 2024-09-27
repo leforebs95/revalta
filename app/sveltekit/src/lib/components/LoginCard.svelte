@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { login } from '../session_data';
 	import { goto } from '$app/navigation';
-	import { isOverlayOpen } from '../../stores/Overlay';
 
 	let userEmail: string;
 	let password: string;
