@@ -34,3 +34,26 @@ class User(db.Model, UserMixin):
 
     def get_id(self):
         return self.user_id
+
+
+class Symptom(db.Model):
+    __tablename__ = "symptoms"
+
+    symptom_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    symptom_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    symptom_description: Mapped[str] = mapped_column(String(255), nullable=False)
+    symptom_duration: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.user_id"))
+
+    user = db.relationship("User", backref=db.backref("symptoms", order_by=symptom_id))
+
+    def __repr__(self) -> str:
+        return super().__repr__()
+
+    def to_json(self):
+        return {
+            "symptomId": self.symptom_id,
+            "symptomName": self.symptom_name,
+            "symptomDescription": self.symptom_description,
+            "symptomDuration": self.symptom_duration,
+        }

@@ -1,20 +1,54 @@
 <script lang="ts">
+    import { goto, afterNavigate } from '$app/navigation';
+    import { callFlaskEndpoint } from '$lib/session_data';
     import { writable } from 'svelte/store';
     import RadioGroup from './RadioGroup.svelte';
     import SurveyQuestion from './SurveyQuestion.svelte';
     import TextArea from './TextArea.svelte';
-    import {
-      NumberSelector,
-    } from './SurveyLib';
-    
-    let textAreaValue1;
-    let textAreaValue2;
-    const numberSelectorValue = writable<number | null>(null);
-    let radioGroupValue1;
-    let radioGroupValue2;
+    import NumberSelector from './NumberSelector.svelte';
+    /** @type {import('./$types').PageData} */
+    export let data;
+
+    // let symptoms;
+    const csrfToken = data.csrfToken;
+    const symptoms = data.symptoms ?? [];
+    console.log(symptoms);
+
+    const addSymptom = async () => {
+        try {
+            const response = await fetch('/api/addSymptom', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "X-CSRFToken": csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    symptomName: $symptomNameValue,
+                    symptomDescription: $symptomDescriptionValue,
+                    numberSelector: $numberSelectorValue,
+                    symptomTime: $symptomTimeValue,
+                    symptomDuration: $symptomDurationValue
+                }),
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    let symptomNameValue = writable<string | null>(null);
+    let symptomDescriptionValue = writable<string | null>(null);
+    let numberSelectorValue = writable<number | null>(null);
+    let symptomTimeValue = writable<string | null>(null);
+    let symptomDurationValue = writable<number | null>(null);
     
     const timeOptions = ['Morning', 'Afternoon', 'Night'];
-    const durationOptions = ['Less than 5 minutes', '5-15 minutes', '15-30 minutes'];
+    const durationOptions = [1, 2, 3];
+
+    function submitSymptomData() {
+        addSymptom();
+    }
+
     </script>
     
     <main class="flex overflow-hidden flex-col items-start px-4 pt-4 pb-20 bg-white">
@@ -22,27 +56,48 @@
       <div class="Example w-[1119px] h-[830px] p-4 left-[360px] top-[73px] absolute bg-white flex-col justify-start items-start inline-flex">
             <section>
                 <SurveyQuestion question="1. Did you experience any symptoms today?"/>
-                <TextArea bind:value={textAreaValue1} />
+                <TextArea bind:value={symptomNameValue} />
             </section>
             
             <section>
-                <SurveyQuestion question="Please describe the symptoms."/>
-                <TextArea bind:value={textAreaValue2} />
+                <SurveyQuestion question="2. Please describe the symptoms."/>
+                <TextArea bind:value={symptomDescriptionValue} />
             </section>
             
             <section>
                 <SurveyQuestion question="3. How many times did you experience this symptom today?"/>
-                <!-- {@html NumberSelector()} -->
+                <NumberSelector bind:value={numberSelectorValue} />
             </section>
             
             <section>
                 <SurveyQuestion question="4. When did this symptom occur?" subtext="Select one option." />
-                <RadioGroup options={timeOptions} name="symptom-time" bind:value={radioGroupValue1} />
+                <RadioGroup options={timeOptions} name="symptom-time" bind:value={symptomTimeValue} />
             </section>
             
             <section>
                 <SurveyQuestion question="5. How long did each episode last?" subtext="Select one option." />
-                <RadioGroup options={durationOptions} name="symptom-duration" bind:value={radioGroupValue2}/>
+                <RadioGroup options={durationOptions} name="symptom-duration" bind:value={symptomDurationValue}/>
             </section>
+            <section>
+                <button on:click={submitSymptomData} class="btn-submit">Submit</button>
+            </section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symptom Name</th>
+                        <th>Symptom Description</th>
+                        <th>Symptom Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each symptoms as symptom}
+                        <tr>
+                            <td>{symptom.symptomName}</td>
+                            <td>{symptom.symptomDescription}</td>
+                            <td>{symptom.symptomDuration}</td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
         </div>
     </main>
