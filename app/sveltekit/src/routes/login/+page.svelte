@@ -1,10 +1,18 @@
 <script lang="ts">
+	import { afterNavigate, goto } from "$app/navigation";
     import LoginCard from "$lib/components/LoginCard.svelte";
-	import { onMount } from "svelte";
     /** @type {import('./$types').PageData} */
 	export let data;
     
 	let csrfToken: string | null = data.csrfToken;
+
+    const session = data.sessionData;
+    afterNavigate(() => {
+        // Redirect to dashboard page if user is logged in
+        if (session.login) {
+            goto('/dashboard');
+        }
+  });
 </script>
 
 <header class="absolute">

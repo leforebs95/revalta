@@ -1,20 +1,26 @@
 <script>
 	import '../../app.css';
   import { afterNavigate, goto } from '$app/navigation';
+  import { callFlaskEndpoint } from '$lib/session_data';
   /** @type {import('./$types').LayoutData} */
 	export let data;
 
-  console.log('Layout Data:', data);
+  const session = data.sessionData;
 
   afterNavigate(() => {
-    const session = data.sessionData;
-    console.log('Login Status:', session);
+    // Redirect to login page if user is not logged in
     if (!session.login) {
       goto('/login');
     }
   });
 
-  import { logout } from '$lib/session_data';
+  export const logout = async ( ) => {
+    callFlaskEndpoint(fetch, '/api/logout', 'GET').then(() => {
+      goto('/login');
+    }).catch((error) => {
+      console.error('Error logging out', error);
+    });
+}
 
 </script>
 
@@ -105,11 +111,12 @@
     <div class="Btn self-stretch py-2 rounded-[40px] justify-start items-center gap-3 inline-flex">
       <div class="VuesaxLinearLogout w-4 h-4 justify-center items-center flex">
         <div class="Logout w-4 h-4 relative">
-			<img src="/images/vuesax-linear-logout.svg" alt="A logout icon">
+          <button  on:click={logout}><img src="/images/vuesax-linear-logout.svg" alt="A logout icon"></button>
+			
 		</div>
       </div>
       <div class="Dashboard grow shrink basis-0 text-[#f13e3e] text-base font-medium font-['Poppins']">
-		<a href="/login" on:click={logout}>Logout</a>
+		<button  on:click={logout}>Logout</button>
 	</div>
     </div>
   </div>

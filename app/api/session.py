@@ -15,13 +15,6 @@ from models import User
 
 def register_session_routes(app, login_manager, db, bcrypt, logger):
 
-    @login_manager.user_loader
-    def user_loader(user_id: str) -> User:
-        logger.info(f"Loading user: {user_id}")
-        user = User.query.get(user_id)
-        logger.info(f"Found user: {user.user_email}")
-        return user
-
     @app.route("/api/version", methods=["GET"])
     def version():
         return jsonify({"version": "0.0.1"})

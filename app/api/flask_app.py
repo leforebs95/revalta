@@ -83,7 +83,14 @@ def create_app():
     login_manager.session_protection = "strong"
     bcrypt.init_app(app)
 
-    # from models import User
+    from models import User
+
+    @login_manager.user_loader
+    def user_loader(user_id: str) -> User:
+        logger.info(f"Loading user: {user_id}")
+        user = User.query.get(int(user_id))
+        logger.info(f"Found user: {user.user_email}")
+        return user
 
     from session import register_session_routes
 
