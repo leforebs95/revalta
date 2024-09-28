@@ -1,11 +1,10 @@
 
 export async function callFlaskEndpoint(fetch, endpoint, method, headers = {}, body = {}) {
-    console.log(`HTTP ${method} to ${endpoint}`, { headers, body });
     const defaultHeaders = {
         "Content-Type": "application/json",
     };
     const combinedHeaders = { ...defaultHeaders, ...headers };
-    console.log(`Combined headers:`, combinedHeaders);
+    console.log(`HTTP ${method} to ${endpoint}`, { combinedHeaders, body });
     try {
         const res = await fetch(endpoint, {
             method: method,
