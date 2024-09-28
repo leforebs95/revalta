@@ -92,9 +92,9 @@ def create_app():
         logger.info(f"Found user: {user.user_email}")
         return user
 
-    from session import register_session_routes
+    from auth import auth as auth_blueprint
 
-    register_session_routes(app, login_manager, db, bcrypt, logger)
+    app.register_blueprint(auth_blueprint)
 
     migrate = Migrate(app, db)
 
