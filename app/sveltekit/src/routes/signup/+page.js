@@ -1,19 +1,13 @@
-import { getCsrf, validatecsrf } from '$lib/session_data';
+import { callFlaskEndpoint } from '$lib/session_data';
+
+export const ssr = false;
 
 /** @type {import('./$types').PageLoad} */
-export async function load(){
-
-    if (typeof window !== 'undefined') {
-        let csrfToken = window.sessionStorage.getItem('csrfToken');
-
-        const validation =  await validatecsrf(csrfToken);
-        if (!validation) {
-            csrfToken = await getCsrf();
-            window.sessionStorage.setItem('csrfToken', csrfToken)
-        }
-        
-        return {
-            csrfToken: csrfToken
-        }
-      }
+export async function load({ fetch}){
+    const sessionData = await callFlaskEndpoint(fetch, "/api/getsession", "GET");
+    const csrfToken = await callFlaskEndpoint(fetch, "/api/getcsrf", "GET");
+    return {
+        sessionData: sessionData?.response_data,
+        csrfToken: csrfToken?.response_headers.get("X-CSRFToken"),
+    }
 }

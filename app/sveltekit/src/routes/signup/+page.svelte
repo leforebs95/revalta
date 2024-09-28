@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { signup, login } from '$lib/session_data';
+	import { callFlaskEndpoint } from '$lib/session_data';
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -11,7 +9,6 @@
 	let userEmail: string;
 	let password: string;
 	let confirmPassword: string;
-	let isAuthenticated: boolean = false;
 
 	const csrfToken: string | null = data.csrfToken;
 
@@ -37,6 +34,33 @@
 			console.log('All fields have values');
 			// You can proceed with the signup logic here
 		}
+	};
+
+	export const signup = async ( ) => {
+		callFlaskEndpoint(fetch, '/api/signup', 'POST',
+			{ "X-CSRFToken": csrfToken },
+			{
+				firstName: firstName,
+				lastName: lastName,
+				userEmail: userEmail,
+				password: password
+			
+		}).then(( signupResponse ) => {
+			let signupData = signupResponse.response_data
+			callFlaskEndpoint(fetch, '/api/login', 'POST',
+				{"X-CSRFToken": csrfToken},
+				{
+					userEmail: signupData.userEmail,
+					password: password
+			}).then((loginResponse) => {
+				const isAuthenticated = loginResponse.response_data.login;
+				if (isAuthenticated == true) {
+					goto('/dashboard');
+				}
+			});
+		}).catch((error) => {
+			console.error('Error signing up:', error);
+		});
 	};
 
 </script>
@@ -140,16 +164,7 @@
 				<button
 					type="button"
 					class="rounded-md bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-					on:click={() => {
-						signup(csrfToken, firstName, lastName, userEmail, password).then(signupData => {
-							login(csrfToken, userEmail, password).then(loginData => {
-								isAuthenticated = loginData.login
-								if (isAuthenticated == true) {
-									goto('/dashboard');
-								}
-							});
-						});
-					}}>Save</button
+					on:click={signup}>Save</button
 				>
 			</div>
 		</form>

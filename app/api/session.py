@@ -13,7 +13,7 @@ from flask_login import (
 from models import User
 
 
-def register_session_routes(app, db, bcrypt, logger):
+def register_session_routes(app, login_manager, db, bcrypt, logger):
 
     @app.route("/api/version", methods=["GET"])
     def version():
@@ -64,10 +64,11 @@ def register_session_routes(app, db, bcrypt, logger):
 
     @app.route("/api/getsession")
     def check_session():
+        logger.info(f"Checking session for: {current_user}")
         if current_user.is_authenticated:
-            logger.info(f"Current User: {current_user}")
+            logger.info(f"Current user active: {current_user.user_email}")
             return jsonify({"login": True})
-        logger.info("No current User")
+        logger.info("No current user active")
         return jsonify({"login": False})
 
     @app.route("/api/logout")

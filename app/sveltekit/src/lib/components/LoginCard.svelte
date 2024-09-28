@@ -1,12 +1,27 @@
 <script lang="ts">
-	import { login } from '../session_data';
+	import { callFlaskEndpoint } from '$lib/session_data';
 	import { goto } from '$app/navigation';
 
 	let userEmail: string;
 	let password: string;
-	let isAuthenticated: boolean = false;
 
 	export let csrfToken: string | null;
+
+	export const login = async () => {
+		callFlaskEndpoint(fetch, '/api/login', 'POST',
+			{"X-CSRFToken": csrfToken},
+			{
+				userEmail: userEmail,
+				password: password
+		}).then((loginResponse) => {
+			const isAuthenticated = loginResponse.response_data.login;
+			if (isAuthenticated == true) {
+				goto('/dashboard');
+			}
+		}).catch((error) => {
+			console.error('Error signing up:', error);
+	});
+};
 </script>
 
 <div
@@ -64,17 +79,7 @@
 					<button
 						type="button"
 						class="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-						on:click={() => {
-							login(csrfToken, userEmail, password).then(loginData => {
-								isAuthenticated = loginData.login
-								if (isAuthenticated == true) {
-									goto('/dashboard');
-								}
-						}
-					);	
-						}
-					}
-						>Sign In</button
+						on:click={login}>Sign In</button
 					>
 				</div>
 			</form>

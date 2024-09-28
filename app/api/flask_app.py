@@ -6,8 +6,9 @@ from sqlalchemy.orm import DeclarativeBase
 
 # Flask Imports
 from flask import Flask, jsonify, request, session
-from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from wtforms.csrf.core import ValidationError
 from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
@@ -25,7 +26,11 @@ csrf = CSRFProtect()
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 logger = logging.getLogger(__name__)
 
 
@@ -36,6 +41,8 @@ def create_app():
     db_vars = env_vars["db"]
 
     app = Flask(__name__)
+    app.config["CORS_HEADERS"] = "Content-Type"
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Use an environment variable for the secret key
     secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -80,11 +87,14 @@ def create_app():
 
     @login_manager.user_loader
     def user_loader(user_id: str) -> User:
-        return User.query.get(user_id)
+        logger.info(f"Loading user: {user_id}")
+        user = User.query.get(int(user_id))
+        logger.info(f"Found user: {user.user_email}")
+        return user
 
     from session import register_session_routes
 
-    register_session_routes(app, db, bcrypt, logger)
+    register_session_routes(app, login_manager, db, bcrypt, logger)
 
     migrate = Migrate(app, db)
 
