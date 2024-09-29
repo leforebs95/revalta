@@ -14,196 +14,176 @@
 </script>
 
 <header class="bg-white">
-    <nav class="mx-auto flex items-center justify-between gap-x-6 p-6 lg:px-8" aria-label="Global">
-        <div class="flex lg:flex-1">
-        <a href="/" class="-m-1.5 p-1.5 text-nivaltaBlue font-bold text-3xl">Nivalta</a>
-        </div>
-        <div class="hidden lg:flex lg:gap-x-12">
-        <a href="/" class="text-md font-semibold leading-6 text-gray-900">Home</a>
-        <a href="#features" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">Features</a>
-        <a href="#values" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">About Us</a>
-        <a href="#contact" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">Contact</a>
-        </div>
-        <div class="flex flex-1 items-center justify-end gap-x-6">
-        <a href="#waitlist" on:click={handleAnchorClick} class="rounded-3xl bg-nivaltaBlue px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
-        </div>
-        <div class="flex lg:hidden">
-        <button type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700">
-            <span class="sr-only">Open main menu</span>
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-        </button>
-        </div>
-    </nav>
+  <nav class="mx-auto flex items-center justify-between gap-x-6 p-6 lg:px-8" aria-label="Global">
+      <div class="flex lg:flex-1">
+      <a href="/" class="-m-1.5 p-1.5 text-nivaltaBlue font-bold text-3xl">Nivalta</a>
+      </div>
+      <div class="hidden lg:flex lg:gap-x-12">
+      <a href="/" class="text-md font-semibold leading-6 text-gray-900">Home</a>
+      <a href="#features" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">Features</a>
+      <a href="#about" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">About Us</a>
+      <a href="#contact" on:click={handleAnchorClick} class="text-md font-semibold leading-6 text-gray-900">Contact</a>
+      </div>
+      <div class="flex flex-1 items-center justify-end gap-x-6">
+      <a href="#waitlist" on:click={handleAnchorClick} class="rounded-3xl bg-nivaltaBlue px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
+      </div>
+      <div class="flex lg:hidden">
+      <button type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700">
+          <span class="sr-only">Open main menu</span>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+      </button>
+      </div>
+  </nav>
 
-
-    
-
-
-    <!-- Mobile menu, show/hide based on menu open state. -->
-    <div class="lg:hidden" role="dialog" aria-modal="true">
-        <!-- Background backdrop, show/hide based on slide-over state. -->
-        <div class="fixed inset-0 z-10"></div>
-        <div class="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-        <div class="flex items-center gap-x-6">
-            <a href="/" class="-m-1.5 p-1.5 text-nivaltaBlue font-bold text-3xl">Nivalta</a>
-            <a href="/" class="ml-auto rounded-3xl bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
-            <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
-            <span class="sr-only">Close menu</span>
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            </button>
-        </div>
-        <div class="mt-6 flow-root">
-            <div class="-my-6 divide-y divide-gray-500/10">
-            <div class="space-y-2 py-6">
-                <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Home</a>
-                <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Features</a>
-                <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">About Us</a>
-                <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Contact</a>
-            </div>
-<!--             <div class="py-6">
-                <a href="/" class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Wait List</a>
-            </div> -->
-            </div>
-        </div>
-        </div>
-    </div>
+  <!-- Mobile menu, show/hide based on menu open state. -->
+  <div class="lg:hidden" role="dialog" aria-modal="true">
+      <!-- Background backdrop, show/hide based on slide-over state. -->
+      <div class="fixed inset-0 z-10"></div>
+      <div class="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+      <div class="flex items-center gap-x-6">
+          <a href="/" class="-m-1.5 p-1.5 text-nivaltaBlue font-bold text-3xl">Nivalta</a>
+          <a href="/" class="ml-auto rounded-3xl bg-nivaltaBlue px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
+          <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
+          <span class="sr-only">Close menu</span>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          </button>
+      </div>
+      <div class="mt-6 flow-root">
+          <div class="-my-6 divide-y divide-gray-500/10">
+          <div class="space-y-2 py-6">
+              <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Home</a>
+              <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Features</a>
+              <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">About Us</a>
+              <a href="/" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Contact</a>
+          </div>
+          <!-- <div class="py-6">
+              <a href="/" class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Wait List</a>
+          </div> -->
+          </div>
+      </div>
+      </div>
+  </div>
 </header>
 
 <main class="isolate bg-slate-100">
-        
-  
+          
   <!-- Hero Section -->
-  <!-- <div class="relative overflow-hidden pt-32">
-      <div aria-hidden="true" class="absolute inset-x-0 top-0 h-48 from-gray-100"></div>
-      <div class="relative">
-        <div class="lg:mx-auto lg:grid lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-2 lg:gap-24 lg:px-4">
-          <div class="mx-auto max-w-xl px-6 lg:mx-0 lg:max-w-none lg:px-0 lg:py-10">
-            <div>
-              <div>
-                <span class="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-r from-purple-600 to-indigo-600">
-                  <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
-                  </svg>
-                </span>
-              </div>
-              <div class="mt-24 pt-6">
-                <h2 class="text-5xl font-bold tracking-tight text-gray-900">Transform your health data into personalized insights</h2>
-                <p class="mt-4 text-lg text-gray-500">Seamlessly combine your health records, symptoms, habits, and history to unlock personalized wellness strategies.</p>
-                <div class="mt-6">
-                  <a href="#waitlist" on:click={handleAnchorClick} class="inline-flex rounded-3xl border border-transparent bg-nivaltaBlue  px-4 py-2 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:bg-indigo-600">Wait List</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-12 sm:mt-16 lg:mt-0">
-            <div class="-mr-48 pl-6 md:-mr-16 lg:relative lg:m-0 lg:h-full lg:px-0">
-              <img class="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:left-0 lg:h-full lg:w-auto lg:max-w-none" src="https://tailwindui.com/img/component-images/inbox-app-screenshot-1.jpg" alt="Inbox user interface">
-            </div>
-          </div>
+  <div class="relative isolate overflow-hidden bg-white">
+    <svg class="absolute inset-0 -z-10 h-full w-full stroke-gray-200 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
+      <defs>
+        <pattern id="0787a7c5-978c-4f66-83c7-11c213f99cb7" width="200" height="200" x="50%" y="-1" patternUnits="userSpaceOnUse">
+          <path d="M.5 200V.5H200" fill="none" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" stroke-width="0" fill="url(#0787a7c5-978c-4f66-83c7-11c213f99cb7)" />
+    </svg>
+    <div class="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
+      <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl lg:flex-shrink-0 lg:pt-8">
+        <div class="mt-24 sm:mt-32 lg:mt-16">
+          <a href="/" class="inline-flex space-x-6">
+          </a>
+        </div>
+        <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Transform your health data into personalized insights</h1>
+        <p class="mt-6 text-lg leading-8 text-gray-600">Seamlessly combine your health records, symptoms, habits, and history to unlock personalized wellness strategies.</p>
+        <div class="mt-10 flex items-center gap-x-6">
+          <a href="#waitlist" on:click={handleAnchorClick} class="rounded-3xl bg-nivaltaBlue px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
+          <a href="#features" on:click={handleAnchorClick} class="text-sm font-semibold leading-6 text-gray-900">Learn more <span aria-hidden="true">→</span></a>
         </div>
       </div>
-    </div> -->
-
-    <div class="relative isolate overflow-hidden bg-white">
-      <svg class="absolute inset-0 -z-10 h-full w-full stroke-gray-200 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
-        <defs>
-          <pattern id="0787a7c5-978c-4f66-83c7-11c213f99cb7" width="200" height="200" x="50%" y="-1" patternUnits="userSpaceOnUse">
-            <path d="M.5 200V.5H200" fill="none" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" stroke-width="0" fill="url(#0787a7c5-978c-4f66-83c7-11c213f99cb7)" />
-      </svg>
-      <div class="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
-        <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl lg:flex-shrink-0 lg:pt-8">
-          <div class="mt-24 sm:mt-32 lg:mt-16">
-            <a href="/" class="inline-flex space-x-6">
-            </a>
-          </div>
-          <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Transform your health data into personalized insights</h1>
-          <p class="mt-6 text-lg leading-8 text-gray-600">Seamlessly combine your health records, symptoms, habits, and history to unlock personalized wellness strategies.</p>
-          <div class="mt-10 flex items-center gap-x-6">
-            <a href="#waitlist" on:click={handleAnchorClick} class="rounded-3xl bg-nivaltaBlue px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Wait List</a>
-            <a href="#features" on:click={handleAnchorClick} class="text-sm font-semibold leading-6 text-gray-900">Learn more <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-        <div class="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
-          <div class="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-            <div class="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-              <img src="https://tailwindui.com/img/component-images/project-app-screenshot.png" alt="App screenshot" width="2432" height="1442" class="w-[76rem] rounded-md shadow-2xl ring-1 ring-gray-900/10">
-            </div>
+      <div class="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
+        <div class="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
+          <div class="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
+            <img src="https://tailwindui.com/img/component-images/project-app-screenshot.png" alt="App screenshot" width="2432" height="1442" class="w-[76rem] rounded-md shadow-2xl ring-1 ring-gray-900/10">
           </div>
         </div>
       </div>
     </div>
-    
-    
+  </div>  
      
   <!-- Features Section -->  
-  <div id="features" class="bg-gray-900 py-24 sm:py-32">
-    <div class="relative isolate">
-      <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="mx-auto flex max-w-2xl flex-col gap-16 bg-white/5 px-6 py-16 ring-1 ring-white/10 sm:rounded-3xl sm:p-8 lg:mx-0 lg:max-w-none lg:flex-row lg:items-center lg:py-20 xl:gap-x-20 xl:px-20">
-          <img class="h-96 w-full flex-none rounded-2xl object-cover shadow-xl lg:aspect-square lg:h-auto lg:max-w-sm" src="https://images.unsplash.com/photo-1519338381761-c7523edc1f46?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80" alt="">
-          <div class="w-full flex-auto">
-            <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Join our team</h2>
-            <p class="mt-6 text-lg leading-8 text-gray-300">Lorem ipsum dolor sit amet consect adipisicing elit. Possimus magnam voluptatum cupiditate veritatis in accusamus quisquam.</p>
-            <ul role="list" class="mt-10 grid grid-cols-1 gap-x-8 gap-y-3 text-base leading-7 text-white sm:grid-cols-2">
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                Competitive salaries
+  <div id="features" class="bg-gray-50 pt-12 sm:pt-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-4xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Your Complete Health Management Toolkit</h2>
+      </div>
+    </div>
+    <div class="mt-10 bg-white pb-12 sm:pb-16">
+      <div class="relative">
+        <div class="absolute inset-0 h-1/2 bg-gray-50"></div>
+        <div class="relative mx-auto max-w-10xl px-6 lg:px-8">
+          <div class="mx-auto max-w-6xl">
+            <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <li class="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow">
+                <div class="flex flex-1 flex-col p-8">
+                  <img class="mx-auto h-32 w-32 flex-shrink-0 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60" alt="">
+                  <h3 class="mt-6 text-sm font-medium text-gray-900">Jane Cooper</h3>
+                  <dl class="mt-1 flex flex-grow flex-col justify-between">
+                    <dt class="sr-only">Title</dt>
+                    <dd class="text-sm text-gray-500">Paradigm Representative</dd>
+                    <dt class="sr-only">Role</dt>
+                    <dd class="mt-3">
+                      <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Admin</span>
+                    </dd>
+                  </dl>
+                </div>
+                <div>
+                  <div class="-mt-px flex divide-x divide-gray-200">
+                    <div class="flex w-0 flex-1">
+                      <a href="mailto:janecooper@example.com" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
+                          <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
+                        </svg>
+                        Email
+                      </a>
+                    </div>
+                    <div class="-ml-px flex w-0 flex-1">
+                      <a href="tel:+1-202-555-0170" class="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-4 text-sm font-semibold text-gray-900">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 15.352V16.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clip-rule="evenodd" />
+                        </svg>
+                        Call
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </li>
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                Flexible work hours
-              </li>
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                30 days of paid vacation
-              </li>
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                Annual team retreats
-              </li>
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                Benefits for you and your family
-              </li>
-              <li class="flex gap-x-3">
-                <svg class="h-7 w-5 flex-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                </svg>
-                A great work environment
-              </li>
+            
+              <!-- More people... -->
             </ul>
-            <div class="mt-10 flex">
-              <a href="#" class="text-sm font-semibold leading-6 text-indigo-400">See our job postings <span aria-hidden="true">&rarr;</span></a>
-            </div>
+
+            
+            <!-- <dl class="rounded-lg bg-white shadow-lg sm:grid sm:grid-cols-3">
+              <div class="flex flex-col border-b border-gray-100 p-6 text-center sm:border-0 sm:border-r">
+                <dt class="order-2 mt-2 text-lg font-medium leading-6 text-gray-500">Upload & Integrate</dt>
+                <p class="text-sm text-gray-500">Upload and consolidate health data from various sources into one secure profile.</p>
+                <dd class="order-1 text-5xl font-bold tracking-tight text-indigo-600">100%</dd>
+              </div>
+              <div class="flex flex-col border-b border-t border-gray-100 p-6 text-center sm:border-0 sm:border-l sm:border-r">
+                <dt class="order-2 mt-2 text-lg font-medium leading-6 text-gray-500">Delivery</dt>
+                <dd class="order-1 text-5xl font-bold tracking-tight text-indigo-600">24/7</dd>
+              </div>
+              <div class="flex flex-col border-t border-gray-100 p-6 text-center sm:border-0 sm:border-l">
+                <dt class="order-2 mt-2 text-lg font-medium leading-6 text-gray-500">Calories</dt>
+                <dd class="order-1 text-5xl font-bold tracking-tight text-indigo-600">100k</dd>
+              </div>
+              <div class="flex flex-col border-t border-gray-100 p-6 text-center sm:border-0 sm:border-l">
+                <dt class="order-2 mt-2 text-lg font-medium leading-6 text-gray-500">Calories</dt>
+                <dd class="order-1 text-5xl font-bold tracking-tight text-indigo-600">100k</dd>
+              </div>
+            </dl> -->
           </div>
         </div>
-      </div>
-      <div class="absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl" aria-hidden="true">
-        <div class="aspect-[1318/752] w-[82.375rem] flex-none bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-25" style="clip-path: polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)"></div>
       </div>
     </div>
   </div>
-
-
+  
   <!-- About Us Section -->
-  <div class="relative isolate -z-10 overflow-hidden bg-gradient-to-b from-indigo-100/20 pt-14">
+  <div id="about" class="relative isolate -z-10 overflow-hidden bg-gradient-to-b from-indigo-100/20 pt-14">
       <div class="absolute inset-y-0 right-1/2 -z-10 -mr-96 w-[200%] origin-top-right skew-x-[-30deg] bg-white shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:-mr-80 lg:-mr-96" aria-hidden="true"></div>
       <div class="mx-auto max-w-7xl px-6 py-32 sm:py-40 lg:px-8">
         <div class="mx-auto max-w-2xl lg:mx-0 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-6 xl:grid-cols-1 xl:grid-rows-1 xl:gap-x-8">
@@ -314,7 +294,6 @@
       </div>
     </div>
 
-
     <!-- Content section -->
     <div class=" mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8">
       <div class="mx-auto flex max-w-2xl flex-col items-end justify-between gap-16 lg:mx-0 lg:max-w-none lg:flex-row">
@@ -330,7 +309,7 @@
               <dl class="relative flex flex-wrap gap-x-3">
                 <dt class="sr-only">Role</dt>
                 <dd class="w-full flex-none text-lg font-semibold tracking-tight text-gray-900">
-                  <a href="#">
+                  <a href="/">
                     Full-time designer
                     <span class="absolute inset-0" aria-hidden="true"></span>
                   </a>
@@ -352,7 +331,7 @@
               <dl class="relative flex flex-wrap gap-x-3">
                 <dt class="sr-only">Role</dt>
                 <dd class="w-full flex-none text-lg font-semibold tracking-tight text-gray-900">
-                  <a href="#">
+                  <a href="/">
                     Laravel developer
                     <span class="absolute inset-0" aria-hidden="true"></span>
                   </a>
@@ -374,7 +353,7 @@
               <dl class="relative flex flex-wrap gap-x-3">
                 <dt class="sr-only">Role</dt>
                 <dd class="w-full flex-none text-lg font-semibold tracking-tight text-gray-900">
-                  <a href="#">
+                  <a href="/">
                     React Native developer
                     <span class="absolute inset-0" aria-hidden="true"></span>
                   </a>
@@ -394,13 +373,13 @@
             </li>
           </ul>
           <div class="mt-8 flex border-t border-gray-100 pt-8">
-            <a href="#" class="text-sm font-semibold leading-6 text-indigo-600 hover:text-indigo-500">View all openings <span aria-hidden="true">&rarr;</span></a>
+            <a href="/" class="text-sm font-semibold leading-6 text-indigo-600 hover:text-indigo-500">View all openings <span aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
       </div>
     </div>
 
-        <!-- Contact Us Section -->
+  <!-- Contact Us Section -->
   <div id="contact" class="relative isolate px-6 py-24 sm:py-32 lg:px-8">
     <!-- <svg class="absolute inset-0 -z-10 h-full w-full stroke-gray-200 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
       <defs>
@@ -463,7 +442,6 @@
 
 </main>
 
-
 <!-- Footer --->
 <footer id="waitlist" class="bg-gray-900" aria-labelledby="footer-heading">
   <h2 id="footer-heading" class="sr-only">Footer</h2>
@@ -484,38 +462,6 @@
       </form>
     </div>
     <div class="mt-8 border-t border-white/10 pt-8 md:flex md:items-center md:justify-between">
-      <!-- <div class="flex space-x-6 md:order-2">
-        <a href="#" class="text-gray-500 hover:text-gray-400">
-          <span class="sr-only">Facebook</span>
-          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
-          </svg>
-        </a>
-        <a href="#" class="text-gray-500 hover:text-gray-400">
-          <span class="sr-only">Instagram</span>
-          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" />
-          </svg>
-        </a>
-        <a href="#" class="text-gray-500 hover:text-gray-400">
-          <span class="sr-only">X</span>
-          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M13.6823 10.6218L20.2391 3H18.6854L12.9921 9.61788L8.44486 3H3.2002L10.0765 13.0074L3.2002 21H4.75404L10.7663 14.0113L15.5685 21H20.8131L13.6819 10.6218H13.6823ZM11.5541 13.0956L10.8574 12.0991L5.31391 4.16971H7.70053L12.1742 10.5689L12.8709 11.5655L18.6861 19.8835H16.2995L11.5541 13.096V13.0956Z" />
-          </svg>
-        </a>
-        <a href="#" class="text-gray-500 hover:text-gray-400">
-          <span class="sr-only">GitHub</span>
-          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
-          </svg>
-        </a>
-        <a href="#" class="text-gray-500 hover:text-gray-400">
-          <span class="sr-only">YouTube</span>
-          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill-rule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.418 4.814a2.504 2.504 0 0 1-1.768 1.768c-1.56.419-7.814.419-7.814.419s-6.255 0-7.814-.419a2.505 2.505 0 0 1-1.768-1.768C2 15.255 2 12 2 12s0-3.255.417-4.814a2.507 2.507 0 0 1 1.768-1.768C5.744 5 11.998 5 11.998 5s6.255 0 7.814.418ZM15.194 12 10 15V9l5.194 3Z" clip-rule="evenodd" />
-          </svg>
-        </a>
-      </div> -->
       <p class="mt-8 text-xs leading-5 text-gray-400 md:order-1 md:mt-0">&copy; 2024 Nivalta, Inc. All rights reserved.</p>
     </div>
   </div>
