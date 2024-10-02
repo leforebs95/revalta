@@ -100,6 +100,10 @@ def create_app():
 
     app.register_blueprint(symptoms_blueprint)
 
+    from lab_results import lab_results as lab_results_blueprint
+
+    app.register_blueprint(lab_results_blueprint)
+
     migrate = Migrate(app, db)
 
     return app

@@ -2,10 +2,10 @@
     import { goto, afterNavigate } from '$app/navigation';
     import { callFlaskEndpoint } from '$lib/session_data';
     import { writable } from 'svelte/store';
-    import RadioGroup from './RadioGroup.svelte';
-    import SurveyQuestion from './SurveyQuestion.svelte';
-    import TextArea from './TextArea.svelte';
-    import NumberSelector from './NumberSelector.svelte';
+    import RadioGroup from '$lib/RadioGroup.svelte';
+    import SurveyQuestion from '$lib/SurveyQuestion.svelte';
+    import TextArea from '$lib/TextArea.svelte';
+    import NumberSelector from '$lib/NumberSelector.svelte';
     /** @type {import('./$types').PageData} */
     export let data;
 

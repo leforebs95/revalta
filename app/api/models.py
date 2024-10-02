@@ -57,3 +57,28 @@ class Symptom(db.Model):
             "symptomDescription": self.symptom_description,
             "symptomDuration": self.symptom_duration,
         }
+
+
+class LabResult(db.Model):
+    __tablename__ = "lab_results"
+
+    result_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
+    s3_location: Mapped[str] = mapped_column(String(255), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.user_id"))
+
+    user = db.relationship(
+        "User", backref=db.backref("lab_results", order_by=result_id)
+    )
+
+    def __repr__(self) -> str:
+        return super().__repr__()
+
+    def to_json(self):
+        return {
+            "resultId": self.result_id,
+            "name": self.name,
+            "description": self.description,
+            "s3Location": self.s3_location,
+        }
