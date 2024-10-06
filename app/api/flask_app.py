@@ -66,7 +66,7 @@ def create_app():
         response.headers.set("X-CSRFToken", token)
         return response
 
-    @app.route("/api/validatecsrf", methods=["POST"])
+    @app.route("/api/validateCsrf", methods=["POST"])
     @csrf.exempt
     def validate_csrf_token():
         token = request.headers.get("X-CSRFToken")
@@ -95,6 +95,14 @@ def create_app():
     from auth import auth as auth_blueprint
 
     app.register_blueprint(auth_blueprint)
+
+    from symptoms import symptoms as symptoms_blueprint
+
+    app.register_blueprint(symptoms_blueprint)
+
+    from lab_results import lab_results as lab_results_blueprint
+
+    app.register_blueprint(lab_results_blueprint)
 
     migrate = Migrate(app, db)
 

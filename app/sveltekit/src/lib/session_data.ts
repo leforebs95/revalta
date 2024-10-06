@@ -1,5 +1,11 @@
 
-export async function callFlaskEndpoint(fetch, endpoint, method, headers = {}, body = {}) {
+export async function callFlaskEndpoint(
+    fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+    endpoint: string,
+    method: 'POST' | 'GET' | 'DELETE' | 'PUT' | 'PATCH',
+    headers: Record<string, string> = {},
+    body: Record<string, any> = {}
+) {
     const defaultHeaders = {
         "Content-Type": "application/json",
     };

@@ -19,6 +19,9 @@ services:
       - PROD=false
       - HOST=0.0.0.0
       - PORT=8080
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
   nginx:
     build: ./nginx
     environment:
