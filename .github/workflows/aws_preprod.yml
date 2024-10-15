@@ -42,7 +42,7 @@ permissions:
 
 jobs:
   deploy:
-    name: DeployFlask
+    name: DeployWebApp
     runs-on: ubuntu-latest
     environment: production
 
@@ -71,7 +71,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
     
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Build, tag, and push svlete image to Amazon ECR
       id: build-svelte-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -87,7 +87,7 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
     
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Build, tag, and push flask image to Amazon ECR
       id: build-flask-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -103,7 +103,7 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
     
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Build, tag, and push nginx image to Amazon ECR
       id: build-nginx-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
