@@ -46,15 +46,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
-    strategy:
-      matrix:
-        include:
-          - ecr_repository: nivalta/sveltekit-server
-            docker_file: ./app/sveltekit/
-          - ecr_repository: nivalta/flask-server
-            docker_file: ./app/api/
-          - ecr_repository: nivalta/nginx-proxy
-            docker_file: ./nginx/
+    # strategy:
+    #   matrix:
+    #     include:
+    #       - ecr_repository: nivalta/sveltekit-server
+    #         docker_file: ./app/sveltekit/
+    #       - ecr_repository: nivalta/flask-server
+    #         docker_file: ./app/api/
+    #       - ecr_repository: nivalta/nginx-proxy
+    #         docker_file: ./nginx/
 
     steps:
     - name: Checkout
@@ -76,8 +76,40 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-        ECR_REPOSITORY: ${{ matrix.ecr_repository }}
-        DOCKERFILE: ${{ matrix.docker_file }}
+        ECR_REPOSITORY: nivalta/sveltekit-server
+        DOCKERFILE: ./app/sveltekit/
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $DOCKERFILE
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+    
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-flask-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+        ECR_REPOSITORY: nivalta/flask-server
+        DOCKERFILE: ./app/api/
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $DOCKERFILE
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+    
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-nginx-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+        ECR_REPOSITORY: nivalta/nginx-proxy
+        DOCKERFILE: ./nginx/
       run: |
         # Build a docker container and
         # push it to ECR so that it can
@@ -123,10 +155,10 @@ jobs:
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ env.ECR_REGISTRY }}/nivalta/${{ env.CONTAINER_NAME }}:${{ env.IMAGE_TAG }}
     
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.render-nginx-container.outputs.task-definition }}
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #   with:
+    #     task-definition: ${{ steps.render-nginx-container.outputs.task-definition }}
+    #     service: ${{ env.ECS_SERVICE }}
+    #     cluster: ${{ env.ECS_CLUSTER }}
+    #     wait-for-service-stability: true
