@@ -26,10 +26,9 @@
 
 name: Preprod Deploy - Nginx/Svelte/Flask
 
-on: 
-  workflow_dispatch
-  # push:
-  #   branches: [ "main" ]
+on:
+  push:
+    branches: [ "main" ]
 
 env:
   AWS_REGION: us-west-2
