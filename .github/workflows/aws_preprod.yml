@@ -155,10 +155,10 @@ jobs:
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ env.ECR_REGISTRY }}/nivalta/${{ env.CONTAINER_NAME }}:${{ env.IMAGE_TAG }}
     
-    # - name: Deploy Amazon ECS task definition
-    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-    #   with:
-    #     task-definition: ${{ steps.render-nginx-container.outputs.task-definition }}
-    #     service: ${{ env.ECS_SERVICE }}
-    #     cluster: ${{ env.ECS_CLUSTER }}
-    #     wait-for-service-stability: true
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-nginx-container.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
