@@ -79,7 +79,7 @@
                 <RadioGroup options={durationOptions} name="symptom-duration" bind:value={symptomDurationValue}/>
             </section>
             <section>
-                <button on:submit={submitSymptomData} class="btn-submit">Submit</button>
+                <button on:click={submitSymptomData} class="btn-submit">Submit</button>
             </section>
             <table>
                 <thead>

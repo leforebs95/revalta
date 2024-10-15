@@ -19,7 +19,7 @@
               },
               {
                 "name": "PROD",
-                "value": true
+                "value": "true"
               }
             ],
             "mountPoints": [],
