@@ -1,3 +1,4 @@
+from urllib.parse import quote_plus
 import logging
 import os
 import secrets
@@ -47,12 +48,21 @@ def create_app():
     # Use an environment variable for the secret key
     secret_key = os.environ.get("FLASK_SECRET_KEY")
 
+    encoded_password = quote_plus(db_vars["password"].encode("utf8"))
+    encoded_username = quote_plus(db_vars["username"].encode("utf8"))
+    # Try this connection string format
+    connection_url = (
+        f"mysql+pymysql://{encoded_username}:{encoded_password}@"
+        f"{db_vars['host']}/{db_vars['db-name']}"
+        "?charset=utf8mb4&binary_prefix=true"
+    )
+
     app.config.update(
         SECRET_KEY=secret_key,
         SESSION_COOKIE_HTTPONLY=True,
         REMEMBER_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Strict",
-        SQLALCHEMY_DATABASE_URI=f"mysql+pymysql://{db_vars['username']}:{db_vars['password']}@{db_vars['host']}/{db_vars['db-name']}",
+        SQLALCHEMY_DATABASE_URI=connection_url,
     )
 
     csrf.init_app(app)
