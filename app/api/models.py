@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Integer, String, DateTime, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
@@ -11,18 +11,36 @@ class BaseModel(db.Model):
     __abstract__ = True
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(datetime.timezone.utc)
+        DateTime, default=datetime.now(timezone.utc)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.now(datetime.timezone.utc),
-        onupdate=datetime.now(datetime.timezone.utc),
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
     )
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def soft_delete(self):
         self.is_deleted = True
-        self.updated_at = datetime.now(datetime.timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+
+class Waitlist(BaseModel):
+    __tablename__ = "waitlist"
+
+    email: Mapped[str] = mapped_column(String(50), primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    message: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    def __repr__(self):
+        return super().__repr__()
+
+    def to_json(self):
+        return {
+            "email": self.email,
+            "name": self.name,
+            "message": self.message,
+        }
 
 
 class User(BaseModel, UserMixin):

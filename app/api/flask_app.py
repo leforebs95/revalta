@@ -151,6 +151,6 @@ def create_app():
 
     app.register_blueprint(lab_results_blueprint)
 
-    migrate = Migrate(app, db)
+    Migrate(app, db)
 
     return app
