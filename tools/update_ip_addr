@@ -3,13 +3,7 @@
 # Get the local machine's IP address
 LOCAL_IP=$(curl -s https://checkip.amazonaws.com)
 SECURITY_GROUP='sg-0cdea797bd3fd047a'
-SSH_RULE_UPDATE='{
-    "IpProtocol": "tcp",
-    "FromPort": 22,
-    "ToPort": 22,
-    "CidrIpv4": "'"$LOCAL_IP"'/32",
-    "Description": "Allow SSH traffic"
-}'
+
 DB_RULE_UPDATE='{
     "IpProtocol": "tcp",
     "FromPort": 3306,
@@ -17,13 +11,6 @@ DB_RULE_UPDATE='{
     "CidrIpv4": "'"$LOCAL_IP"'/32",
     "Description": "Allow DB traffic"
 }'
-# Update the security group's inbound rule
-aws ec2 modify-security-group-rules \
-    --group-id $SECURITY_GROUP \
-    --security-group-rules '[{
-        "SecurityGroupRuleId": "sgr-0f1c45aa4cf6dc639",
-        "SecurityGroupRule": '"$SSH_RULE_UPDATE"'
-    }]'
 
 aws ec2 modify-security-group-rules \
     --group-id $SECURITY_GROUP \

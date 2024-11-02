@@ -1,4 +1,5 @@
 from urllib.parse import quote_plus
+from datetime import timedelta
 import logging
 import os
 import secrets
@@ -10,6 +11,7 @@ from flask import Flask, jsonify, request, session
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_talisman import Talisman
 from flask_login import LoginManager
 from wtforms.csrf.core import ValidationError
 from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
@@ -43,7 +45,36 @@ def create_app():
 
     app = Flask(__name__)
     app.config["CORS_HEADERS"] = "Content-Type"
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": env_vars.get(
+                    "ALLOWED_ORIGINS", "http://localhost:3000"
+                ).split(","),
+                "supports_credentials": True,
+                "allow_headers": ["Content-Type", "X-CSRFToken"],
+                "max_age": 3600,
+            }
+        },
+    )
+
+    Talisman(
+        app,
+        force_https=True,
+        session_cookie_secure=True,
+        feature_policy={
+            "geolocation": "'none'",
+            "microphone": "'none'",
+            "camera": "'none'",
+        },
+        content_security_policy={
+            "default-src": "'self'",
+            "img-src": ["'self'", "data:", "https:"],
+            "script-src": ["'self'"],
+            "style-src": ["'self'", "'unsafe-inline'"],
+        },
+    )
 
     # Use an environment variable for the secret key
     secret_key = os.environ.get("FLASK_SECRET_KEY")
@@ -62,16 +93,22 @@ def create_app():
         SESSION_COOKIE_HTTPONLY=True,
         REMEMBER_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Strict",
+        SESSION_COOKIE_SECURE=True,
+        PERMANENT_SESSION_LIFETIME=timedelta(days=1),
         SQLALCHEMY_DATABASE_URI=connection_url,
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_ENGINE_OPTIONS={
+            "pool_size": 10,
+            "pool_recycle": 3600,
+            "pool_pre_ping": True,
+        },
     )
 
     csrf.init_app(app)
 
     @app.route("/api/getcsrf", methods=["GET"])
     def get_csrf():
-        logger.info(f'Secret key: {app.config.get("SECRET_KEY")}')
         token = generate_csrf()
-        logger.info(f"Generated Token: {token}")
         response = jsonify({"detail": "CSRF Header set"})
         response.headers.set("X-CSRFToken", token)
         return response
