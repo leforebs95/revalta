@@ -4,31 +4,49 @@
 	import GlassIcon from '$lib/assets/magglassicon.svelte';
 	import { createForm } from 'felte';
 	import * as yup from 'yup';
+	import { writable } from 'svelte/store';
 	import { enhance } from '$app/forms';
+	import { error } from '@sveltejs/kit';
 	let anchor = '';
 
+	interface FormValues {
+		name: string;
+		email: string;
+		message: string;
+	}
+
+	//Local state variables to sotre form data and errors
+	let values: FormValues = { name: '', email: '', message: '' };
+	let errors: Record<string, string> = {};
+
+	//Yup Schema for validation
 	const schema = yup.object({
-		email: yup.string().email('This field must be an email').required('This field is required'),
-		password: yup.string().required('This field is required')
+		name: yup.string().required('Name is required'),
+		email: yup.string().email('Invalid email address').required('Email is required'),
+		message: yup.string().required('Message cannot be empty')
 	});
 
-	const { form, errors } = createForm({
-		validate: async (values) => {
-			try {
-				await schema.validate(values, { abortEarly: false });
-			} catch (err) {
-				const errors = err.inner.reduce(
-					(res, value) => ({
-						[value.path]: value.message,
-						...res
-					}),
-					{}
-				);
-
-				return errors;
+	//Function to handle the form submission
+	async function submitHandler(event: Event) {
+		event.preventDefault();
+		try {
+			await schema.validate(values, { abortEarly: false });
+			alert(JSON.stringify(values, null, 2));
+			errors = {};
+		} catch (err) {
+			if (err instanceof yup.ValidationError) {
+				errors = extractErrors(err);
 			}
 		}
-	});
+	}
+
+	//Function to extract errors
+	function extractErrors(err: yup.ValidationError): Record<string, string> {
+		return err.inner.reduce((acc, error) => {
+			const path = error.path as string;
+			return { ...acc, [path]: error.message };
+		}, {});
+	}
 
 	function handleAnchorClick(event: { preventDefault: () => void; currentTarget: any }) {
 		event.preventDefault();
@@ -39,11 +57,6 @@
 			top: anchor?.offsetTop,
 			behavior: 'smooth'
 		});
-	}
-
-	function handleOnSubmit(event: { preventDefault: () => void; currentTarget: any }) {
-		event.preventDefault();
-		alert('Thank you for joining our waitist!');
 	}
 </script>
 
@@ -501,7 +514,7 @@
 				contact you promptly.
 			</p>
 			<div class="mt-16 flex flex-col gap-16 sm:gap-y-20 lg:flex-row">
-				<form action="#" method="POST" class="lg:flex-auto">
+				<form on:submit|preventDefault={submitHandler} novalidate class="lg:flex-auto">
 					<div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
 						<div>
 							<label for="first-name" class="block text-sm font-semibold leading-6 text-gray-900"
@@ -510,11 +523,15 @@
 							<div class="mt-2.5">
 								<input
 									type="text"
-									name="first-name"
-									id="first-name"
-									autocomplete="given-name"
+									name="name"
+									id="name"
+									bind:value={values.name}
+									placeholder="Enter your name"
 									class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
+								{#if errors.name}
+									<p class="text-red-500 text-sm mt-1">{errors.name}</p>
+								{/if}
 							</div>
 						</div>
 						<div>
@@ -524,11 +541,14 @@
 							<div class="mt-2.5">
 								<input
 									type="text"
-									name="last-name"
-									id="last-name"
-									autocomplete="family-name"
+									id="email"
+									bind:value={values.email}
+									placeholder="Your email address"
 									class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								/>
+								{#if errors.name}
+									<p class="text-red-500 text-sm mt-1">{errors.email}</p>
+								{/if}
 							</div>
 						</div>
 						<div class="sm:col-span-2">
@@ -538,10 +558,13 @@
 							<div class="mt-2.5">
 								<textarea
 									id="message"
-									name="message"
+									bind:value={values.message}
 									rows="4"
 									class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 								></textarea>
+								{#if errors.name}
+									<p class="text-red-500 text-sm mt-1">{errors.message}</p>
+								{/if}
 							</div>
 						</div>
 					</div>
@@ -605,7 +628,7 @@
 				use:enhance
 				method="POST"
 				class="mt-6 sm:flex sm:max-w-md lg:mt-0"
-				on:submit={handleOnSubmit}
+				on:submit={submitHandler}
 			>
 				<label for="email-address" class="sr-only">Email address</label>
 				<input
@@ -615,9 +638,6 @@
 					class="w-full min-w-0 appearance-none rounded-md border-0 bg-white/5 px-3 py-1.5 text-base text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:w-56 sm:text-sm sm:leading-6"
 					placeholder="Enter your email"
 				/>
-				{#if $errors.email}
-					<span class="text-red-500 text-sm">{$errors.email}</span>
-				{/if}
 				<div class="mt-4 sm:ml-4 sm:mt-0 sm:flex-shrink-0">
 					<button
 						type="submit"
