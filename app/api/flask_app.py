@@ -59,22 +59,22 @@ def create_app():
         },
     )
 
-    Talisman(
-        app,
-        force_https=True,
-        session_cookie_secure=True,
-        feature_policy={
-            "geolocation": "'none'",
-            "microphone": "'none'",
-            "camera": "'none'",
-        },
-        content_security_policy={
-            "default-src": "'self'",
-            "img-src": ["'self'", "data:", "https:"],
-            "script-src": ["'self'"],
-            "style-src": ["'self'", "'unsafe-inline'"],
-        },
-    )
+    # Talisman(
+    #     app,
+    #     force_https=True,
+    #     session_cookie_secure=True,
+    #     feature_policy={
+    #         "geolocation": "'none'",
+    #         "microphone": "'none'",
+    #         "camera": "'none'",
+    #     },
+    #     content_security_policy={
+    #         "default-src": "'self'",
+    #         "img-src": ["'self'", "data:", "https:"],
+    #         "script-src": ["'self'"],
+    #         "style-src": ["'self'", "'unsafe-inline'"],
+    #     },
+    # )
 
     # Use an environment variable for the secret key
     secret_key = os.environ.get("FLASK_SECRET_KEY")
