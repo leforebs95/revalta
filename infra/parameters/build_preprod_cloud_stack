@@ -1,0 +1,20 @@
+#!/bin/sh
+
+aws cloudformation create-stack \
+    --template-body file://nivalta_cloudformation_ecs.yaml \
+    --parameters \
+    ParameterKey=Cluster,ParameterValue=PreprodCluster \
+    ParameterKey=VPC,ParameterValue=vpc-02706a60aa7e1160e \
+    ParameterKey=PublicSubnetOne,ParameterValue=subnet-0f5e734c3887e85cd \
+    ParameterKey=PublicSubnetTwo,ParameterValue=subnet-0b48b489493d8b4d2 \
+    ParameterKey=LaunchType,ParameterValue=FARGATE \
+    ParameterKey=Domain,ParameterValue=nivalta-preprod.local \
+    ParameterKey=CountOfUiTasks,ParameterValue=1 \
+    ParameterKey=CountOfAppserverTasks,ParameterValue=1 \
+    ParameterKey=PublicIP,ParameterValue=ENABLED \
+    ParameterKey=HostedZoneId,ParameterValue=Z038076911017Z7RFFFTJ \
+    ParameterKey=DomainName,ParameterValue=nivalta.com \
+    ParameterKey=SubDomainPrefix,ParameterValue=preprod \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name nivalta-preprod \
+    --region us-west-2

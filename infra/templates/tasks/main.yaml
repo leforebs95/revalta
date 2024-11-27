@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Main Task Definitions"
+
+Parameters:
+  Environment:
+    Type: String
+  ServiceDiscoveryNamespace:
+    Type: String
+  ExecutionRoleArn:
+    Type: String
+
+Resources:
+  NginxTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: nginx.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ServiceDiscoveryNamespace: !Ref ServiceDiscoveryNamespace
+        ExecutionRoleArn: !Ref ExecutionRoleArn
+        TaskCpu: "256"
+        TaskMemory: "512"
+        # NginxImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nivalta/nginx-test:latest'
+
+  FlaskTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: flask.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ExecutionRoleArn: !Ref ExecutionRoleArn
+        TaskCpu: "256"
+        TaskMemory: "512"
+        # FlaskImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nivalta/flask-server:latest'
+        # DbHost: !ImportValue DatabaseHostName
+        # DbName: !Sub nivalta-${Environment}
+        # DbSecretArn: !ImportValue DatabaseSecretArn
+
+  SvelteTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: sveltekit.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ExecutionRoleArn: !Ref ExecutionRoleArn
+        TaskCpu: "256"
+        TaskMemory: "512"
+        # SveltekitImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nivalta/sveltekit-server:latest'
+
+Outputs:
+  NginxTaskDefinitionArn:
+    Value: !GetAtt NginxTask.Outputs.TaskDefinitionArn
+  FlaskTaskDefinitionArn:
+    Value: !GetAtt FlaskTask.Outputs.TaskDefinitionArn
+  SvelteTaskDefinitionArn:
+    Value: !GetAtt SvelteTask.Outputs.TaskDefinitionArn
+  StackName:
+    Description: Stack Name
+    Value: !Ref 'AWS::StackName'
+    Export:
+      Name: !Sub ${AWS::StackName}-StackName

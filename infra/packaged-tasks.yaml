@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Main Task Definitions
+Parameters:
+  Environment:
+    Type: String
+  ServiceDiscoveryNamespace:
+    Type: String
+  ExecutionRoleArn:
+    Type: String
+Resources:
+  NginxTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/363f698c1e518e760c3a7c49a33402a8.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        ServiceDiscoveryNamespace:
+          Ref: ServiceDiscoveryNamespace
+        ExecutionRoleArn:
+          Ref: ExecutionRoleArn
+        TaskCpu: '256'
+        TaskMemory: '512'
+  FlaskTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/3a093708e13ab16d695ea3ad7f5e78b6.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        ExecutionRoleArn:
+          Ref: ExecutionRoleArn
+        TaskCpu: '256'
+        TaskMemory: '512'
+  SvelteTask:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/cc5bac1d43b9d04733da94ab031b838e.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        ExecutionRoleArn:
+          Ref: ExecutionRoleArn
+        TaskCpu: '256'
+        TaskMemory: '512'
+Outputs:
+  NginxTaskDefinitionArn:
+    Value:
+      Fn::GetAtt:
+      - NginxTask
+      - Outputs.TaskDefinitionArn
+  FlaskTaskDefinitionArn:
+    Value:
+      Fn::GetAtt:
+      - FlaskTask
+      - Outputs.TaskDefinitionArn
+  SvelteTaskDefinitionArn:
+    Value:
+      Fn::GetAtt:
+      - SvelteTask
+      - Outputs.TaskDefinitionArn
+  StackName:
+    Description: Stack Name
+    Value:
+      Ref: AWS::StackName
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-StackName

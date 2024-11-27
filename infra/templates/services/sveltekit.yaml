@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'SvelteKit UI Service Configuration for Nivalta'
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment name
+    AllowedValues:
+      - prod
+      - preprod
+
+  ECSCluster:
+    Type: String
+    Description: Name of the ECS Cluster
+
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet::Id
+    Description: First public subnet ID
+
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet::Id
+    Description: Second public subnet ID
+
+  # Stack Names for ImportValue references
+  TaskDefinitionsStackName:
+    Type: String
+    Description: Name of the Task Definitions Stack
+
+  ServiceDiscoveryStackName:
+    Type: String
+    Description: Name of the Service Discovery Stack
+
+  SecurityGroupsStackName:
+    Type: String
+    Description: Name of the Security Groups Stack
+
+  LaunchType:
+    Type: String
+    Default: FARGATE
+    AllowedValues:
+      - FARGATE
+      - EC2
+
+  PublicIP:
+    Type: String
+    Default: ENABLED
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+
+  DesiredCount:
+    Type: Number
+    Default: 1
+    MinValue: 0
+    Description: Desired number of tasks
+
+  MaxCount:
+    Type: Number
+    Default: 4
+    MinValue: 1
+    Description: Maximum number of tasks for auto scaling
+
+  MinCount:
+    Type: Number
+    Default: 1
+    MinValue: 0
+    Description: Minimum number of tasks for auto scaling
+
+  CPUThreshold:
+    Type: Number
+    Default: 70
+    Description: CPU threshold percentage for scaling
+    MinValue: 0
+    MaxValue: 100
+
+  MemoryThreshold:
+    Type: Number
+    Default: 80
+    Description: Memory threshold percentage for scaling
+    MinValue: 0
+    MaxValue: 100
+
+Resources:
+  SveltekitService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${Environment}-sveltekit-ui
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Sub ${TaskDefinitionsStackName}-SvelteTaskDefArn
+      DesiredCount: !Ref DesiredCount
+      LaunchType: !Ref LaunchType
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: !Ref PublicIP
+          Subnets:
+            - !Ref PublicSubnetOne
+            - !Ref PublicSubnetTwo
+          SecurityGroups: 
+            - !Sub ${SecurityGroupsStackName}-SveltekitUISecurityGroupId
+      ServiceRegistries:
+        - RegistryArn: !Sub ${ServiceDiscoveryStackName}-SvelteServiceDiscoveryArn
+      EnableExecuteCommand: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-sveltekit-ui
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Auto Scaling Configuration
+  # ServiceScalingTarget:
+  #   Type: AWS::ApplicationAutoScaling::ScalableTarget
+  #   Properties:
+  #     MaxCapacity: !Ref MaxCount
+  #     MinCapacity: !Ref MinCount
+  #     ResourceId: !Join 
+  #       - '/'
+  #       - - service
+  #         - !Ref ECSCluster
+  #         - !GetAtt SveltekitService.Name
+  #     RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+  #     ScalableDimension: ecs:service:DesiredCount
+  #     ServiceNamespace: ecs
+
+  # CPUScalingPolicy:
+  #   Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  #   Properties:
+  #     PolicyName: !Sub ${Environment}-sveltekit-cpu-scaling
+  #     PolicyType: TargetTrackingScaling
+  #     ScalingTargetId: !Ref ServiceScalingTarget
+  #     TargetTrackingScalingPolicyConfiguration:
+  #       PredefinedMetricSpecification:
+  #         PredefinedMetricType: ECSServiceAverageCPUUtilization
+  #       TargetValue: !Ref CPUThreshold
+  #       ScaleInCooldown: 300
+  #       ScaleOutCooldown: 60
+
+  # MemoryScalingPolicy:
+  #   Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  #   Properties:
+  #     PolicyName: !Sub ${Environment}-sveltekit-memory-scaling
+  #     PolicyType: TargetTrackingScaling
+  #     ScalingTargetId: !Ref ServiceScalingTarget
+  #     TargetTrackingScalingPolicyConfiguration:
+  #       PredefinedMetricSpecification:
+  #         PredefinedMetricType: ECSServiceAverageMemoryUtilization
+  #       TargetValue: !Ref MemoryThreshold
+  #       ScaleInCooldown: 300
+  #       ScaleOutCooldown: 60
+
+  # # CloudWatch Alarms
+  # ServiceHighCPUAlarm:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     AlarmName: !Sub ${Environment}-sveltekit-high-cpu
+  #     AlarmDescription: CPU utilization is too high
+  #     MetricName: CPUUtilization
+  #     Namespace: AWS/ECS
+  #     Dimensions:
+  #       - Name: ClusterName
+  #         Value: !Ref ECSCluster
+  #       - Name: ServiceName
+  #         Value: !GetAtt SveltekitService.Name
+  #     Statistic: Average
+  #     Period: 60
+  #     EvaluationPeriods: 2
+  #     Threshold: 90
+  #     ComparisonOperator: GreaterThanThreshold
+  #     TreatMissingData: notBreaching
+
+Outputs:
+  ServiceName:
+    Description: Name of the ECS Service
+    Value: !GetAtt SveltekitService.Name
+    Export:
+      Name: !Sub ${AWS::StackName}-ServiceName
+
+  ServiceArn:
+    Description: ARN of the ECS Service
+    Value: !Ref SveltekitService
+    Export:
+      Name: !Sub ${AWS::StackName}-ServiceArn
+
+  # AutoScalingTargetArn:
+  #   Description: ARN of the Auto Scaling Target
+  #   Value: !Ref ServiceScalingTarget
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-AutoScalingTargetArn

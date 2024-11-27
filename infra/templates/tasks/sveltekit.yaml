@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sveltekit Task Definition'
+
+Parameters:
+  # Include common parameters
+  Environment:
+    Type: String
+  ExecutionRoleArn:
+    Type: String
+  TaskCpu:
+    Type: Number
+    Default: "256"
+  TaskMemory:
+    Type: Number
+    Default: "512"
+  
+  # Nginx specific parameters
+  SveltekitImageUri:
+    Type: String
+    Description: URI for the Nginx container image
+    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/sveltekit-server:2022702eb35c6ff211d1383bd70bad4137d7279f
+
+Resources:
+  SveltekitTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-sveltekit-ui
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      TaskRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      ContainerDefinitions:
+        - Name: sveltekit-uiserver
+          Essential: true
+          Image: !Ref SveltekitImageUri
+          Environment:
+            - Name: HOST
+              Value: 0.0.0.0
+            - Name: PORT
+              Value: "8080"
+            - Name: PROD
+              Value: "true"
+          PortMappings:
+            - ContainerPort: 8080
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost:8080/ || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 60
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub /ecs/${Environment}-nivalta
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: nivalta
+
+Outputs:
+  TaskDefinitionArn:
+    Description: ARN of the Sveltekit Task Definition
+    Value: !Ref SveltekitTaskDefinition
+    Export:
+      Name: !Sub ${AWS::StackName}-SveltekitTaskDefArn

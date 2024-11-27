@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Nginx Task Definition'
+
+Parameters:
+  # Include common parameters
+  Environment:
+    Type: String
+  ExecutionRoleArn:
+    Type: String
+  TaskCpu:
+    Type: Number
+    Default: "256"
+  TaskMemory:
+    Type: Number
+    Default: "512"
+  
+  # Flask specific parameters
+  FlaskImageUri:
+    Type: String
+    Description: URI for the Nginx container image
+    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/flask-server:2022702eb35c6ff211d1383bd70bad4137d7279f
+  # DbHost:
+  #   Type: String
+  #   Description: Database host
+  # DbName:
+  #   Type: String
+  #   Description: Database name
+  # DbSecretArn:
+  #   Type: String
+  #   Description: ARN of the database credentials secret
+
+Resources:
+  FlaskTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-flask-apiserver
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      TaskRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      ContainerDefinitions:
+        - Name: flask-apiserver
+          Essential: true
+          Image: !Ref FlaskImageUri
+          # Secrets:
+          #   - Name: DB_USERNAME
+          #     ValueFrom: !Sub "${DbSecretArn}:username::"
+          #   - Name: DB_PASSWORD
+          #     ValueFrom: !Sub "${DbSecretArn}:password::"
+          # Environment:
+          #   - Name: DB_HOST
+          #     Value: !Ref DbHost
+          #   - Name: DB_NAME
+          #     Value: !Ref DbName
+          PortMappings:
+            - ContainerPort: 5000
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost:5000/api/version || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 60
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub /ecs/${Environment}-nivalta
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: nivalta
+
+Outputs:
+  TaskDefinitionArn:
+    Description: ARN of the Flask Task Definition
+    Value: !Ref FlaskTaskDefinition
+    Export:
+      Name: !Sub ${AWS::StackName}-FlaskTaskDefArn

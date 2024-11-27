@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Nivalta Load Balancer and DNS Configuration"
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment name
+    AllowedValues:
+      - prod
+      - preprod
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the load balancer
+
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet::Id
+    Description: First public subnet for load balancer
+
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet::Id
+    Description: Second public subnet for load balancer
+
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group for the load balancer
+
+  DomainName:
+    Type: String
+    Description: Base domain name (e.g., nivalta.com)
+
+  SubDomainPrefix:
+    Type: String
+    Description: Subdomain prefix for environment
+    Default: ''
+    AllowedValues:
+      - ''
+      - preprod
+
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Route53 hosted zone ID
+
+  HealthCheckPath:
+    Type: String
+    Default: /health
+    Description: Path for target group health check
+
+  HealthCheckInterval:
+    Type: Number
+    Default: 30
+    Description: Interval between health checks
+    MinValue: 5
+    MaxValue: 300
+
+Conditions:
+  UseSubDomain: !Not [!Equals [!Ref SubDomainPrefix, '']]
+  IsProd: !Equals [!Ref Environment, 'prod']
+
+Resources:
+  NivaltaLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${Environment}-nivalta-alb
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnetOne
+        - !Ref PublicSubnetTwo
+      SecurityGroups:
+        - !Ref SecurityGroupId
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: !If [IsProd, 'true', 'false']
+        # - Key: access_logs.s3.enabled
+        #   Value: true
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-nivalta-alb
+        - Key: Environment
+          Value: !Ref Environment
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      DomainName: !If 
+        - UseSubDomain
+        - !Sub ${SubDomainPrefix}.${DomainName}
+        - !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !If
+            - UseSubDomain
+            - !Sub ${SubDomainPrefix}.${DomainName}
+            - !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref NivaltaLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref Certificate
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MainTargetGroup
+      SslPolicy: ELBSecurityPolicy-TLS-1-2-2017-01
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref NivaltaLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: '443'
+            Host: '#{host}'
+            Path: /#{path}
+            Query: '#{query}'
+            StatusCode: HTTP_301
+
+  MainTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${Environment}-nivalta-tg
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: !Ref HealthCheckInterval
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetType: ip
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '30'
+        - Key: stickiness.enabled
+          Value: 'false'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-nivalta-tg
+        - Key: Environment
+          Value: !Ref Environment
+
+  PrimaryDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !If
+        - UseSubDomain
+        - !Sub ${SubDomainPrefix}.${DomainName}
+        - !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt NivaltaLoadBalancer.DNSName
+        HostedZoneId: !GetAtt NivaltaLoadBalancer.CanonicalHostedZoneID
+        EvaluateTargetHealth: true
+
+  WWWDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !If
+        - UseSubDomain
+        - !Sub www.${SubDomainPrefix}.${DomainName}
+        - !Sub www.${DomainName}
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt NivaltaLoadBalancer.DNSName
+        HostedZoneId: !GetAtt NivaltaLoadBalancer.CanonicalHostedZoneID
+        EvaluateTargetHealth: true
+
+Outputs:
+  LoadBalancerDNS:
+    Description: Load Balancer DNS Name
+    Value: !GetAtt NivaltaLoadBalancer.DNSName
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerDNS
+
+  LoadBalancerArn:
+    Description: Load Balancer ARN
+    Value: !Ref NivaltaLoadBalancer
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerArn
+
+  TargetGroupArn:
+    Description: Main Target Group ARN
+    Value: !Ref MainTargetGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-TargetGroupArn
+
+  HTTPSListenerArn:
+    Description: HTTPS Listener ARN
+    Value: !Ref HTTPSListener
+    Export:
+      Name: !Sub ${AWS::StackName}-HTTPSListenerArn
+
+  CertificateArn:
+    Description: SSL Certificate ARN
+    Value: !Ref Certificate
+    Export:
+      Name: !Sub ${AWS::StackName}-CertificateArn
+
+  DomainEndpoint:
+    Description: Domain Endpoint
+    Value: !If
+      - UseSubDomain
+      - !Sub ${SubDomainPrefix}.${DomainName}
+      - !Ref DomainName
+    Export:
+      Name: !Sub ${AWS::StackName}-DomainEndpoint
+
+  StackName:
+    Description: Stack Name
+    Value: !Ref 'AWS::StackName'
+    Export:
+      Name: !Sub ${AWS::StackName}-StackName

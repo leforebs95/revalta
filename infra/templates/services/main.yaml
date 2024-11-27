@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Nivalta Services Stack'
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [prod, preprod]
+
+  ECSCluster:
+    Type: String
+    Description: Name of the ECS Cluster
+  
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet::Id
+  
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet::Id
+  
+  TaskDefinitionsStackName:
+    Type: String
+  
+  ServiceDiscoveryStackName:
+    Type: String
+  
+  SecurityGroupsStackName:
+    Type: String
+  
+  LoadBalancerStackName:
+    Type: String
+
+Resources:
+  FlaskService:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: flask.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ECSCluster: !Ref ECSCluster
+        PublicSubnetOne: !Ref PublicSubnetOne
+        PublicSubnetTwo: !Ref PublicSubnetTwo
+        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
+        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
+        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+
+  SveltekitService:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: sveltekit.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ECSCluster: !Ref ECSCluster
+        PublicSubnetOne: !Ref PublicSubnetOne
+        PublicSubnetTwo: !Ref PublicSubnetTwo
+        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
+        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
+        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+
+  
+  NginxService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+         - FlaskService
+         - SveltekitService
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: nginx.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ECSCluster: !Ref ECSCluster
+        PublicSubnetOne: !Ref PublicSubnetOne
+        PublicSubnetTwo: !Ref PublicSubnetTwo
+        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
+        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
+        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+        LoadBalancerStackName: !Ref LoadBalancerStackName
+
+Outputs:
+  NginxServiceArn:
+    Value: !GetAtt NginxService.Outputs.ServiceArn
+  FlaskServiceArn:
+    Value: !GetAtt FlaskService.Outputs.ServiceArn
+  SveltekitServiceArn:
+    Value: !GetAtt SveltekitService.Outputs.ServiceArn

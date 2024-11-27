@@ -1,0 +1,274 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Nivalta Stack - Main Infrastructure Template"
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [prod, preprod]
+    Description: Deployment environment
+  
+  DomainName:
+    Type: String
+    Description: Base domain name for the application
+  
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Route53 hosted zone ID for domain configuration
+  
+  SubDomainPrefix:
+    Type: String
+    AllowedValues: ['', preprod]
+    Description: Subdomain prefix for environment
+
+  ECSClusterName:
+    Type: String
+    Description: Name of the ECS Cluster
+
+Resources:
+
+  # CloudWatch Log Group
+  NivaltaLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub /ecs/${Environment}-nivalta
+      RetentionInDays: 30
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ECS Task Execution Role
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: SecretsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Environment}/nivalta/*
+
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: vpc.yaml
+      Parameters:
+        Environment: !Ref Environment
+
+  SecurityGroupsStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: security-groups.yaml
+      Parameters:
+        Environment: !Ref Environment
+        VpcId: !GetAtt VPCStack.Outputs.VpcId
+
+  ServiceDiscoveryStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: service-discovery.yaml
+      Parameters:
+        Environment: !Ref Environment
+        VpcId: !GetAtt VPCStack.Outputs.VpcId
+        ServiceDiscoveryDomain: !Ref DomainName
+        DnsRecordTTL: 10
+        HealthCheckThreshold: 1
+
+  LoadBalancerStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn: [VPCStack, SecurityGroupsStack]
+    Properties:
+      TemplateURL: alb.yaml
+      Parameters:
+        Environment: !Ref Environment
+        VpcId: !GetAtt VPCStack.Outputs.VpcId
+        PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
+        SecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.NivaltaLBSecurityGroupId
+        DomainName: !Ref DomainName
+        SubDomainPrefix: !Ref SubDomainPrefix
+        HostedZoneId: !Ref HostedZoneId
+        HealthCheckPath: /api/version
+        HealthCheckInterval: 30
+
+  TasksStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn: [ServiceDiscoveryStack, SecurityGroupsStack]
+    Properties:
+      TemplateURL: tasks/main.yaml
+      Parameters:
+        ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+        Environment: !Ref Environment
+        ServiceDiscoveryNamespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
+
+  FlaskService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${Environment}-flask-api
+      Cluster: !Ref ECSClusterName
+      TaskDefinition: !GetAtt TasksStack.Outputs.FlaskTaskDefinitionArn
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "ENABLED"
+          Subnets:
+            - !GetAtt VPCStack.Outputs.PublicSubnet1
+            - !GetAtt VPCStack.Outputs.PublicSubnet2
+          SecurityGroups: 
+            - !GetAtt SecurityGroupsStack.Outputs.FlaskApiServerSecurityGroupId
+      ServiceRegistries:
+        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.FlaskServiceDiscoveryArn
+      EnableExecuteCommand: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-flask-api
+        - Key: Environment
+          Value: !Ref Environment
+
+  SveltekitService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${Environment}-sveltekit
+      Cluster: !Ref ECSClusterName
+      TaskDefinition: !GetAtt TasksStack.Outputs.SvelteTaskDefinitionArn
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "ENABLED"
+          Subnets:
+            - !GetAtt VPCStack.Outputs.PublicSubnet1
+            - !GetAtt VPCStack.Outputs.PublicSubnet2
+          SecurityGroups: 
+            - !GetAtt SecurityGroupsStack.Outputs.SveltekitUISecurityGroupId
+      ServiceRegistries:
+        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.SvelteServiceDiscoveryArn
+      EnableExecuteCommand: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-sveltekit
+        - Key: Environment
+          Value: !Ref Environment
+  
+  NginxService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${Environment}-nginx-proxy
+      Cluster: !Ref ECSClusterName
+      TaskDefinition:  !GetAtt TasksStack.Outputs.NginxTaskDefinitionArn
+      DesiredCount: 1
+      LaunchType: "FARGATE"
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "ENABLED"
+          Subnets:
+            - !GetAtt VPCStack.Outputs.PublicSubnet1
+            - !GetAtt VPCStack.Outputs.PublicSubnet2
+          SecurityGroups: 
+            - !GetAtt SecurityGroupsStack.Outputs.NginxProxySecurityGroupId
+      HealthCheckGracePeriodSeconds: 120
+      ServiceRegistries:
+        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.NginxServiceDiscoveryArn
+      LoadBalancers:
+        - ContainerName: nginx-proxy
+          ContainerPort: 80
+          TargetGroupArn: !GetAtt LoadBalancerStack.Outputs.TargetGroupArn
+      EnableExecuteCommand: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-nginx-proxy
+        - Key: Environment
+          Value: !Ref Environment
+  
+  # ServicesStack:
+  #   Type: AWS::CloudFormation::Stack
+  #   DeletionPolicy: Delete
+  #   UpdateReplacePolicy: Retain
+  #   DependsOn: [VPCStack, TasksStack, LoadBalancerStack]
+  #   Properties:
+  #     TemplateURL: services/main.yaml
+  #     Parameters:
+  #       Environment: !Ref Environment
+  #       ECSCluster: !Ref ECSClusterName
+  #       PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
+  #       PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
+  #       TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
+  #       ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
+  #       SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
+  #       LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
+
+Outputs:
+
+  LogGroupName:
+    Value: !Ref NivaltaLogGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-LogGroupName
+
+  TaskExecutionRoleArn:
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskExecutionRoleArn
+
+  VPCId:
+    Description: VPC ID
+    Value: !GetAtt VPCStack.Outputs.VpcId
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCId
+
+  LoadBalancerDNS:
+    Description: Application Load Balancer DNS
+    Value: !GetAtt LoadBalancerStack.Outputs.LoadBalancerDNS
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerDNS
+
+  ServiceEndpoint:
+    Description: Service Endpoint URL
+    Value: !GetAtt LoadBalancerStack.Outputs.DomainEndpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-ServiceEndpoint

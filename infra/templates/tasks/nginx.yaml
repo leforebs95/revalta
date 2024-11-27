@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Nginx Task Definition'
+
+Parameters:
+  # Include common parameters
+  Environment:
+    Type: String
+  ServiceDiscoveryNamespace:
+    Type: String
+  ExecutionRoleArn:
+    Type: String
+  TaskCpu:
+    Type: Number
+    Default: "256"
+  TaskMemory:
+    Type: Number
+    Default: "512"
+  
+  # Nginx specific parameters
+  NginxImageUri:
+    Type: String
+    Description: URI for the Nginx container image
+    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/nginx-test:latest
+
+Resources:
+  NginxTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-nginx-proxy
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      TaskRoleArn: arn:aws:iam::975049886332:role/ecsTaskExecutionRole
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      ContainerDefinitions:
+        - Name: nginx-proxy
+          Essential: true
+          Image: !Ref NginxImageUri
+          Environment:
+            - Name: FLASK_SERVICE_HOST
+              Value: !Sub flask-apiserver.${ServiceDiscoveryNamespace}
+            - Name: SVELTE_SERVICE_HOST
+              Value: !Sub sveltekit-ui.${ServiceDiscoveryNamespace}
+          PortMappings:
+            - ContainerPort: 80
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost/health || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 60
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub /ecs/${Environment}-nivalta
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: nginx
+
+Outputs:
+  TaskDefinitionArn:
+    Description: ARN of the Nginx Task Definition
+    Value: !Ref NginxTaskDefinition
+    Export:
+      Name: !Sub ${AWS::StackName}-NginxTaskDefArn

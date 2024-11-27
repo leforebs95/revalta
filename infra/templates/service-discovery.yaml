@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Nivalta Service Discovery Configuration"
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment name for resource tagging
+    AllowedValues:
+      - prod
+      - preprod
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for service discovery namespace
+
+  ServiceDiscoveryDomain:
+    Type: String
+    Description: Domain name for service discovery (e.g., nivalta.local)
+    Default: nivalta.local
+
+  DnsRecordTTL:
+    Type: Number
+    Description: TTL for DNS records in seconds
+    Default: "10"
+    MinValue: "0"
+    MaxValue: "3600"
+
+  HealthCheckThreshold:
+    Type: Number
+    Description: Number of consecutive failures before marking service unhealthy
+    Default: "1"
+    MinValue: "1"
+    MaxValue: "10"
+
+Resources:
+  NivaltaServiceDiscoveryNameSpace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Description: !Sub "Service Discovery Namespace for Nivalta ${Environment}"
+      Vpc: !Ref VpcId
+      Name: !Sub "${Environment}.${ServiceDiscoveryDomain}"
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-service-discovery
+        - Key: Environment
+          Value: !Ref Environment
+
+  NginxProxyServiceDiscoveryEntry:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: nginx-proxy
+      Description: !Sub "${Environment} - Nginx Proxy Service Discovery Entry"
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: !Ref DnsRecordTTL
+        NamespaceId: !Ref NivaltaServiceDiscoveryNameSpace
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: !Ref HealthCheckThreshold
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-nginx-discovery
+        - Key: Environment
+          Value: !Ref Environment
+
+  FlaskApiServerServiceDiscoveryEntry:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: flask-apiserver
+      Description: !Sub "${Environment} - Flask API Service Discovery Entry"
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: !Ref DnsRecordTTL
+        NamespaceId: !Ref NivaltaServiceDiscoveryNameSpace
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: !Ref HealthCheckThreshold
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-flask-discovery
+        - Key: Environment
+          Value: !Ref Environment
+
+  SveltekitUIServiceDiscoveryEntry:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: sveltekit-ui
+      Description: !Sub "${Environment} - Svelte UI Service Discovery Entry"
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: !Ref DnsRecordTTL
+        NamespaceId: !Ref NivaltaServiceDiscoveryNameSpace
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: !Ref HealthCheckThreshold
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-svelte-discovery
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  NamespaceId:
+    Description: The ID of the Service Discovery Namespace
+    Value: !Ref NivaltaServiceDiscoveryNameSpace
+    Export:
+      Name: !Sub ${AWS::StackName}-NamespaceId
+
+  NamespaceName:
+    Description: The name of the Service Discovery Namespace
+    Value: !Sub "${Environment}.${ServiceDiscoveryDomain}"
+    Export:
+      Name: !Sub ${AWS::StackName}-NamespaceName
+
+  NginxServiceDiscoveryArn:
+    Description: ARN of Nginx Service Discovery Entry
+    Value: !GetAtt NginxProxyServiceDiscoveryEntry.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-NginxServiceDiscoveryArn
+
+  FlaskServiceDiscoveryArn:
+    Description: ARN of Flask Service Discovery Entry
+    Value: !GetAtt FlaskApiServerServiceDiscoveryEntry.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-FlaskServiceDiscoveryArn
+
+  SvelteServiceDiscoveryArn:
+    Description: ARN of Svelte Service Discovery Entry
+    Value: !GetAtt SveltekitUIServiceDiscoveryEntry.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-SvelteServiceDiscoveryArn
+
+  ServiceDiscoveryEndpoints:
+    Description: Service Discovery Endpoints
+    Value: !Sub |
+      Nginx: nginx-proxy.${Environment}.${ServiceDiscoveryDomain}
+      Flask: flask-apiserver.${Environment}.${ServiceDiscoveryDomain}
+      Svelte: sveltekit-ui.${Environment}.${ServiceDiscoveryDomain}
+
+  StackName:
+    Description: Stack Name
+    Value: !Ref 'AWS::StackName'
+    Export:
+      Name: !Sub ${AWS::StackName}-StackName

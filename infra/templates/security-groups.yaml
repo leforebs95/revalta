@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Nivalta Security Groups Configuration'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - prod
+      - preprod
+    Description: Environment name for resource tagging
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where security groups will be created
+
+Resources:
+  # Load Balancer Security Group
+  NivaltaLBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${Environment} - Load balancer security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Allow HTTP inbound
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - Description: Allow HTTPS inbound
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-alb-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Nginx Proxy Security Group
+  NginxProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${Environment} - Nginx Proxy security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Allow HTTP from ALB
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref NivaltaLBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-nginx-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Flask API Security Group
+  FlaskApiServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${Environment} - Flask API Server security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Allow API port from Nginx
+          IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          SourceSecurityGroupId: !Ref NginxProxySecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-flask-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Svelte UI Security Group
+  SveltekitUISecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${Environment} - Sveltekit UI security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Allow UI port from Nginx
+          IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref NginxProxySecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-svelte-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Egress Rules
+  NginxProxyEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref NginxProxySecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0
+
+  FlaskApiServerEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref FlaskApiServerSecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0
+
+  SveltekitUIEgressRule:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref SveltekitUISecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      CidrIp: 0.0.0.0/0
+
+Outputs:
+  NginxProxySecurityGroupId:
+    Description: Security Group ID for Nginx Proxy
+    Value: !Ref NginxProxySecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-NginxProxySecurityGroupId
+
+  FlaskApiServerSecurityGroupId:
+    Description: Security Group ID for Flask API Server
+    Value: !Ref FlaskApiServerSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-FlaskApiServerSecurityGroupId
+
+  SveltekitUISecurityGroupId:
+    Description: Security Group ID for Sveltekit UI
+    Value: !Ref SveltekitUISecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-SveltekitUISecurityGroupId
+
+  NivaltaLBSecurityGroupId:
+    Description: Security Group ID for Load Balancer
+    Value: !Ref NivaltaLBSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerSecurityGroupId
+
+  StackName:
+    Description: Stack Name
+    Value: !Ref 'AWS::StackName'
+    Export:
+      Name: !Sub ${AWS::StackName}-StackName
