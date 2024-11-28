@@ -7,11 +7,6 @@ Parameters:
     Type: String
     AllowedValues: [prod, preprod]
 
-  ServiceDiscoveryDomain:
-    Type: String
-    Description: Domain name for internal service discovery (e.g., nivalta.local)
-    Default: nivalta.local
-
 Mappings:
   SubnetConfig:
     prod:

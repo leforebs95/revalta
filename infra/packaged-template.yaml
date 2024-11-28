@@ -20,9 +20,6 @@ Parameters:
     - ''
     - preprod
     Description: Subdomain prefix for environment
-  ECSClusterName:
-    Type: String
-    Description: Name of the ECS Cluster
 Resources:
   NivaltaLogGroup:
     Type: AWS::Logs::LogGroup
@@ -89,7 +86,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: VPCStack
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/d9cef04ed9c023d61965e682128fabe4.template
       Parameters:
@@ -140,9 +136,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn:
-    - VPCStack
-    - SecurityGroupsStack
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/7b0e4c9c89de46b01df1c647d4a138f0.template
       Parameters:
@@ -175,9 +168,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn:
-    - ServiceDiscoveryStack
-    - SecurityGroupsStack
+    DependsOn: SecurityGroupsStack
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/a36fd385db06ce0f47ea81c6ce37c728.template
       Parameters:
@@ -195,11 +186,8 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn:
-    - VPCStack
-    - TasksStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/0f01135182c7edde2b0c57b56c9e2d38.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/896b32a3f4908e063970fa32e221e277.template
       Parameters:
         Environment:
           Ref: Environment
@@ -229,11 +217,9 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn:
-    - ServicesStack
-    - LoadBalancerStack
+    DependsOn: ServicesStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/ad4680ae3e8923daf47725349ce9de33.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/78ed7a9a3245750b377c9b329b69873a.template
       Parameters:
         Environment:
           Ref: Environment

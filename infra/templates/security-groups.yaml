@@ -99,8 +99,6 @@ Resources:
       GroupId: !Ref NginxProxySecurityGroup
       Description: Allow all outbound traffic
       IpProtocol: -1
-      FromPort: -1
-      ToPort: -1
       CidrIp: 0.0.0.0/0
 
   FlaskApiServerEgressRule:
@@ -109,8 +107,6 @@ Resources:
       GroupId: !Ref FlaskApiServerSecurityGroup
       Description: Allow all outbound traffic
       IpProtocol: -1
-      FromPort: -1
-      ToPort: -1
       CidrIp: 0.0.0.0/0
 
   SveltekitUIEgressRule:
@@ -119,8 +115,6 @@ Resources:
       GroupId: !Ref SveltekitUISecurityGroup
       Description: Allow all outbound traffic
       IpProtocol: -1
-      FromPort: -1
-      ToPort: -1
       CidrIp: 0.0.0.0/0
 
 Outputs:

@@ -25,7 +25,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/e97ac678a829245b83cb9161f8094a95.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/e9b79b74cd1d8f69041ab7d12f46fb0f.template
       Parameters:
         Environment:
           Ref: Environment
@@ -46,7 +46,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/0f2ace0c89c1fbcc0d31995a15048a1c.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/15190ea9706549cfd23be979c54f6620.template
       Parameters:
         Environment:
           Ref: Environment

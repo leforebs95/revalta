@@ -110,90 +110,90 @@ Resources:
           Value: !Ref Environment
 
   # Auto Scaling Configuration
-  # ServiceScalingTarget:
-  #   Type: AWS::ApplicationAutoScaling::ScalableTarget
-  #   Properties:
-  #     MaxCapacity: !Ref MaxCount
-  #     MinCapacity: !Ref MinCount
-  #     ResourceId: !Join 
-  #       - '/'
-  #       - - service
-  #         - !Ref ECSCluster
-  #         - !GetAtt FlaskService.Name
-  #     RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
-  #     ScalableDimension: ecs:service:DesiredCount
-  #     ServiceNamespace: ecs
+  ServiceScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxCount
+      MinCapacity: !Ref MinCount
+      ResourceId: !Join 
+        - '/'
+        - - service
+          - !Ref ECSCluster
+          - !GetAtt FlaskService.Name
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
 
-  # # CPU-based scaling
-  # CPUScalingPolicy:
-  #   Type: AWS::ApplicationAutoScaling::ScalingPolicy
-  #   Properties:
-  #     PolicyName: !Sub ${Environment}-flask-cpu-scaling
-  #     PolicyType: TargetTrackingScaling
-  #     ScalingTargetId: !Ref ServiceScalingTarget
-  #     TargetTrackingScalingPolicyConfiguration:
-  #       PredefinedMetricSpecification:
-  #         PredefinedMetricType: ECSServiceAverageCPUUtilization
-  #       TargetValue: 70.0
-  #       ScaleInCooldown: 300
-  #       ScaleOutCooldown: 60
+  # CPU-based scaling
+  CPUScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ${Environment}-flask-cpu-scaling
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 70.0
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 60
 
-  # # Request count based scaling
-  # RequestCountScalingPolicy:
-  #   Type: AWS::ApplicationAutoScaling::ScalingPolicy
-  #   Properties:
-  #     PolicyName: !Sub ${Environment}-flask-request-scaling
-  #     PolicyType: TargetTrackingScaling
-  #     ScalingTargetId: !Ref ServiceScalingTarget
-  #     TargetTrackingScalingPolicyConfiguration:
-  #       CustomizedMetricSpecification:
-  #         MetricName: RequestCountPerTarget
-  #         Namespace: AWS/ApplicationELB
-  #         Dimensions:
-  #           - Name: TargetGroup
-  #             Value: !Sub ${TaskDefinitionsStackName}-FlaskTargetGroupName
-  #         Statistic: Sum
-  #         Unit: Count
-  #       TargetValue: !Ref APIRequestThreshold
-  #       ScaleInCooldown: 300
-  #       ScaleOutCooldown: 60
+  # Request count based scaling
+  RequestCountScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ${Environment}-flask-request-scaling
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        CustomizedMetricSpecification:
+          MetricName: RequestCountPerTarget
+          Namespace: AWS/ApplicationELB
+          Dimensions:
+            - Name: TargetGroup
+              Value: !Sub ${TaskDefinitionsStackName}-FlaskTargetGroupName
+          Statistic: Sum
+          Unit: Count
+        TargetValue: !Ref APIRequestThreshold
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 60
 
-  # # CloudWatch Alarms
-  # APILatencyAlarm:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     AlarmName: !Sub ${Environment}-flask-api-latency
-  #     AlarmDescription: API latency is too high
-  #     MetricName: Latency
-  #     Namespace: AWS/ECS
-  #     Dimensions:
-  #       - Name: ClusterName
-  #         Value: !Ref ECSCluster
-  #       - Name: ServiceName
-  #         Value: !GetAtt FlaskService.Name
-  #     Statistic: Average
-  #     Period: 60
-  #     EvaluationPeriods: 2
-  #     Threshold: 1
-  #     ComparisonOperator: GreaterThanThreshold
-  #     TreatMissingData: notBreaching
+  # CloudWatch Alarms
+  APILatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Environment}-flask-api-latency
+      AlarmDescription: API latency is too high
+      MetricName: Latency
+      Namespace: AWS/ECS
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref ECSCluster
+        - Name: ServiceName
+          Value: !GetAtt FlaskService.Name
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
 
-  # API5xxErrorAlarm:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     AlarmName: !Sub ${Environment}-flask-5xx-errors
-  #     AlarmDescription: Too many 5XX errors
-  #     MetricName: HTTPCode_Target_5XX_Count
-  #     Namespace: AWS/ApplicationELB
-  #     Dimensions:
-  #       - Name: TargetGroup
-  #         Value: !Sub ${TaskDefinitionsStackName}-FlaskTargetGroupName
-  #     Statistic: Sum
-  #     Period: 60
-  #     EvaluationPeriods: 2
-  #     Threshold: 10
-  #     ComparisonOperator: GreaterThanThreshold
-  #     TreatMissingData: notBreaching
+  API5xxErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Environment}-flask-5xx-errors
+      AlarmDescription: Too many 5XX errors
+      MetricName: HTTPCode_Target_5XX_Count
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+        - Name: TargetGroup
+          Value: !Sub ${TaskDefinitionsStackName}-FlaskTargetGroupName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
 
   # # Dashboard for monitoring
   # ServiceDashboard:
@@ -247,11 +247,11 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-ServiceArn
 
-  # AutoScalingTargetArn:
-  #   Description: ARN of the Auto Scaling Target
-  #   Value: !Ref ServiceScalingTarget
-  #   Export:
-  #     Name: !Sub ${AWS::StackName}-AutoScalingTargetArn
+  AutoScalingTargetArn:
+    Description: ARN of the Auto Scaling Target
+    Value: !Ref ServiceScalingTarget
+    Export:
+      Name: !Sub ${AWS::StackName}-AutoScalingTargetArn
 
   # DashboardURL:
   #   Description: URL for the CloudWatch Dashboard

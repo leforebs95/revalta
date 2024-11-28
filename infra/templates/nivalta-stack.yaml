@@ -21,10 +21,6 @@ Parameters:
     AllowedValues: ['', preprod]
     Description: Subdomain prefix for environment
 
-  ECSClusterName:
-    Type: String
-    Description: Name of the ECS Cluster
-
 Resources:
 
   # CloudWatch Log Group
@@ -72,13 +68,11 @@ Resources:
       TemplateURL: vpc.yaml
       Parameters:
         Environment: !Ref Environment
-        ServiceDiscoveryDomain: !Ref ServiceDomainName
 
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: VPCStack
     Properties:
       TemplateURL: security-groups.yaml
       Parameters:
@@ -89,7 +83,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: VPCStack
     Properties:
       TemplateURL: service-discovery.yaml
       Parameters:
@@ -130,7 +123,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: [VPCStack, SecurityGroupsStack]
     Properties:
       TemplateURL: alb.yaml
       Parameters:
@@ -149,7 +141,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: [ServiceDiscoveryStack, SecurityGroupsStack]
+    DependsOn: SecurityGroupsStack
     Properties:
       TemplateURL: tasks/main.yaml
       Parameters:
@@ -161,7 +153,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: [VPCStack, TasksStack]
     Properties:
       TemplateURL: services/main.yaml
       Parameters:
@@ -177,7 +168,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: [ServicesStack, LoadBalancerStack]
+    DependsOn: ServicesStack
     Properties:
       TemplateURL: services/nginx.yaml
       Parameters:
