@@ -7,9 +7,10 @@ Parameters:
     AllowedValues: [prod, preprod]
     Description: Deployment environment
   
-  DomainName:
+  ServiceDomainName:
     Type: String
     Description: Base domain name for the application
+    Default: nivalta.local
   
   HostedZoneId:
     Type: AWS::Route53::HostedZone::Id
@@ -65,16 +66,17 @@ Resources:
 
   VPCStack:
     Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: vpc.yaml
       Parameters:
         Environment: !Ref Environment
+        ServiceDiscoveryDomain: !Ref ServiceDomainName
 
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn: VPCStack
     Properties:
@@ -85,7 +87,7 @@ Resources:
 
   ServiceDiscoveryStack:
     Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn: VPCStack
     Properties:
@@ -93,10 +95,37 @@ Resources:
       Parameters:
         Environment: !Ref Environment
         VpcId: !GetAtt VPCStack.Outputs.VpcId
-        ServiceDiscoveryDomain: !Ref DomainName
+        ServiceDiscoveryDomain: !Ref ServiceDomainName
         DnsRecordTTL: 10
         HealthCheckThreshold: 1
 
+  ECSCluster:
+   Type: AWS::ECS::Cluster
+   Properties:
+     ClusterName: !Sub ${Environment}-nivalta-cluster
+     ServiceConnectDefaults:
+      Namespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
+     CapacityProviders:
+       - FARGATE
+       - FARGATE_SPOT
+     DefaultCapacityProviderStrategy:
+       - CapacityProvider: FARGATE
+         Weight: 1
+     ClusterSettings:
+       - Name: containerInsights
+         Value: enabled
+     Configuration:
+       ExecuteCommandConfiguration:
+         Logging: OVERRIDE
+         LogConfiguration:
+           CloudWatchEncryptionEnabled: true
+           CloudWatchLogGroupName: !Sub /ecs/${Environment}-nivalta/execute-command
+     Tags:
+       - Key: Name
+         Value: !Sub ${Environment}-nivalta-cluster
+       - Key: Environment
+         Value: !Ref Environment
+  
   LoadBalancerStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -110,7 +139,7 @@ Resources:
         PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
         PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
         SecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.NivaltaLBSecurityGroupId
-        DomainName: !Ref DomainName
+        DomainName: nivalta.com
         SubDomainPrefix: !Ref SubDomainPrefix
         HostedZoneId: !Ref HostedZoneId
         HealthCheckPath: /api/version
@@ -128,42 +157,59 @@ Resources:
         Environment: !Ref Environment
         ServiceDiscoveryNamespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
 
-  FlaskService:
-    Type: AWS::ECS::Service
-    Properties:
-      ServiceName: !Sub ${Environment}-flask-api
-      Cluster: !Ref ECSClusterName
-      TaskDefinition: !GetAtt TasksStack.Outputs.FlaskTaskDefinitionArn
-      DesiredCount: 1
-      LaunchType: 'FARGATE'
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-        DeploymentCircuitBreaker:
-          Enable: true
-          Rollback: true
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: "ENABLED"
-          Subnets:
-            - !GetAtt VPCStack.Outputs.PublicSubnet1
-            - !GetAtt VPCStack.Outputs.PublicSubnet2
-          SecurityGroups: 
-            - !GetAtt SecurityGroupsStack.Outputs.FlaskApiServerSecurityGroupId
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.FlaskServiceDiscoveryArn
-      EnableExecuteCommand: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-flask-api
-        - Key: Environment
-          Value: !Ref Environment
+  # FlaskService:
+  #   Type: AWS::ECS::Service
+  #   Properties:
+  #     ServiceName: !Sub ${Environment}-flask-api
+  #     Cluster: !Ref ECSClusterName
+  #     TaskDefinition: !GetAtt TasksStack.Outputs.FlaskTaskDefinitionArn
+  #     DesiredCount: 1
+  #     LaunchType: 'FARGATE'
+  #     DeploymentConfiguration:
+  #       MaximumPercent: 200
+  #       MinimumHealthyPercent: 100
+  #       DeploymentCircuitBreaker:
+  #         Enable: true
+  #         Rollback: true
+  #     NetworkConfiguration:
+  #       AwsvpcConfiguration:
+  #         AssignPublicIp: "ENABLED"
+  #         Subnets:
+  #           - !GetAtt VPCStack.Outputs.PublicSubnet1
+  #           - !GetAtt VPCStack.Outputs.PublicSubnet2
+  #         SecurityGroups: 
+  #           - !GetAtt SecurityGroupsStack.Outputs.FlaskApiServerSecurityGroupId
+  #     ServiceRegistries:
+  #       - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.FlaskServiceDiscoveryArn
+  #     EnableExecuteCommand: true
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub ${Environment}-flask-api
+  #       - Key: Environment
+  #         Value: !Ref Environment
 
+  ServicesStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn: [VPCStack, TasksStack, LoadBalancerStack]
+    Properties:
+      TemplateURL: services/main.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ECSCluster: !Ref ECSCluster
+        PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
+        TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
+        ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
+        SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
+        LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
+  
   SveltekitService:
     Type: AWS::ECS::Service
     Properties:
       ServiceName: !Sub ${Environment}-sveltekit
-      Cluster: !Ref ECSClusterName
+      Cluster: !Ref ECSCluster
       TaskDefinition: !GetAtt TasksStack.Outputs.SvelteTaskDefinitionArn
       DesiredCount: 1
       LaunchType: 'FARGATE'
@@ -194,7 +240,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       ServiceName: !Sub ${Environment}-nginx-proxy
-      Cluster: !Ref ECSClusterName
+      Cluster: !Ref ECSCluster
       TaskDefinition:  !GetAtt TasksStack.Outputs.NginxTaskDefinitionArn
       DesiredCount: 1
       LaunchType: "FARGATE"
@@ -226,22 +272,6 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
   
-  # ServicesStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   DeletionPolicy: Delete
-  #   UpdateReplacePolicy: Retain
-  #   DependsOn: [VPCStack, TasksStack, LoadBalancerStack]
-  #   Properties:
-  #     TemplateURL: services/main.yaml
-  #     Parameters:
-  #       Environment: !Ref Environment
-  #       ECSCluster: !Ref ECSClusterName
-  #       PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
-  #       PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
-  #       TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
-  #       ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
-  #       SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
-  #       LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
 
 Outputs:
 

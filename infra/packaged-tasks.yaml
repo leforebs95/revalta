@@ -41,7 +41,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/cc5bac1d43b9d04733da94ab031b838e.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/f31c290291b813b7447834dbb9511496.template
       Parameters:
         Environment:
           Ref: Environment
@@ -60,6 +60,9 @@ Outputs:
       Fn::GetAtt:
       - FlaskTask
       - Outputs.TaskDefinitionArn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-FlaskTaskDefArn
   SvelteTaskDefinitionArn:
     Value:
       Fn::GetAtt:

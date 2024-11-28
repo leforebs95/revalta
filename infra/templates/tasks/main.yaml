@@ -40,7 +40,7 @@ Resources:
         # DbName: !Sub nivalta-${Environment}
         # DbSecretArn: !ImportValue DatabaseSecretArn
 
-  SvelteTask:
+  SveltekitTask:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
@@ -49,8 +49,8 @@ Resources:
       Parameters:
         Environment: !Ref Environment
         ExecutionRoleArn: !Ref ExecutionRoleArn
-        TaskCpu: "256"
-        TaskMemory: "512"
+        TaskCpu: "1024"
+        TaskMemory: "2048"
         # SveltekitImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nivalta/sveltekit-server:latest'
 
 Outputs:
@@ -58,8 +58,10 @@ Outputs:
     Value: !GetAtt NginxTask.Outputs.TaskDefinitionArn
   FlaskTaskDefinitionArn:
     Value: !GetAtt FlaskTask.Outputs.TaskDefinitionArn
+    Export:
+      Name: !Sub ${AWS::StackName}-FlaskTaskDefArn
   SvelteTaskDefinitionArn:
-    Value: !GetAtt SvelteTask.Outputs.TaskDefinitionArn
+    Value: !GetAtt SveltekitTask.Outputs.TaskDefinitionArn
   StackName:
     Description: Stack Name
     Value: !Ref 'AWS::StackName'

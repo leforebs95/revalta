@@ -9,10 +9,10 @@ Parameters:
     Type: String
   TaskCpu:
     Type: Number
-    Default: "256"
+    Default: "512"
   TaskMemory:
     Type: Number
-    Default: "512"
+    Default: "1024"
   
   # Nginx specific parameters
   SveltekitImageUri:

@@ -44,45 +44,45 @@ Resources:
         ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
         SecurityGroupsStackName: !Ref SecurityGroupsStackName
 
-  SveltekitService:
-    Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TemplateURL: sveltekit.yaml
-      Parameters:
-        Environment: !Ref Environment
-        ECSCluster: !Ref ECSCluster
-        PublicSubnetOne: !Ref PublicSubnetOne
-        PublicSubnetTwo: !Ref PublicSubnetTwo
-        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
-        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
-        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+  # SveltekitService:
+  #   Type: AWS::CloudFormation::Stack
+  #   DeletionPolicy: Delete
+  #   UpdateReplacePolicy: Retain
+  #   Properties:
+  #     TemplateURL: sveltekit.yaml
+  #     Parameters:
+  #       Environment: !Ref Environment
+  #       ECSCluster: !Ref ECSCluster
+  #       PublicSubnetOne: !Ref PublicSubnetOne
+  #       PublicSubnetTwo: !Ref PublicSubnetTwo
+  #       TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
+  #       ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
+  #       SecurityGroupsStackName: !Ref SecurityGroupsStackName
 
   
-  NginxService:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-         - FlaskService
-         - SveltekitService
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TemplateURL: nginx.yaml
-      Parameters:
-        Environment: !Ref Environment
-        ECSCluster: !Ref ECSCluster
-        PublicSubnetOne: !Ref PublicSubnetOne
-        PublicSubnetTwo: !Ref PublicSubnetTwo
-        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
-        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
-        SecurityGroupsStackName: !Ref SecurityGroupsStackName
-        LoadBalancerStackName: !Ref LoadBalancerStackName
+  # NginxService:
+  #   Type: AWS::CloudFormation::Stack
+  #   DependsOn:
+  #        - FlaskService
+  #        - SveltekitService
+  #   DeletionPolicy: Delete
+  #   UpdateReplacePolicy: Retain
+  #   Properties:
+  #     TemplateURL: nginx.yaml
+  #     Parameters:
+  #       Environment: !Ref Environment
+  #       ECSCluster: !Ref ECSCluster
+  #       PublicSubnetOne: !Ref PublicSubnetOne
+  #       PublicSubnetTwo: !Ref PublicSubnetTwo
+  #       TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
+  #       ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
+  #       SecurityGroupsStackName: !Ref SecurityGroupsStackName
+  #       LoadBalancerStackName: !Ref LoadBalancerStackName
 
 Outputs:
-  NginxServiceArn:
-    Value: !GetAtt NginxService.Outputs.ServiceArn
+  # NginxServiceArn:
+  #   Value: !GetAtt NginxService.Outputs.ServiceArn
   FlaskServiceArn:
     Value: !GetAtt FlaskService.Outputs.ServiceArn
-  SveltekitServiceArn:
-    Value: !GetAtt SveltekitService.Outputs.ServiceArn
+  # SveltekitServiceArn:
+  #   Value: !GetAtt SveltekitService.Outputs.ServiceArn

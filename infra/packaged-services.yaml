@@ -27,7 +27,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/23951744e177ec0e7b4658b53884ebba.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/e97ac678a829245b83cb9161f8094a95.template
       Parameters:
         Environment:
           Ref: Environment
@@ -43,66 +43,9 @@ Resources:
           Ref: ServiceDiscoveryStackName
         SecurityGroupsStackName:
           Ref: SecurityGroupsStackName
-  SveltekitService:
-    Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/85223c738f7ad50973b8edb0c7f4fb2d.template
-      Parameters:
-        Environment:
-          Ref: Environment
-        ECSCluster:
-          Ref: ECSCluster
-        PublicSubnetOne:
-          Ref: PublicSubnetOne
-        PublicSubnetTwo:
-          Ref: PublicSubnetTwo
-        TaskDefinitionsStackName:
-          Ref: TaskDefinitionsStackName
-        ServiceDiscoveryStackName:
-          Ref: ServiceDiscoveryStackName
-        SecurityGroupsStackName:
-          Ref: SecurityGroupsStackName
-  NginxService:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-    - FlaskService
-    - SveltekitService
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/a852794a677d86bddf141dee0f6786ea.template
-      Parameters:
-        Environment:
-          Ref: Environment
-        ECSCluster:
-          Ref: ECSCluster
-        PublicSubnetOne:
-          Ref: PublicSubnetOne
-        PublicSubnetTwo:
-          Ref: PublicSubnetTwo
-        TaskDefinitionsStackName:
-          Ref: TaskDefinitionsStackName
-        ServiceDiscoveryStackName:
-          Ref: ServiceDiscoveryStackName
-        SecurityGroupsStackName:
-          Ref: SecurityGroupsStackName
-        LoadBalancerStackName:
-          Ref: LoadBalancerStackName
 Outputs:
-  NginxServiceArn:
-    Value:
-      Fn::GetAtt:
-      - NginxService
-      - Outputs.ServiceArn
   FlaskServiceArn:
     Value:
       Fn::GetAtt:
       - FlaskService
-      - Outputs.ServiceArn
-  SveltekitServiceArn:
-    Value:
-      Fn::GetAtt:
-      - SveltekitService
       - Outputs.ServiceArn

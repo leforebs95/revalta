@@ -78,7 +78,9 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-flask-api
       Cluster: !Ref ECSCluster
-      TaskDefinition: !Sub ${TaskDefinitionsStackName}-FlaskTaskDefArn
+      TaskDefinition:
+        Fn::ImportValue:
+          !Sub ${TaskDefinitionsStackName}-FlaskTaskDefArn
       DesiredCount: !Ref DesiredCount
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -94,9 +96,12 @@ Resources:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
           SecurityGroups: 
-            - !Sub ${SecurityGroupsStackName}-FlaskApiServerSecurityGroupId
+            - Fn::ImportValue:
+                !Sub ${SecurityGroupsStackName}-FlaskApiServerSecurityGroupId
       ServiceRegistries:
-        - RegistryArn: !Sub ${ServiceDiscoveryStackName}-FlaskServiceDiscoveryArn
+        - RegistryArn:
+            Fn::ImportValue:
+              !Sub ${ServiceDiscoveryStackName}-FlaskServiceDiscoveryArn
       EnableExecuteCommand: true
       Tags:
         - Key: Name
