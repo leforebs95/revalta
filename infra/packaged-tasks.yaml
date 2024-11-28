@@ -36,25 +36,28 @@ Resources:
           Ref: ExecutionRoleArn
         TaskCpu: '256'
         TaskMemory: '512'
-  SvelteTask:
+  SveltekitTask:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/f31c290291b813b7447834dbb9511496.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/9c4b76b8d25801c06f8e09392b7a1044.template
       Parameters:
         Environment:
           Ref: Environment
         ExecutionRoleArn:
           Ref: ExecutionRoleArn
-        TaskCpu: '256'
-        TaskMemory: '512'
+        TaskCpu: '1024'
+        TaskMemory: '2048'
 Outputs:
   NginxTaskDefinitionArn:
     Value:
       Fn::GetAtt:
       - NginxTask
       - Outputs.TaskDefinitionArn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-NginxTaskDefArn
   FlaskTaskDefinitionArn:
     Value:
       Fn::GetAtt:
@@ -66,8 +69,11 @@ Outputs:
   SvelteTaskDefinitionArn:
     Value:
       Fn::GetAtt:
-      - SvelteTask
+      - SveltekitTask
       - Outputs.TaskDefinitionArn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-SveltekitTaskDefArn
   StackName:
     Description: Stack Name
     Value:

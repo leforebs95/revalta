@@ -56,12 +56,16 @@ Resources:
 Outputs:
   NginxTaskDefinitionArn:
     Value: !GetAtt NginxTask.Outputs.TaskDefinitionArn
+    Export:
+      Name: !Sub ${AWS::StackName}-NginxTaskDefArn
   FlaskTaskDefinitionArn:
     Value: !GetAtt FlaskTask.Outputs.TaskDefinitionArn
     Export:
       Name: !Sub ${AWS::StackName}-FlaskTaskDefArn
   SvelteTaskDefinitionArn:
     Value: !GetAtt SveltekitTask.Outputs.TaskDefinitionArn
+    Export:
+      Name: !Sub ${AWS::StackName}-SveltekitTaskDefArn
   StackName:
     Description: Stack Name
     Value: !Ref 'AWS::StackName'

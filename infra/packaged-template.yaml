@@ -4,10 +4,10 @@ Parameters:
   Environment:
     Type: String
     AllowedValues:
-      - prod
-      - preprod
+    - prod
+    - preprod
     Description: Deployment environment
-  DomainName:
+  ServiceDomainName:
     Type: String
     Description: Base domain name for the application
     Default: nivalta.local
@@ -17,8 +17,8 @@ Parameters:
   SubDomainPrefix:
     Type: String
     AllowedValues:
-      - ''
-      - preprod
+    - ''
+    - preprod
     Description: Subdomain prefix for environment
   ECSClusterName:
     Type: String
@@ -29,11 +29,13 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      LogGroupName: !Sub /ecs/${Environment}-nivalta
+      LogGroupName:
+        Fn::Sub: /ecs/${Environment}-nivalta
       RetentionInDays: 30
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
+      - Key: Environment
+        Value:
+          Ref: Environment
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete
@@ -42,21 +44,22 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: sts:AssumeRole
+        - Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+          Action: sts:AssumeRole
       ManagedPolicyArns:
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
       Policies:
-        - PolicyName: SecretsAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Environment}/nivalta/*
+      - PolicyName: SecretsAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource:
+              Fn::Sub: arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Environment}/nivalta/*
   VPCStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -64,8 +67,10 @@ Resources:
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/1d276b868ab8c1d5811ed8fc2d62a5c1.template
       Parameters:
-        Environment: !Ref Environment
-        ServiceDiscoveryDomain: !Ref DomainName
+        Environment:
+          Ref: Environment
+        ServiceDiscoveryDomain:
+          Ref: ServiceDomainName
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -74,8 +79,12 @@ Resources:
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/9e8183c59df8973536ee14bb1b4ddb6f.template
       Parameters:
-        Environment: !Ref Environment
-        VpcId: !GetAtt VPCStack.Outputs.VpcId
+        Environment:
+          Ref: Environment
+        VpcId:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.VpcId
   ServiceDiscoveryStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -84,55 +93,82 @@ Resources:
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/d9cef04ed9c023d61965e682128fabe4.template
       Parameters:
-        Environment: !Ref Environment
-        VpcId: !GetAtt VPCStack.Outputs.VpcId
-        ServiceDiscoveryDomain: !Ref DomainName
+        Environment:
+          Ref: Environment
+        VpcId:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.VpcId
+        ServiceDiscoveryDomain:
+          Ref: ServiceDomainName
         DnsRecordTTL: 10
         HealthCheckThreshold: 1
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Sub ${Environment}-nivalta-cluster
+      ClusterName:
+        Fn::Sub: ${Environment}-nivalta-cluster
       ServiceConnectDefaults:
-        Namespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
+        Namespace:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.NamespaceName
       CapacityProviders:
-        - FARGATE
-        - FARGATE_SPOT
+      - FARGATE
+      - FARGATE_SPOT
       DefaultCapacityProviderStrategy:
-        - CapacityProvider: FARGATE
-          Weight: 1
+      - CapacityProvider: FARGATE
+        Weight: 1
       ClusterSettings:
-        - Name: containerInsights
-          Value: enabled
+      - Name: containerInsights
+        Value: enabled
       Configuration:
         ExecuteCommandConfiguration:
           Logging: OVERRIDE
           LogConfiguration:
             CloudWatchEncryptionEnabled: true
-            CloudWatchLogGroupName: !Sub /ecs/${Environment}-nivalta/execute-command
+            CloudWatchLogGroupName:
+              Fn::Sub: /ecs/${Environment}-nivalta/execute-command
       Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-nivalta-cluster
-        - Key: Environment
-          Value: !Ref Environment
+      - Key: Name
+        Value:
+          Fn::Sub: ${Environment}-nivalta-cluster
+      - Key: Environment
+        Value:
+          Ref: Environment
   LoadBalancerStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn:
-      - VPCStack
-      - SecurityGroupsStack
+    - VPCStack
+    - SecurityGroupsStack
     Properties:
       TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/7b0e4c9c89de46b01df1c647d4a138f0.template
       Parameters:
-        Environment: !Ref Environment
-        VpcId: !GetAtt VPCStack.Outputs.VpcId
-        PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
-        PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
-        SecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.NivaltaLBSecurityGroupId
+        Environment:
+          Ref: Environment
+        VpcId:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.VpcId
+        PublicSubnetOne:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet1
+        PublicSubnetTwo:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet2
+        SecurityGroupId:
+          Fn::GetAtt:
+          - SecurityGroupsStack
+          - Outputs.NivaltaLBSecurityGroupId
         DomainName: nivalta.com
-        SubDomainPrefix: !Ref SubDomainPrefix
-        HostedZoneId: !Ref HostedZoneId
+        SubDomainPrefix:
+          Ref: SubDomainPrefix
+        HostedZoneId:
+          Ref: HostedZoneId
         HealthCheckPath: /api/version
         HealthCheckInterval: 30
   TasksStack:
@@ -140,119 +176,132 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn:
-      - ServiceDiscoveryStack
-      - SecurityGroupsStack
+    - ServiceDiscoveryStack
+    - SecurityGroupsStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/b191b105a9de90a07cf26062e45e1051.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/a36fd385db06ce0f47ea81c6ce37c728.template
       Parameters:
-        ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
-        Environment: !Ref Environment
-        ServiceDiscoveryNamespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
+        ExecutionRoleArn:
+          Fn::GetAtt:
+          - ECSTaskExecutionRole
+          - Arn
+        Environment:
+          Ref: Environment
+        ServiceDiscoveryNamespace:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.NamespaceName
   ServicesStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn:
-      - VPCStack
-      - TasksStack
-      - LoadBalancerStack
+    - VPCStack
+    - TasksStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/32746d4d5e2954c588514d3c25aa19df.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/0f01135182c7edde2b0c57b56c9e2d38.template
       Parameters:
-        Environment: !Ref Environment
-        ECSCluster: !Ref ECSCluster
-        PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
-        PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
-        TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
-        ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
-        SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
-        LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
-  SveltekitService:
-    Type: AWS::ECS::Service
+        Environment:
+          Ref: Environment
+        ECSCluster:
+          Ref: ECSCluster
+        PublicSubnetOne:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet1
+        PublicSubnetTwo:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet2
+        TaskDefinitionsStackName:
+          Fn::GetAtt:
+          - TasksStack
+          - Outputs.StackName
+        ServiceDiscoveryStackName:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.StackName
+        SecurityGroupsStackName:
+          Fn::GetAtt:
+          - SecurityGroupsStack
+          - Outputs.StackName
+  NginxServiceStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn:
+    - ServicesStack
+    - LoadBalancerStack
     Properties:
-      ServiceName: !Sub ${Environment}-sveltekit
-      Cluster: !Ref ECSCluster
-      TaskDefinition: !GetAtt TasksStack.Outputs.SvelteTaskDefinitionArn
-      DesiredCount: 1
-      LaunchType: FARGATE
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-        DeploymentCircuitBreaker:
-          Enable: true
-          Rollback: true
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          Subnets:
-            - !GetAtt VPCStack.Outputs.PublicSubnet1
-            - !GetAtt VPCStack.Outputs.PublicSubnet2
-          SecurityGroups:
-            - !GetAtt SecurityGroupsStack.Outputs.SveltekitUISecurityGroupId
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.SvelteServiceDiscoveryArn
-      EnableExecuteCommand: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-sveltekit
-        - Key: Environment
-          Value: !Ref Environment
-  NginxService:
-    Type: AWS::ECS::Service
-    Properties:
-      ServiceName: !Sub ${Environment}-nginx-proxy
-      Cluster: !Ref ECSCluster
-      TaskDefinition: !GetAtt TasksStack.Outputs.NginxTaskDefinitionArn
-      DesiredCount: 1
-      LaunchType: FARGATE
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-        DeploymentCircuitBreaker:
-          Enable: true
-          Rollback: true
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          Subnets:
-            - !GetAtt VPCStack.Outputs.PublicSubnet1
-            - !GetAtt VPCStack.Outputs.PublicSubnet2
-          SecurityGroups:
-            - !GetAtt SecurityGroupsStack.Outputs.NginxProxySecurityGroupId
-      HealthCheckGracePeriodSeconds: 120
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.NginxServiceDiscoveryArn
-      LoadBalancers:
-        - ContainerName: nginx-proxy
-          ContainerPort: 80
-          TargetGroupArn: !GetAtt LoadBalancerStack.Outputs.TargetGroupArn
-      EnableExecuteCommand: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-nginx-proxy
-        - Key: Environment
-          Value: !Ref Environment
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/ad4680ae3e8923daf47725349ce9de33.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        ECSCluster:
+          Ref: ECSCluster
+        PublicSubnetOne:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet1
+        PublicSubnetTwo:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.PublicSubnet2
+        TaskDefinitionsStackName:
+          Fn::GetAtt:
+          - TasksStack
+          - Outputs.StackName
+        ServiceDiscoveryStackName:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.StackName
+        SecurityGroupsStackName:
+          Fn::GetAtt:
+          - SecurityGroupsStack
+          - Outputs.StackName
+        LoadBalancerStackName:
+          Fn::GetAtt:
+          - LoadBalancerStack
+          - Outputs.StackName
 Outputs:
   LogGroupName:
-    Value: !Ref NivaltaLogGroup
+    Value:
+      Ref: NivaltaLogGroup
     Export:
-      Name: !Sub ${AWS::StackName}-LogGroupName
+      Name:
+        Fn::Sub: ${AWS::StackName}-LogGroupName
   TaskExecutionRoleArn:
-    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Value:
+      Fn::GetAtt:
+      - ECSTaskExecutionRole
+      - Arn
     Export:
-      Name: !Sub ${AWS::StackName}-TaskExecutionRoleArn
+      Name:
+        Fn::Sub: ${AWS::StackName}-TaskExecutionRoleArn
   VPCId:
     Description: VPC ID
-    Value: !GetAtt VPCStack.Outputs.VpcId
+    Value:
+      Fn::GetAtt:
+      - VPCStack
+      - Outputs.VpcId
     Export:
-      Name: !Sub ${AWS::StackName}-VPCId
+      Name:
+        Fn::Sub: ${AWS::StackName}-VPCId
   LoadBalancerDNS:
     Description: Application Load Balancer DNS
-    Value: !GetAtt LoadBalancerStack.Outputs.LoadBalancerDNS
+    Value:
+      Fn::GetAtt:
+      - LoadBalancerStack
+      - Outputs.LoadBalancerDNS
     Export:
-      Name: !Sub ${AWS::StackName}-LoadBalancerDNS
+      Name:
+        Fn::Sub: ${AWS::StackName}-LoadBalancerDNS
   ServiceEndpoint:
     Description: Service Endpoint URL
-    Value: !GetAtt LoadBalancerStack.Outputs.DomainEndpoint
+    Value:
+      Fn::GetAtt:
+      - LoadBalancerStack
+      - Outputs.DomainEndpoint
     Export:
-      Name: !Sub ${AWS::StackName}-ServiceEndpoint
+      Name:
+        Fn::Sub: ${AWS::StackName}-ServiceEndpoint

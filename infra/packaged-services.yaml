@@ -19,8 +19,6 @@ Parameters:
     Type: String
   SecurityGroupsStackName:
     Type: String
-  LoadBalancerStackName:
-    Type: String
 Resources:
   FlaskService:
     Type: AWS::CloudFormation::Stack
@@ -43,9 +41,35 @@ Resources:
           Ref: ServiceDiscoveryStackName
         SecurityGroupsStackName:
           Ref: SecurityGroupsStackName
+  SveltekitService:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/0f2ace0c89c1fbcc0d31995a15048a1c.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        ECSCluster:
+          Ref: ECSCluster
+        PublicSubnetOne:
+          Ref: PublicSubnetOne
+        PublicSubnetTwo:
+          Ref: PublicSubnetTwo
+        TaskDefinitionsStackName:
+          Ref: TaskDefinitionsStackName
+        ServiceDiscoveryStackName:
+          Ref: ServiceDiscoveryStackName
+        SecurityGroupsStackName:
+          Ref: SecurityGroupsStackName
 Outputs:
   FlaskServiceArn:
     Value:
       Fn::GetAtt:
       - FlaskService
+      - Outputs.ServiceArn
+  SveltekitServiceArn:
+    Value:
+      Fn::GetAtt:
+      - SveltekitService
       - Outputs.ServiceArn

@@ -86,7 +86,9 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-sveltekit-ui
       Cluster: !Ref ECSCluster
-      TaskDefinition: !Sub ${TaskDefinitionsStackName}-SvelteTaskDefArn
+      TaskDefinition:
+        Fn::ImportValue:
+          !Sub ${TaskDefinitionsStackName}-SveltekitTaskDefArn
       DesiredCount: !Ref DesiredCount
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -102,9 +104,12 @@ Resources:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
           SecurityGroups: 
-            - !Sub ${SecurityGroupsStackName}-SveltekitUISecurityGroupId
+            - Fn::ImportValue:
+                !Sub ${SecurityGroupsStackName}-SveltekitUISecurityGroupId
       ServiceRegistries:
-        - RegistryArn: !Sub ${ServiceDiscoveryStackName}-SvelteServiceDiscoveryArn
+        - RegistryArn:
+            Fn::ImportValue:
+              !Sub ${ServiceDiscoveryStackName}-SvelteServiceDiscoveryArn
       EnableExecuteCommand: true
       Tags:
         - Key: Name

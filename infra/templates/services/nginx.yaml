@@ -43,7 +43,9 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-nginx-proxy
       Cluster: !Ref ECSCluster
-      TaskDefinition:  !Sub ${TaskDefinitionsStackName}-NginxTaskDefArn
+      TaskDefinition:
+        Fn::ImportValue:
+          !Sub ${TaskDefinitionsStackName}-NginxTaskDefArn
       DesiredCount: 1
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -59,14 +61,19 @@ Resources:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
           SecurityGroups: 
-            - !Sub ${SecurityGroupsStackName}-NginxProxySecurityGroupId
+            - Fn::ImportValue:
+                !Sub ${SecurityGroupsStackName}-NginxProxySecurityGroupId
       HealthCheckGracePeriodSeconds: 120
       ServiceRegistries:
-        - RegistryArn: !Sub ${ServiceDiscoveryStackName}-NginxServiceDiscoveryArn
+        - RegistryArn:
+            Fn::ImportValue:
+              !Sub ${ServiceDiscoveryStackName}-NginxServiceDiscoveryArn
       LoadBalancers:
         - ContainerName: nginx-proxy
           ContainerPort: 80
-          TargetGroupArn: !Sub ${LoadBalancerStackName}-TargetGroupArn
+          TargetGroupArn:
+            Fn::ImportValue:
+              !Sub ${LoadBalancerStackName}-TargetGroupArn
       EnableExecuteCommand: true
       Tags:
         - Key: Name

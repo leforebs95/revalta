@@ -157,42 +157,11 @@ Resources:
         Environment: !Ref Environment
         ServiceDiscoveryNamespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
 
-  # FlaskService:
-  #   Type: AWS::ECS::Service
-  #   Properties:
-  #     ServiceName: !Sub ${Environment}-flask-api
-  #     Cluster: !Ref ECSClusterName
-  #     TaskDefinition: !GetAtt TasksStack.Outputs.FlaskTaskDefinitionArn
-  #     DesiredCount: 1
-  #     LaunchType: 'FARGATE'
-  #     DeploymentConfiguration:
-  #       MaximumPercent: 200
-  #       MinimumHealthyPercent: 100
-  #       DeploymentCircuitBreaker:
-  #         Enable: true
-  #         Rollback: true
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: "ENABLED"
-  #         Subnets:
-  #           - !GetAtt VPCStack.Outputs.PublicSubnet1
-  #           - !GetAtt VPCStack.Outputs.PublicSubnet2
-  #         SecurityGroups: 
-  #           - !GetAtt SecurityGroupsStack.Outputs.FlaskApiServerSecurityGroupId
-  #     ServiceRegistries:
-  #       - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.FlaskServiceDiscoveryArn
-  #     EnableExecuteCommand: true
-  #     Tags:
-  #       - Key: Name
-  #         Value: !Sub ${Environment}-flask-api
-  #       - Key: Environment
-  #         Value: !Ref Environment
-
   ServicesStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: [VPCStack, TasksStack, LoadBalancerStack]
+    DependsOn: [VPCStack, TasksStack]
     Properties:
       TemplateURL: services/main.yaml
       Parameters:
@@ -203,75 +172,23 @@ Resources:
         TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
         ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
         SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
+
+  NginxServiceStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn: [ServicesStack, LoadBalancerStack]
+    Properties:
+      TemplateURL: services/nginx.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ECSCluster: !Ref ECSCluster
+        PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
+        TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
+        ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
+        SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
         LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
-  
-  SveltekitService:
-    Type: AWS::ECS::Service
-    Properties:
-      ServiceName: !Sub ${Environment}-sveltekit
-      Cluster: !Ref ECSCluster
-      TaskDefinition: !GetAtt TasksStack.Outputs.SvelteTaskDefinitionArn
-      DesiredCount: 1
-      LaunchType: 'FARGATE'
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-        DeploymentCircuitBreaker:
-          Enable: true
-          Rollback: true
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: "ENABLED"
-          Subnets:
-            - !GetAtt VPCStack.Outputs.PublicSubnet1
-            - !GetAtt VPCStack.Outputs.PublicSubnet2
-          SecurityGroups: 
-            - !GetAtt SecurityGroupsStack.Outputs.SveltekitUISecurityGroupId
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.SvelteServiceDiscoveryArn
-      EnableExecuteCommand: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-sveltekit
-        - Key: Environment
-          Value: !Ref Environment
-  
-  NginxService:
-    Type: AWS::ECS::Service
-    Properties:
-      ServiceName: !Sub ${Environment}-nginx-proxy
-      Cluster: !Ref ECSCluster
-      TaskDefinition:  !GetAtt TasksStack.Outputs.NginxTaskDefinitionArn
-      DesiredCount: 1
-      LaunchType: "FARGATE"
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-        DeploymentCircuitBreaker:
-          Enable: true
-          Rollback: true
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: "ENABLED"
-          Subnets:
-            - !GetAtt VPCStack.Outputs.PublicSubnet1
-            - !GetAtt VPCStack.Outputs.PublicSubnet2
-          SecurityGroups: 
-            - !GetAtt SecurityGroupsStack.Outputs.NginxProxySecurityGroupId
-      HealthCheckGracePeriodSeconds: 120
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryStack.Outputs.NginxServiceDiscoveryArn
-      LoadBalancers:
-        - ContainerName: nginx-proxy
-          ContainerPort: 80
-          TargetGroupArn: !GetAtt LoadBalancerStack.Outputs.TargetGroupArn
-      EnableExecuteCommand: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-nginx-proxy
-        - Key: Environment
-          Value: !Ref Environment
-  
 
 Outputs:
 
