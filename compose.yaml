@@ -25,8 +25,8 @@ services:
   nginx:
     build: ./nginx
     environment:
-      - FLASK_HOST=flask-server
-      - SVELTE_HOST=svelte-server
+      - FLASK_SERVICE_HOST=flask-server
+      - SVELTE_SERVICE_HOST=svelte-server
     ports:
       - 80:80
     depends_on:
