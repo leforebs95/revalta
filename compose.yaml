@@ -7,6 +7,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   svelte-server:
     volumes:
       - ./app/sveltekit/src:/usr/src/sveltekit/src
@@ -22,6 +28,13 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   nginx:
     build: ./nginx
     environment:
@@ -30,5 +43,7 @@ services:
     ports:
       - 80:80
     depends_on:
-      - flask-server
-      - svelte-server
+      flask-server:
+        condition: service_healthy
+      svelte-server:
+        condition: service_healthy
