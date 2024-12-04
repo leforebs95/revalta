@@ -18,7 +18,7 @@ Parameters:
   FlaskImageUri:
     Type: String
     Description: URI for the Nginx container image
-    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/flask-server:2022702eb35c6ff211d1383bd70bad4137d7279f
+    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/flask-server:latest
   # DbHost:
   #   Type: String
   #   Description: Database host

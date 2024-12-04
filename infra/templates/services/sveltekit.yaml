@@ -22,15 +22,15 @@ Parameters:
     Description: Second public subnet ID
 
   # Stack Names for ImportValue references
-  TaskDefinitionsStackName:
+  TaskDefinitionARN:
     Type: String
-    Description: Name of the Task Definitions Stack
+    Description: ARN of the Sveltekit Task Definition
 
-  ServiceDiscoveryStackName:
+  ServiceDiscoveryARN:
     Type: String
     Description: Name of the Service Discovery Stack
 
-  SecurityGroupsStackName:
+  SecurityGroupId:
     Type: String
     Description: Name of the Security Groups Stack
 
@@ -86,9 +86,7 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-sveltekit-ui
       Cluster: !Ref ECSCluster
-      TaskDefinition:
-        Fn::ImportValue:
-          !Sub ${TaskDefinitionsStackName}-SveltekitTaskDefArn
+      TaskDefinition: !Ref TaskDefinitionARN
       DesiredCount: !Ref DesiredCount
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -104,12 +102,9 @@ Resources:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
           SecurityGroups: 
-            - Fn::ImportValue:
-                !Sub ${SecurityGroupsStackName}-SveltekitUISecurityGroupId
+            - !Ref SecurityGroupId
       ServiceRegistries:
-        - RegistryArn:
-            Fn::ImportValue:
-              !Sub ${ServiceDiscoveryStackName}-SvelteServiceDiscoveryArn
+        - RegistryArn: !Ref ServiceDiscoveryARN
       EnableExecuteCommand: true
       Tags:
         - Key: Name

@@ -8,17 +8,18 @@ Parameters:
   
   ECSCluster:
     Type: String
+
+  TaskDefinitionARN:
+    Type: String
+    Description: ARN of the Nginx Task Definition
   
-  TaskDefinitionsStackName:
+  ServiceDiscoveryARN:
     Type: String
   
-  ServiceDiscoveryStackName:
+  SecurityGroupId:
     Type: String
   
-  SecurityGroupsStackName:
-    Type: String
-  
-  LoadBalancerStackName:
+  TargetGroupArn:
     Type: String
   
   PublicSubnetOne:
@@ -43,9 +44,7 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-nginx-proxy
       Cluster: !Ref ECSCluster
-      TaskDefinition:
-        Fn::ImportValue:
-          !Sub ${TaskDefinitionsStackName}-NginxTaskDefArn
+      TaskDefinition: !Ref TaskDefinitionARN
       DesiredCount: 1
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -61,19 +60,14 @@ Resources:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
           SecurityGroups: 
-            - Fn::ImportValue:
-                !Sub ${SecurityGroupsStackName}-NginxProxySecurityGroupId
+            - !Ref SecurityGroupId
       HealthCheckGracePeriodSeconds: 120
       ServiceRegistries:
-        - RegistryArn:
-            Fn::ImportValue:
-              !Sub ${ServiceDiscoveryStackName}-NginxServiceDiscoveryArn
+        - RegistryArn: !Ref ServiceDiscoveryARN
       LoadBalancers:
         - ContainerName: nginx-proxy
           ContainerPort: 80
-          TargetGroupArn:
-            Fn::ImportValue:
-              !Sub ${LoadBalancerStackName}-TargetGroupArn
+          TargetGroupArn: !Ref TargetGroupArn
       EnableExecuteCommand: true
       Tags:
         - Key: Name

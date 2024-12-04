@@ -21,16 +21,19 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
     Description: Second public subnet ID
 
-  # Stack Names for ImportValue references
   TaskDefinitionsStackName:
     Type: String
     Description: Name of the Task Definitions Stack
 
-  ServiceDiscoveryStackName:
+  TaskDefinitionARN:
     Type: String
-    Description: Name of the Service Discovery Stack
+    Description: ARN of the Flask Task Definition
+  
+  ServiceDiscoveryARN:
+    Type: String
+    Description: ARN of the Service Discovery for Flask
 
-  SecurityGroupsStackName:
+  SecurityGroupId:
     Type: String
     Description: Name of the Security Groups Stack
 
@@ -78,9 +81,7 @@ Resources:
     Properties:
       ServiceName: !Sub ${Environment}-flask-api
       Cluster: !Ref ECSCluster
-      TaskDefinition:
-        Fn::ImportValue:
-          !Sub ${TaskDefinitionsStackName}-FlaskTaskDefArn
+      TaskDefinition: !Ref TaskDefinitionARN
       DesiredCount: !Ref DesiredCount
       LaunchType: !Ref LaunchType
       DeploymentConfiguration:
@@ -95,13 +96,10 @@ Resources:
           Subnets:
             - !Ref PublicSubnetOne
             - !Ref PublicSubnetTwo
-          SecurityGroups: 
-            - Fn::ImportValue:
-                !Sub ${SecurityGroupsStackName}-FlaskApiServerSecurityGroupId
+          SecurityGroups:
+            - !Ref SecurityGroupId
       ServiceRegistries:
-        - RegistryArn:
-            Fn::ImportValue:
-              !Sub ${ServiceDiscoveryStackName}-FlaskServiceDiscoveryArn
+        - RegistryArn: !Ref ServiceDiscoveryARN
       EnableExecuteCommand: true
       Tags:
         - Key: Name

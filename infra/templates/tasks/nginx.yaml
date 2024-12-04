@@ -20,7 +20,7 @@ Parameters:
   NginxImageUri:
     Type: String
     Description: URI for the Nginx container image
-    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/nginx-test:latest
+    Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/nginx-proxy:latest
 
 Resources:
   NginxTaskDefinition:

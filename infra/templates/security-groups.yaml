@@ -74,7 +74,7 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
-  # Svelte UI Security Group
+  # Sveltekit UI Security Group
   SveltekitUISecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -88,7 +88,7 @@ Resources:
           SourceSecurityGroupId: !Ref NginxProxySecurityGroup
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-svelte-sg
+          Value: !Sub ${Environment}-Sveltekit-sg
         - Key: Environment
           Value: !Ref Environment
 

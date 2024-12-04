@@ -15,14 +15,27 @@ Parameters:
   
   PublicSubnetTwo:
     Type: AWS::EC2::Subnet::Id
-  
+
   TaskDefinitionsStackName:
     Type: String
-  
-  ServiceDiscoveryStackName:
+    Description: Name of the Task Definitions Stack
+
+  FlaskTaskDefinitionARN:
+    Type: String
+
+  SveltekitTakDefinitionARN:
     Type: String
   
-  SecurityGroupsStackName:
+  FlaskServiceDiscoveryARN:
+    Type: String
+
+  SveltekitServiceDiscoveryARN:
+    Type: String
+
+  FlaskSecurityGroupId:
+    Type: String
+
+  SveltekitSecurityGroupId:
     Type: String
 
 Resources:
@@ -38,8 +51,9 @@ Resources:
         PublicSubnetOne: !Ref PublicSubnetOne
         PublicSubnetTwo: !Ref PublicSubnetTwo
         TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
-        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
-        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+        TaskDefinitionARN: !Ref FlaskTaskDefinitionARN
+        ServiceDiscoveryARN: !Ref FlaskServiceDiscoveryARN
+        SecurityGroupId: !Ref FlaskSecurityGroupId
 
   SveltekitService:
     Type: AWS::CloudFormation::Stack
@@ -52,9 +66,9 @@ Resources:
         ECSCluster: !Ref ECSCluster
         PublicSubnetOne: !Ref PublicSubnetOne
         PublicSubnetTwo: !Ref PublicSubnetTwo
-        TaskDefinitionsStackName: !Ref TaskDefinitionsStackName
-        ServiceDiscoveryStackName: !Ref ServiceDiscoveryStackName
-        SecurityGroupsStackName: !Ref SecurityGroupsStackName
+        TaskDefinitionARN: !Ref SveltekitTakDefinitionARN
+        ServiceDiscoveryARN: !Ref SveltekitServiceDiscoveryARN
+        SecurityGroupId: !Ref SveltekitSecurityGroupId
 
 Outputs:
   FlaskServiceArn:

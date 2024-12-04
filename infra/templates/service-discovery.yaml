@@ -87,7 +87,7 @@ Resources:
     Type: AWS::ServiceDiscovery::Service
     Properties:
       Name: sveltekit-ui
-      Description: !Sub "${Environment} - Svelte UI Service Discovery Entry"
+      Description: !Sub "${Environment} - Sveltekit UI Service Discovery Entry"
       DnsConfig:
         DnsRecords:
           - Type: A
@@ -98,7 +98,7 @@ Resources:
         FailureThreshold: !Ref HealthCheckThreshold
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-svelte-discovery
+          Value: !Sub ${Environment}-sveltekit-discovery
         - Key: Environment
           Value: !Ref Environment
 
@@ -128,7 +128,7 @@ Outputs:
       Name: !Sub ${AWS::StackName}-FlaskServiceDiscoveryArn
 
   SvelteServiceDiscoveryArn:
-    Description: ARN of Svelte Service Discovery Entry
+    Description: ARN of Sveltekit Service Discovery Entry
     Value: !GetAtt SveltekitUIServiceDiscoveryEntry.Arn
     Export:
       Name: !Sub ${AWS::StackName}-SvelteServiceDiscoveryArn
@@ -138,7 +138,7 @@ Outputs:
     Value: !Sub |
       Nginx: nginx-proxy.${Environment}.${ServiceDiscoveryDomain}
       Flask: flask-apiserver.${Environment}.${ServiceDiscoveryDomain}
-      Svelte: sveltekit-ui.${Environment}.${ServiceDiscoveryDomain}
+      Sveltekit: sveltekit-ui.${Environment}.${ServiceDiscoveryDomain}
 
   StackName:
     Description: Stack Name

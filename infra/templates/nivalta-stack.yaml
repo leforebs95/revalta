@@ -161,8 +161,12 @@ Resources:
         PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
         PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
         TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
-        ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
-        SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
+        FlaskTaskDefinitionARN: !GetAtt TasksStack.Outputs.FlaskTaskDefinitionArn
+        FlaskSecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.FlaskApiServerSecurityGroupId
+        FlaskServiceDiscoveryARN: !GetAtt ServiceDiscoveryStack.Outputs.FlaskServiceDiscoveryArn
+        SveltekitTakDefinitionARN: !GetAtt TasksStack.Outputs.SvelteTaskDefinitionArn
+        SveltekitSecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.SveltekitUISecurityGroupId
+        SveltekitServiceDiscoveryARN: !GetAtt ServiceDiscoveryStack.Outputs.SvelteServiceDiscoveryArn
 
   NginxServiceStack:
     Type: AWS::CloudFormation::Stack
@@ -176,10 +180,10 @@ Resources:
         ECSCluster: !Ref ECSCluster
         PublicSubnetOne: !GetAtt VPCStack.Outputs.PublicSubnet1
         PublicSubnetTwo: !GetAtt VPCStack.Outputs.PublicSubnet2
-        TaskDefinitionsStackName: !GetAtt TasksStack.Outputs.StackName
-        ServiceDiscoveryStackName: !GetAtt ServiceDiscoveryStack.Outputs.StackName
-        SecurityGroupsStackName: !GetAtt SecurityGroupsStack.Outputs.StackName
-        LoadBalancerStackName: !GetAtt LoadBalancerStack.Outputs.StackName
+        TaskDefinitionARN: !GetAtt TasksStack.Outputs.NginxTaskDefinitionArn
+        ServiceDiscoveryARN: !GetAtt ServiceDiscoveryStack.Outputs.NginxServiceDiscoveryArn
+        SecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.NginxProxySecurityGroupId
+        TargetGroupArn: !GetAtt LoadBalancerStack.Outputs.TargetGroupArn
 
 Outputs:
 

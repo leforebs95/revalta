@@ -15,9 +15,18 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   TaskDefinitionsStackName:
     Type: String
-  ServiceDiscoveryStackName:
+    Description: Name of the Task Definitions Stack
+  FlaskTaskDefinitionARN:
     Type: String
-  SecurityGroupsStackName:
+  SveltekitTakDefinitionARN:
+    Type: String
+  FlaskServiceDiscoveryARN:
+    Type: String
+  SveltekitServiceDiscoveryARN:
+    Type: String
+  FlaskSecurityGroupId:
+    Type: String
+  SveltekitSecurityGroupId:
     Type: String
 Resources:
   FlaskService:
@@ -25,7 +34,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/e9b79b74cd1d8f69041ab7d12f46fb0f.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/08252f0f38ecb9f81828084d2bd4159b.template
       Parameters:
         Environment:
           Ref: Environment
@@ -37,16 +46,18 @@ Resources:
           Ref: PublicSubnetTwo
         TaskDefinitionsStackName:
           Ref: TaskDefinitionsStackName
-        ServiceDiscoveryStackName:
-          Ref: ServiceDiscoveryStackName
-        SecurityGroupsStackName:
-          Ref: SecurityGroupsStackName
+        TaskDefinitionARN:
+          Ref: FlaskTaskDefinitionARN
+        ServiceDiscoveryARN:
+          Ref: FlaskServiceDiscoveryARN
+        SecurityGroupId:
+          Ref: FlaskSecurityGroupId
   SveltekitService:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/15190ea9706549cfd23be979c54f6620.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/878c12297400556d90442dc824ab08a3.template
       Parameters:
         Environment:
           Ref: Environment
@@ -56,12 +67,12 @@ Resources:
           Ref: PublicSubnetOne
         PublicSubnetTwo:
           Ref: PublicSubnetTwo
-        TaskDefinitionsStackName:
-          Ref: TaskDefinitionsStackName
-        ServiceDiscoveryStackName:
-          Ref: ServiceDiscoveryStackName
-        SecurityGroupsStackName:
-          Ref: SecurityGroupsStackName
+        TaskDefinitionARN:
+          Ref: SveltekitTakDefinitionARN
+        ServiceDiscoveryARN:
+          Ref: SveltekitServiceDiscoveryARN
+        SecurityGroupId:
+          Ref: SveltekitSecurityGroupId
 Outputs:
   FlaskServiceArn:
     Value:

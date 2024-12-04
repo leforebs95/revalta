@@ -62,19 +62,16 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/1d276b868ab8c1d5811ed8fc2d62a5c1.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/127fb983497638dfc5a676f2fae4cf9a.template
       Parameters:
         Environment:
           Ref: Environment
-        ServiceDiscoveryDomain:
-          Ref: ServiceDomainName
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
-    DependsOn: VPCStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/9e8183c59df8973536ee14bb1b4ddb6f.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/24cbd5f1a351095c4e09dcb243491426.template
       Parameters:
         Environment:
           Ref: Environment
@@ -87,7 +84,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/d9cef04ed9c023d61965e682128fabe4.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/469a17c60121a6d17a8d6f3cb076f0ae.template
       Parameters:
         Environment:
           Ref: Environment
@@ -170,7 +167,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DependsOn: SecurityGroupsStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/a36fd385db06ce0f47ea81c6ce37c728.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/97b86ac3ec17a0c3f4ef3fb501c0ae9a.template
       Parameters:
         ExecutionRoleArn:
           Fn::GetAtt:
@@ -187,7 +184,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/896b32a3f4908e063970fa32e221e277.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/b232a924558e8ae157143562474028ff.template
       Parameters:
         Environment:
           Ref: Environment
@@ -205,21 +202,37 @@ Resources:
           Fn::GetAtt:
           - TasksStack
           - Outputs.StackName
-        ServiceDiscoveryStackName:
+        FlaskTaskDefinitionARN:
           Fn::GetAtt:
-          - ServiceDiscoveryStack
-          - Outputs.StackName
-        SecurityGroupsStackName:
+          - TasksStack
+          - Outputs.FlaskTaskDefinitionArn
+        FlaskSecurityGroupId:
           Fn::GetAtt:
           - SecurityGroupsStack
-          - Outputs.StackName
+          - Outputs.FlaskApiServerSecurityGroupId
+        FlaskServiceDiscoveryARN:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.FlaskServiceDiscoveryArn
+        SveltekitTakDefinitionARN:
+          Fn::GetAtt:
+          - TasksStack
+          - Outputs.SvelteTaskDefinitionArn
+        SveltekitSecurityGroupId:
+          Fn::GetAtt:
+          - SecurityGroupsStack
+          - Outputs.SveltekitUISecurityGroupId
+        SveltekitServiceDiscoveryARN:
+          Fn::GetAtt:
+          - ServiceDiscoveryStack
+          - Outputs.SvelteServiceDiscoveryArn
   NginxServiceStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     DependsOn: ServicesStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/78ed7a9a3245750b377c9b329b69873a.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/f8a63f304d86b08e942b9f9c1b05b3ea.template
       Parameters:
         Environment:
           Ref: Environment
@@ -233,22 +246,22 @@ Resources:
           Fn::GetAtt:
           - VPCStack
           - Outputs.PublicSubnet2
-        TaskDefinitionsStackName:
+        TaskDefinitionARN:
           Fn::GetAtt:
           - TasksStack
-          - Outputs.StackName
-        ServiceDiscoveryStackName:
+          - Outputs.NginxTaskDefinitionArn
+        ServiceDiscoveryARN:
           Fn::GetAtt:
           - ServiceDiscoveryStack
-          - Outputs.StackName
-        SecurityGroupsStackName:
+          - Outputs.NginxServiceDiscoveryArn
+        SecurityGroupId:
           Fn::GetAtt:
           - SecurityGroupsStack
-          - Outputs.StackName
-        LoadBalancerStackName:
+          - Outputs.NginxProxySecurityGroupId
+        TargetGroupArn:
           Fn::GetAtt:
           - LoadBalancerStack
-          - Outputs.StackName
+          - Outputs.TargetGroupArn
 Outputs:
   LogGroupName:
     Value:
