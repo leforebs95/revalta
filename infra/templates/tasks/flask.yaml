@@ -5,11 +5,14 @@ Parameters:
   # Include common parameters
   Environment:
     Type: String
+
   ExecutionRoleArn:
     Type: String
+  
   TaskCpu:
     Type: Number
     Default: "256"
+  
   TaskMemory:
     Type: Number
     Default: "512"
@@ -19,15 +22,14 @@ Parameters:
     Type: String
     Description: URI for the Nginx container image
     Default: 975049886332.dkr.ecr.us-west-2.amazonaws.com/nivalta/flask-server:latest
-  # DbHost:
-  #   Type: String
-  #   Description: Database host
-  # DbName:
-  #   Type: String
-  #   Description: Database name
-  # DbSecretArn:
-  #   Type: String
-  #   Description: ARN of the database credentials secret
+  
+  DBSecretArn:
+    Type: String
+    Description: ARN of the database credentials secret
+
+  DBConnectionSecretArn:
+    Type: String
+    Description: ARN of the database connection secret
 
 Resources:
   FlaskTaskDefinition:
@@ -48,16 +50,11 @@ Resources:
         - Name: flask-apiserver
           Essential: true
           Image: !Ref FlaskImageUri
-          # Secrets:
-          #   - Name: DB_USERNAME
-          #     ValueFrom: !Sub "${DbSecretArn}:username::"
-          #   - Name: DB_PASSWORD
-          #     ValueFrom: !Sub "${DbSecretArn}:password::"
-          # Environment:
-          #   - Name: DB_HOST
-          #     Value: !Ref DbHost
-          #   - Name: DB_NAME
-          #     Value: !Ref DbName
+          Environment:
+            - Name: DB_SECRET
+              Value: !Ref DBSecretArn
+            - Name: DB_CONNECTION_SECRET
+              Value: !Ref DBConnectionSecretArn
           PortMappings:
             - ContainerPort: 5000
           HealthCheck:

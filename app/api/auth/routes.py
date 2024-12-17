@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from flask import jsonify, request, current_app
 from flask_login import (
     login_required,
@@ -95,7 +97,7 @@ def login():
         login_data = request.get_json()
         if not login_data:
             raise BadRequest("Missing JSON data")
-
+        logger.info(f"Login attempt: {login_data}")
         user_email = login_data.get("userEmail", "").lower()
         password = login_data.get("password")
 
@@ -114,7 +116,7 @@ def login():
         login_user(user, fresh=True, remember=True)
 
         # Update last login time
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(timezone.utc)
         db.session.commit()
 
         return jsonify({"login": True, "user": user.to_json()}), HTTPStatus.OK

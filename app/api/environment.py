@@ -40,18 +40,31 @@ def read_common_config():
 
 
 def get_db_connection_vars(aws_session):
-    secret_name = "rds!db-8c5cf11e-e74e-40e8-aa10-2b53b54c8a71"
+    # You can make this configurable through environment variables
+    secret_name = os.environ.get("DB_SECRET", None)
+    connection_secret_name = os.environ.get("DB_CONNECTION_SECRET", None)
     region_name = "us-west-2"
     logger.info(f"Fetching DB connection variables from secret: {secret_name}")
 
     try:
-        user_pass_secret = get_aws_secret(aws_session, secret_name, region_name)
+        secret_data = get_aws_secret(aws_session, secret_name, region_name)
+        connection_secret_data = get_aws_secret(
+            aws_session, connection_secret_name, region_name
+        )
+        connection_vars = {
+            "username": secret_data["username"],
+            "password": secret_data["password"],
+            "db-name": secret_data["dbname"],
+            "engine": secret_data.get("engine", "mysql"),
+            "host": connection_secret_data["host"],
+            "port": connection_secret_data["port"],
+        }
         logger.info("Successfully fetched DB connection variables")
     except Exception as e:
         logger.error(f"Failed to fetch DB connection variables, error: {e}")
         raise e
 
-    return user_pass_secret
+    return connection_vars
 
 
 def get_config():

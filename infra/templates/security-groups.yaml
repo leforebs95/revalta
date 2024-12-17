@@ -74,6 +74,21 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  # RDS Security Group
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Nivalta RDS
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !GetAtt FlaskApiServerSecurityGroup.GroupId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+  
   # Sveltekit UI Security Group
   SveltekitUISecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -141,6 +156,12 @@ Outputs:
     Value: !Ref NivaltaLBSecurityGroup
     Export:
       Name: !Sub ${AWS::StackName}-LoadBalancerSecurityGroupId
+
+  DBSecurityGroupId:
+    Description: Security Group ID for RDS
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSecurityGroupId
 
   StackName:
     Description: Stack Name

@@ -7,6 +7,10 @@ Parameters:
     Type: String
   ExecutionRoleArn:
     Type: String
+  DBSecretArn:
+    Type: String
+  DBConnectionSecretArn:
+    Type: String
 Resources:
   NginxTask:
     Type: AWS::CloudFormation::Stack
@@ -28,7 +32,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/12444a76340661493bf717c230f52f93.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/c47930f7bfb966a862aee65129372a93.template
       Parameters:
         Environment:
           Ref: Environment
@@ -36,6 +40,10 @@ Resources:
           Ref: ExecutionRoleArn
         TaskCpu: '256'
         TaskMemory: '512'
+        DBSecretArn:
+          Ref: DBSecretArn
+        DBConnectionSecretArn:
+          Ref: DBConnectionSecretArn
   SveltekitTask:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete

@@ -13,10 +13,14 @@ Mappings:
       VpcCidr: 10.0.0.0/16
       PublicSubnet1Cidr: 10.0.1.0/24
       PublicSubnet2Cidr: 10.0.2.0/24
+      PrivateSubnet1Cidr: 10.0.3.0/24
+      PrivateSubnet2Cidr: 10.0.4.0/24
     preprod:
       VpcCidr: 10.1.0.0/16
       PublicSubnet1Cidr: 10.1.1.0/24
       PublicSubnet2Cidr: 10.1.2.0/24
+      PrivateSubnet1Cidr: 10.1.3.0/24
+      PrivateSubnet2Cidr: 10.1.4.0/24
 
 Resources:
   VPC:
@@ -49,6 +53,26 @@ Resources:
         - Key: Name
           Value: !Sub ${Environment}-public-subnet-2
 
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [SubnetConfig, !Ref Environment, PrivateSubnet1Cidr]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-private-subnet-1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [SubnetConfig, !Ref Environment, PrivateSubnet2Cidr]
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-private-subnet-2
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -70,6 +94,14 @@ Resources:
         - Key: Name
           Value: !Sub ${Environment}-public-rt
 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-private-rt
+
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
@@ -89,6 +121,29 @@ Resources:
     Properties:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
+  
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+  
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Nivalta RDS
+      SubnetIds: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
 
 Outputs:
   VpcId:
@@ -109,6 +164,24 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-PublicSubnet2
   
+  PrivateSubnet1:
+    Description: Private Subnet 1
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet1
+
+  PrivateSubnet2:
+    Description: Private Subnet 2
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet2
+  
+  DBSubnetGroup:
+    Description: DB Subnet Group
+    Value: !Ref DBSubnetGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSubnetGroup
+
   StackName:
     Description: Stack Name
     Value: !Ref 'AWS::StackName'

@@ -28,6 +28,7 @@ bcrypt = Bcrypt()
 csrf = CSRFProtect()
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
+migrate = Migrate()
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -66,10 +67,12 @@ def create_app():
     encoded_username = quote_plus(db_vars["username"].encode("utf8"))
     # Try this connection string format
     connection_url = (
-        f"mysql+pymysql://{encoded_username}:{encoded_password}@"
-        f"{db_vars['host']}/{db_vars['db-name']}"
+        f"{db_vars['engine']}+pymysql://{encoded_username}:{encoded_password}@"
+        f"{db_vars['host']}:{db_vars['port']}/{db_vars['db-name']}"
         "?charset=utf8mb4&binary_prefix=true"
     )
+
+    logger.info(f"Connecting to DB at: {connection_url.split('@')[1]}")
 
     app.config.update(
         SECRET_KEY=secret_key,
@@ -108,6 +111,7 @@ def create_app():
         return jsonify({"valid": True}), 200
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
@@ -134,6 +138,6 @@ def create_app():
 
     app.register_blueprint(lab_results_blueprint)
 
-    Migrate(app, db)
+    # Migrate(app, db)
 
     return app

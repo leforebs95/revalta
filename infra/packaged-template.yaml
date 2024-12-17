@@ -62,7 +62,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/127fb983497638dfc5a676f2fae4cf9a.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/4433264d7844672f67d321202d027592.template
       Parameters:
         Environment:
           Ref: Environment
@@ -71,7 +71,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/24cbd5f1a351095c4e09dcb243491426.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/eceb7ed4e2c0758aac3b3ed071f02408.template
       Parameters:
         Environment:
           Ref: Environment
@@ -96,6 +96,27 @@ Resources:
           Ref: ServiceDomainName
         DnsRecordTTL: 10
         HealthCheckThreshold: 1
+  RDBStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/8781f4a0b46a2cdcf253abe5e518d47a.template
+      Parameters:
+        Environment:
+          Ref: Environment
+        DBSecurityGroupId:
+          Fn::GetAtt:
+          - SecurityGroupsStack
+          - Outputs.DBSecurityGroupId
+        DBSubnetGroup:
+          Fn::GetAtt:
+          - VPCStack
+          - Outputs.DBSubnetGroup
+        DBName:
+          Fn::Sub: ${Environment}Nivalta
+        DBUsername:
+          Fn::Sub: nivalta_${Environment}_user
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -167,7 +188,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DependsOn: SecurityGroupsStack
     Properties:
-      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/97b86ac3ec17a0c3f4ef3fb501c0ae9a.template
+      TemplateURL: https://s3.us-west-2.amazonaws.com/nivalta-cloudformation-preprod/4d9d501ca4a2a3cec45b69e331844b20.template
       Parameters:
         ExecutionRoleArn:
           Fn::GetAtt:
@@ -179,6 +200,14 @@ Resources:
           Fn::GetAtt:
           - ServiceDiscoveryStack
           - Outputs.NamespaceName
+        DBSecretArn:
+          Fn::GetAtt:
+          - RDBStack
+          - Outputs.DBSecretArn
+        DBConnectionSecretArn:
+          Fn::GetAtt:
+          - RDBStack
+          - Outputs.DBConnectionSecretArn
   ServicesStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete

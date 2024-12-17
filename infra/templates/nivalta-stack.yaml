@@ -92,6 +92,19 @@ Resources:
         DnsRecordTTL: 10
         HealthCheckThreshold: 1
 
+  RDBStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: rds.yaml
+      Parameters:
+        Environment: !Ref Environment
+        DBSecurityGroupId: !GetAtt SecurityGroupsStack.Outputs.DBSecurityGroupId
+        DBSubnetGroup: !GetAtt VPCStack.Outputs.DBSubnetGroup
+        DBName: !Sub ${Environment}Nivalta
+        DBUsername: !Sub nivalta_${Environment}_user
+  
   ECSCluster:
    Type: AWS::ECS::Cluster
    Properties:
@@ -148,6 +161,8 @@ Resources:
         ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
         Environment: !Ref Environment
         ServiceDiscoveryNamespace: !GetAtt ServiceDiscoveryStack.Outputs.NamespaceName
+        DBSecretArn: !GetAtt RDBStack.Outputs.DBSecretArn
+        DBConnectionSecretArn: !GetAtt RDBStack.Outputs.DBConnectionSecretArn
 
   ServicesStack:
     Type: AWS::CloudFormation::Stack

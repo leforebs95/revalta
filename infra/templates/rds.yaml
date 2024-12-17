@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RDS Database Stack for Nivalta Application
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - prod
+      - preprod
+    Description: Deployment environment
+
+  DBSubnetGroup:
+    Type: String
+    Description: DB subnet group
+
+  DBSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group for RDS instance
+  
+  DBSnapshotArn:
+    Type: String
+    Description: ARN of the DB snapshot in S3 to restore from (optional)
+    Default: ""
+  
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    Description: Database instance size
+  
+  DBName:
+    Type: String
+    Description: Name of the database
+    AllowedPattern: ^[a-zA-Z][a-zA-Z0-9]{0,63}$
+    ConstraintDescription: Must start with a letter and contain only alphanumeric characters. Max length 64 characters.
+  
+  DBUsername:
+    Type: String
+    AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]{0,127}$
+    ConstraintDescription: Must start with a letter. Can contain only letters, numbers, and underscore. Max length 128 characters.
+    Description: Database admin username
+    Default: nivaltauser
+    NoEcho: true
+
+Conditions:
+  HasSnapshot: !Not [!Equals [!Ref DBSnapshotArn, ""]]
+
+Resources:
+
+  DBSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub ${Environment}/nivalta/db-credentials
+      Description: RDS database credentials
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username": "${DBUsername}", "engine": "mysql", "dbname": "${DBName}", "dbInstanceIdentifier": "${Environment}-nivalta-db"}'
+        GenerateStringKey: "password"
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\[]{}:;><'
+
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      DBInstanceIdentifier: !Sub ${Environment}-nivalta-db
+      Engine: mysql
+      EngineVersion: 8.0.40
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: 20
+      DBName: !If [HasSnapshot, !Ref "AWS::NoValue", !Ref DBName]
+      MasterUsername: !If [HasSnapshot, !Ref "AWS::NoValue", !Ref DBUsername]
+      MasterUserPassword: !If 
+        - HasSnapshot
+        - !Ref "AWS::NoValue"
+        - !Join 
+          - ''
+          - - '{{resolve:secretsmanager:'
+            - !Ref DBSecret
+            - ':SecretString:password}}'
+      DBSnapshotIdentifier: !If [HasSnapshot, !Ref DBSnapshotArn, !Ref "AWS::NoValue"]
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref DBSecurityGroupId
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 7
+      MultiAZ: !If [HasSnapshot, true, false]
+      DeletionProtection: !If [HasSnapshot, true, false]
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+  
+  DBConnectionSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub ${Environment}/nivalta/db-connection
+      Description: RDS connection information
+      SecretString: 
+        !Sub '{"host": "${RDSInstance.Endpoint.Address}", "port": "${RDSInstance.Endpoint.Port}"}'
+
+Outputs:
+  DBEndpoint:
+    Description: Database endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-DBEndpoint
+
+  DBPort:
+    Description: Database port
+    Value: !GetAtt RDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub ${AWS::StackName}-DBPort
+
+  DBSecretArn:
+    Description: ARN of database credentials secret
+    Value: !Ref DBSecret
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSecretArn
+
+  DBConnectionSecretArn:
+    Description: ARN of database connection information secret
+    Value: !Ref DBConnectionSecret
+    Export:
+      Name: !Sub ${AWS::StackName}-DBConnectionSecretArn

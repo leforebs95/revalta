@@ -8,6 +8,10 @@ Parameters:
     Type: String
   ExecutionRoleArn:
     Type: String
+  DBSecretArn:
+    Type: String
+  DBConnectionSecretArn:
+    Type: String
 
 Resources:
   NginxTask:
@@ -35,10 +39,8 @@ Resources:
         ExecutionRoleArn: !Ref ExecutionRoleArn
         TaskCpu: "256"
         TaskMemory: "512"
-        # FlaskImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nivalta/flask-server:latest'
-        # DbHost: !ImportValue DatabaseHostName
-        # DbName: !Sub nivalta-${Environment}
-        # DbSecretArn: !ImportValue DatabaseSecretArn
+        DBSecretArn: !Ref DBSecretArn
+        DBConnectionSecretArn: !Ref DBConnectionSecretArn
 
   SveltekitTask:
     Type: AWS::CloudFormation::Stack
