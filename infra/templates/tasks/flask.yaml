@@ -55,6 +55,8 @@ Resources:
               Value: !Ref DBSecretArn
             - Name: DB_CONNECTION_SECRET
               Value: !Ref DBConnectionSecretArn
+            - Name: OAUTH_SECRET
+              Value: !Sub ${Environment}-oauth-secret
           PortMappings:
             - ContainerPort: 5000
           HealthCheck:

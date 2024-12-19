@@ -8,20 +8,38 @@
 	export let csrfToken: string | null;
 
 	export const login = async () => {
-		callFlaskEndpoint(fetch, '/api/login', 'POST',
-			{"X-CSRFToken": csrfToken},
-			{
-				userEmail: userEmail,
-				password: password
-		}).then((loginResponse) => {
-			const isAuthenticated = loginResponse.response_data.login;
-			if (isAuthenticated == true) {
-				goto('/dashboard');
+			callFlaskEndpoint(fetch, '/api/login', 'POST',
+				{"X-CSRFToken": csrfToken},
+				{
+					userEmail: userEmail,
+					password: password
+			}).then((loginResponse) => {
+				const isAuthenticated = loginResponse.response_data.login;
+				if (isAuthenticated == true) {
+					goto('/dashboard');
+				}
+			}).catch((error) => {
+				console.error('Error signing up:', error);
+		});
+	};
+
+	const handleOAuthLogin = async (provider: string) => {
+		try {
+			const response = await callFlaskEndpoint(
+				fetch,
+				`/api/oauth2/authorize/${provider}`,
+				'GET',
+				{"X-CSRFToken": csrfToken}
+			);
+			
+			if (response.response_data.authorizationUrl) {
+				// Redirect to provider's authorization URL
+				window.location.href = response.response_data.authorizationUrl;
 			}
-		}).catch((error) => {
-			console.error('Error signing up:', error);
-	});
-};
+		} catch (error) {
+			console.error(`Error initiating ${provider} OAuth:`, error);
+		}
+	};	
 </script>
 
 <div
@@ -91,8 +109,8 @@
 				</div>
 
 				<div class="mt-6 grid grid-cols-2 gap-4">
-					<a
-						href="/"
+					<button
+						on:click={() => handleOAuthLogin('google')}
 						class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
 					>
 						<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -114,10 +132,10 @@
 							/>
 						</svg>
 						<span class="text-sm font-semibold leading-6">Google</span>
-					</a>
+					</button>
 
-					<a
-						href="/"
+					<button
+						on:click={() => handleOAuthLogin('github')}
 						class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
 					>
 						<svg
@@ -133,7 +151,7 @@
 							/>
 						</svg>
 						<span class="text-sm font-semibold leading-6">GitHub</span>
-					</a>
+					</button>
 				</div>
 			</div>
 			<div class="align-bottom">

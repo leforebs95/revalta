@@ -59,6 +59,16 @@ Resources:
                 Action:
                   - secretsmanager:GetSecretValue
                 Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Environment}/nivalta/*
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:DeleteItem
+                Resource: !GetAtt OAuthStateTable.Arn
 
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -105,6 +115,23 @@ Resources:
         DBName: !Sub ${Environment}Nivalta
         DBUsername: !Sub nivalta_${Environment}_user
   
+  OAuthStateTableStack:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub ${Environment}-oauth-states
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: state
+          AttributeType: S
+      KeySchema:
+        - AttributeName: state
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
   ECSCluster:
    Type: AWS::ECS::Cluster
    Properties:

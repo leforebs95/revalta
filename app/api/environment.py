@@ -67,6 +67,25 @@ def get_db_connection_vars(aws_session):
     return connection_vars
 
 
+def get_oauth_vars(aws_session):
+    secret_name = os.environ.get("OAUTH_SECRET", None)
+    region_name = "us-west-2"
+    logger.info(f"Fetching OAuth variables from secret: {secret_name}")
+
+    try:
+        secret_data = get_aws_secret(aws_session, secret_name, region_name)
+        oauth_vars = {
+            "google_client_id": secret_data["google_client_id"],
+            "google_client_secret": secret_data["google_client_secret"],
+        }
+        logger.info("Successfully fetched OAuth variables")
+    except Exception as e:
+        logger.error(f"Failed to fetch OAuth variables, error: {e}")
+        raise e
+
+    return oauth_vars
+
+
 def get_config():
     """
     Retrieves and constructs the configuration for the application.
@@ -99,11 +118,13 @@ def get_config():
 
     try:
         db_vars = get_db_connection_vars(aws_session)
-        common_config["db"].update(db_vars)
+        oauth_vars = get_oauth_vars(aws_session)
         logger.info("DB connection variables updated successfully")
     except Exception as e:
         logger.error(f"Failed to update DB connection variables, error: {e}")
         raise e
 
+    common_config["db"].update(db_vars)
+    common_config["oauth"] = oauth_vars
     logger.info("Configuration successfully retrieved")
     return common_config

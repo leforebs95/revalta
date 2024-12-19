@@ -9,6 +9,7 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - DB_SECRET=${DB_SECRET}
       - DB_CONNECTION_SECRET=${DB_CONNECTION_SECRET}
+      - OAUTH_SECRET=${OAUTH_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/version"]
       interval: 10s

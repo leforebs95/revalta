@@ -1,6 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
 
-from flask import jsonify, request, current_app
+import boto3
+from flask import jsonify, request, current_app, redirect, url_for
 from flask_login import (
     login_required,
     login_user,
@@ -10,6 +12,9 @@ from flask_login import (
 from werkzeug.exceptions import BadRequest, Unauthorized
 from email_validator import validate_email, EmailNotValidError
 from http import HTTPStatus
+from urllib.parse import urlencode
+import secrets
+import requests
 
 from . import auth
 from flask_app import db
@@ -18,6 +23,7 @@ from flask_app import logger
 from flask_app import bcrypt
 
 from models import User
+from dynamo_db import OAuthStateStore
 
 
 @auth.route("/api/version", methods=["GET"])
@@ -127,6 +133,209 @@ def login():
         current_app.logger.error(f"Login error: {str(e)}")
         return (
             jsonify({"error": "An unexpected error occurred"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
+@auth.route("/api/oauth2/authorize/<provider>")
+def oauth2_authorize(provider):
+    # Generate state token and timestamp
+    try:
+        if not current_user.is_anonymous:
+            logger.info(
+                f"Already authenticated user attempting OAuth: {current_user.user_email}"
+            )
+            return jsonify({"error": "Already authenticated"}), HTTPStatus.BAD_REQUEST
+
+        provider_data = current_app.config.get("OAUTH2_PROVIDERS", {}).get(provider)
+        if provider_data is None:
+            logger.error(f"Invalid OAuth provider requested: {provider}")
+            return jsonify({"error": "Invalid OAuth provider"}), HTTPStatus.NOT_FOUND
+
+        state_token = secrets.token_urlsafe(32)
+        state_store = OAuthStateStore(current_app.config["ENVIRONMENT"])
+
+        # Store state in DynamoDB
+        if not state_store.store_state(state_token, provider):
+            return (
+                jsonify({"error": "Unable to initiate OAuth flow"}),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+
+        # Build authorization URL
+        oauth_params = {
+            "client_id": provider_data["client_id"],
+            "redirect_uri": url_for(
+                "auth.oauth2_callback", provider=provider, _external=True
+            ),
+            "response_type": "code",
+            "scope": " ".join(provider_data["scopes"]),
+            "state": state_token,
+        }
+
+        authorization_url = (
+            f"{provider_data['authorize_url']}?{urlencode(oauth_params)}"
+        )
+        logger.info(f"Initiating OAuth flow for provider: {provider}")
+
+        return (
+            jsonify(
+                {
+                    "authorizationUrl": authorization_url,
+                    "provider": provider,
+                    **oauth_params,
+                }
+            ),
+            HTTPStatus.OK,
+        )
+
+    except Exception as e:
+        logger.error(f"OAuth authorization error: {str(e)}")
+        return (
+            jsonify({"error": "Authentication service unavailable"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
+@auth.route("/api/oauth2/callback/<provider>")
+def oauth2_callback(provider):
+    try:
+        state_token = request.args.get("state")
+        if not state_token:
+            return jsonify({"error": "Missing state parameter"}), HTTPStatus.BAD_REQUEST
+
+        state_store = OAuthStateStore(current_app.config["ENVIRONMENT"])
+        stored_state = state_store.get_state(state_token)
+
+        if not stored_state:
+            return (
+                jsonify({"error": "Invalid or expired state"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        # Validate provider matches
+        if stored_state["provider"] != provider:
+            logger.error(
+                f"Provider mismatch. Expected: {stored_state['provider']}, Got: {provider}"
+            )
+            return jsonify({"error": "Invalid OAuth provider"}), HTTPStatus.UNAUTHORIZED
+
+        # Clean up used state
+        state_store.delete_state(state_token)
+
+        if not current_user.is_anonymous:
+            logger.info(
+                f"Already authenticated user in OAuth callback: {current_user.user_email}"
+            )
+            return jsonify({"error": "Already authenticated"}), HTTPStatus.BAD_REQUEST
+
+        provider_data = current_app.config.get("OAUTH2_PROVIDERS", {}).get(provider)
+        if provider_data is None:
+            logger.error(f"Invalid OAuth provider in callback: {provider}")
+            return jsonify({"error": "Invalid OAuth provider"}), HTTPStatus.NOT_FOUND
+
+        # Validate error response
+        if "error" in request.args:
+            error_details = {
+                k: v for k, v in request.args.items() if k.startswith("error")
+            }
+            logger.error(f"OAuth error response: {error_details}")
+            return (
+                jsonify({"error": "Authentication failed", "details": error_details}),
+                HTTPStatus.BAD_REQUEST,
+            )
+
+        # Validate state parameter
+        if request.args.get("state") != stored_state["state"]:
+            logger.error("OAuth state mismatch")
+            logger.error(f"Expected: {stored_state['state']}")
+            logger.error(f"Received: {request.args.get('state')}")
+            return (
+                jsonify({"error": "Invalid state parameter"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        # Validate authorization code
+        if "code" not in request.args:
+            logger.error("Missing authorization code")
+            return (
+                jsonify({"error": "Missing authorization code"}),
+                HTTPStatus.BAD_REQUEST,
+            )
+
+        # Exchange code for token
+        token_response = requests.post(
+            provider_data["token_url"],
+            data={
+                "client_id": provider_data["client_id"],
+                "client_secret": provider_data["client_secret"],
+                "code": request.args["code"],
+                "grant_type": "authorization_code",
+                "redirect_uri": url_for(
+                    "auth.oauth2_callback", provider=provider, _external=True
+                ),
+            },
+            headers={"Accept": "application/json"},
+        )
+
+        if token_response.status_code != 200:
+            logger.error(f"Token exchange failed: {token_response.text}")
+            return jsonify({"error": "Token exchange failed"}), HTTPStatus.UNAUTHORIZED
+
+        oauth2_token = token_response.json().get("access_token")
+        if not oauth2_token:
+            logger.error("No access token in response")
+            return (
+                jsonify({"error": "No access token received"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        # Get user info
+        userinfo_response = requests.get(
+            provider_data["userinfo"]["url"],
+            headers={
+                "Authorization": f"Bearer {oauth2_token}",
+                "Accept": "application/json",
+            },
+        )
+
+        if userinfo_response.status_code != 200:
+            logger.error(f"Failed to get user info: {userinfo_response.text}")
+            return (
+                jsonify({"error": "Failed to get user info"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        user_email = provider_data["userinfo"]["email"](userinfo_response.json())
+
+        # Find or create user
+        user = User.query.filter_by(user_email=user_email).first()
+        if user is None:
+            user = User(
+                user_email=user_email,
+                first_name=user_email.split("@")[0],  # Default to email username
+                last_name="",
+                password=bcrypt.generate_password_hash(secrets.token_urlsafe(32)),
+                is_email_verified=True,  # OAuth verified
+            )
+            db.session.add(user)
+            db.session.commit()
+            logger.info(f"Created new user via OAuth: {user_email}")
+        else:
+            logger.info(f"Existing user logged in via OAuth: {user_email}")
+
+        # Log the user in
+        login_user(user, fresh=True, remember=True)
+        user.last_login = datetime.now(timezone.utc)
+        db.session.commit()
+
+        # return jsonify({"login": True, "user": user.to_json()}), HTTPStatus.OK
+        return redirect("/dashboard")
+
+    except Exception as e:
+        logger.error(f"OAuth callback error: {str(e)}")
+        return (
+            jsonify({"error": "Authentication failed"}),
             HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 

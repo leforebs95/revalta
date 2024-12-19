@@ -43,6 +43,7 @@ def create_app():
     env_vars = get_config()
 
     db_vars = env_vars["db"]
+    oauth_vars = env_vars["oauth"]
 
     app = Flask(__name__)
     app.config["CORS_HEADERS"] = "Content-Type"
@@ -88,6 +89,25 @@ def create_app():
             "pool_recycle": 3600,
             "pool_pre_ping": True,
         },
+        ENVIRONMENT="preprod",
+    )
+
+    app.config.update(
+        OAUTH2_PROVIDERS={
+            # Google OAuth 2.0 documentation:
+            # https://developers.google.com/identity/protocols/oauth2/web-server#httprest
+            "google": {
+                "client_id": oauth_vars["google_client_id"],
+                "client_secret": oauth_vars["google_client_secret"],
+                "authorize_url": "https://accounts.google.com/o/oauth2/auth",
+                "token_url": "https://accounts.google.com/o/oauth2/token",
+                "userinfo": {
+                    "url": "https://www.googleapis.com/oauth2/v3/userinfo",
+                    "email": lambda json: json["email"],
+                },
+                "scopes": ["https://www.googleapis.com/auth/userinfo.email"],
+            }
+        }
     )
 
     csrf.init_app(app)
