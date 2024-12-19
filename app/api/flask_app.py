@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import quote_plus
 from datetime import timedelta
 import logging
@@ -7,6 +8,7 @@ import secrets
 from sqlalchemy.orm import DeclarativeBase
 
 # Flask Imports
+from dynamo_db import DynamoDBStore
 from flask import Flask, jsonify, request, session
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -38,6 +40,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def get_flask_secret(environment: str) -> Optional[str]:
+    store = DynamoDBStore(environment)
+    secret_data = store.get_item(
+        item_type="app_secret", item_id="flask_secret_key", check_ttl=False
+    )
+    return secret_data.get("value") if secret_data else None
+
+
 def create_app():
 
     env_vars = get_config()
@@ -62,7 +72,7 @@ def create_app():
     )
 
     # Use an environment variable for the secret key
-    secret_key = os.environ.get("FLASK_SECRET_KEY")
+    secret_key = get_flask_secret("preprod")
 
     encoded_password = quote_plus(db_vars["password"].encode("utf8"))
     encoded_username = quote_plus(db_vars["username"].encode("utf8"))

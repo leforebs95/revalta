@@ -35,6 +35,29 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  AppStateTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ${Environment}-app-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: item_type
+          AttributeType: S
+        - AttributeName: item_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: item_type
+          KeyType: HASH
+        - AttributeName: item_id
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
   # ECS Task Execution Role
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
@@ -68,7 +91,7 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:GetItem
                   - dynamodb:DeleteItem
-                Resource: !GetAtt OAuthStateTable.Arn
+                Resource: !GetAtt AppStateTable.Arn
 
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -114,23 +137,6 @@ Resources:
         DBSubnetGroup: !GetAtt VPCStack.Outputs.DBSubnetGroup
         DBName: !Sub ${Environment}Nivalta
         DBUsername: !Sub nivalta_${Environment}_user
-  
-  OAuthStateTableStack:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub ${Environment}-oauth-states
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: state
-          AttributeType: S
-      KeySchema:
-        - AttributeName: state
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
 
   ECSCluster:
    Type: AWS::ECS::Cluster

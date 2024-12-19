@@ -206,7 +206,6 @@ def oauth2_callback(provider):
 
         state_store = OAuthStateStore(current_app.config["ENVIRONMENT"])
         stored_state = state_store.get_state(state_token)
-
         if not stored_state:
             return (
                 jsonify({"error": "Invalid or expired state"}),
@@ -246,9 +245,9 @@ def oauth2_callback(provider):
             )
 
         # Validate state parameter
-        if request.args.get("state") != stored_state["state"]:
+        if request.args.get("state") != stored_state["item_id"]:
             logger.error("OAuth state mismatch")
-            logger.error(f"Expected: {stored_state['state']}")
+            logger.error(f"Expected: {stored_state['item_id']}")
             logger.error(f"Received: {request.args.get('state')}")
             return (
                 jsonify({"error": "Invalid state parameter"}),
