@@ -135,7 +135,7 @@
 					</button>
 
 					<button
-						on:click={() => handleOAuthLogin('github')}
+						on:click={() => handleOAuthLogin('github')} 
 						class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
 					>
 						<svg
@@ -151,6 +151,27 @@
 							/>
 						</svg>
 						<span class="text-sm font-semibold leading-6">GitHub</span>
+					</button>
+
+					<button
+						on:click={() => handleOAuthLogin('azure')}
+						class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
+					>
+						<svg class="h-5 w-5" viewBox="0 0 23 23" aria-hidden="true">
+							<path
+								d="M12.6196 0.198364L5.75493 5.83254L0.123047 16.3654L3.90867 15.9758L6.33734 11.8468L12.6196 0.198364Z"  
+								fill="#F25022"
+							/>
+							<path 
+								d="M12.8648 0.313477L19.73 5.94764L22.9996 16.4805L19.2144 16.0909L16.7852 11.9619L12.8648 0.313477Z"
+								fill="#7FBA00"
+							/>
+							<path
+								d="M3.67352 16.3081L6.33734 15.9758L16.5395 16.0909L22.7539 16.4805L16.5395 22.8016H6.33734L3.67352 16.3081Z"
+								fill="#00A4EF"
+							/>
+						</svg>
+						<span class="text-sm font-semibold leading-6">Microsoft</span>
 					</button>
 				</div>
 			</div>

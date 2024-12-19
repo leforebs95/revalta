@@ -117,6 +117,16 @@ def create_app():
                 },
                 "scopes": ["https://www.googleapis.com/auth/userinfo.email"],
             }
+            "azure": {
+                "client_id": oauth_vars["azure_client_id"],
+                "client_secret": oauth_vars["azure_client_secret"],
+                "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "userinfo": {
+                    "url": "https://graph.microsoft.com/v1.0/me",
+                    "email": lambda json: json["mail"],
+                },
+                "scopes": ["User.Read"],
         }
     )
 
