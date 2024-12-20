@@ -5,6 +5,7 @@ import yaml
 
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,21 +25,6 @@ def get_aws_secret(aws_session, secret_name, region_name):
     return json.loads(get_secret_value_response["SecretString"])
 
 
-def read_common_config():
-    config_path = os.path.join(os.path.dirname(__file__), "config/common.yml")
-    logger.info(f"Reading common configuration from: {config_path}")
-
-    try:
-        with open(config_path, "r") as file:
-            config_data = yaml.safe_load(file)
-            logger.info("Successfully read common configuration")
-    except Exception as e:
-        logger.error(f"Failed to read common configuration, error: {e}")
-        raise e
-
-    return config_data
-
-
 def get_db_connection_vars(aws_session):
     # You can make this configurable through environment variables
     secret_name = os.environ.get("DB_SECRET", None)
@@ -51,19 +37,12 @@ def get_db_connection_vars(aws_session):
         connection_secret_data = get_aws_secret(
             aws_session, connection_secret_name, region_name
         )
-        connection_vars = {
-            "username": secret_data["username"],
-            "password": secret_data["password"],
-            "db-name": secret_data["dbname"],
-            "engine": secret_data.get("engine", "mysql"),
-            "host": connection_secret_data["host"],
-            "port": connection_secret_data["port"],
-        }
         logger.info("Successfully fetched DB connection variables")
     except Exception as e:
         logger.error(f"Failed to fetch DB connection variables, error: {e}")
         raise e
 
+    connection_vars = {**secret_data, **connection_secret_data}
     return connection_vars
 
 
@@ -74,16 +53,12 @@ def get_oauth_vars(aws_session):
 
     try:
         secret_data = get_aws_secret(aws_session, secret_name, region_name)
-        oauth_vars = {
-            "google_client_id": secret_data["google_client_id"],
-            "google_client_secret": secret_data["google_client_secret"],
-        }
         logger.info("Successfully fetched OAuth variables")
     except Exception as e:
         logger.error(f"Failed to fetch OAuth variables, error: {e}")
         raise e
 
-    return oauth_vars
+    return secret_data
 
 
 def get_config():
@@ -101,12 +76,11 @@ def get_config():
     """
     logger.info("Starting to get configuration")
 
-    try:
-        common_config = read_common_config()
-        logger.info("Common configuration read successfully")
-    except Exception as e:
-        logger.error(f"Failed to read common configuration, error: {e}")
-        raise e
+    if os.environ.get("ENVIRONMENT") == "local":
+        load_dotenv()
+        logger.info("Loaded environment variables from .env file")
+
+    common_config = dict()
 
     common_config["aws_session"] = {
         "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID", None),
@@ -118,13 +92,18 @@ def get_config():
 
     try:
         db_vars = get_db_connection_vars(aws_session)
-        oauth_vars = get_oauth_vars(aws_session)
+        common_config["db"] = db_vars
         logger.info("DB connection variables updated successfully")
     except Exception as e:
         logger.error(f"Failed to update DB connection variables, error: {e}")
         raise e
 
-    common_config["db"].update(db_vars)
-    common_config["oauth"] = oauth_vars
+    try:
+        oauth_vars = get_oauth_vars(aws_session)
+        common_config["oauth"] = oauth_vars
+        logger.info("OAuth variables updated successfully")
+    except Exception as e:
+        logger.error(f"Failed to update OAuth variables, error: {e}")
+        raise e
     logger.info("Configuration successfully retrieved")
     return common_config

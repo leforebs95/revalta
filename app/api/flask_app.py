@@ -48,9 +48,9 @@ def get_flask_secret(environment: str) -> Optional[str]:
     return secret_data.get("value") if secret_data else None
 
 
-def create_app():
+def create_app(config: Optional[dict] = None) -> Flask:
 
-    env_vars = get_config()
+    env_vars = config
 
     db_vars = env_vars["db"]
     oauth_vars = env_vars["oauth"]
@@ -79,7 +79,7 @@ def create_app():
     # Try this connection string format
     connection_url = (
         f"{db_vars['engine']}+pymysql://{encoded_username}:{encoded_password}@"
-        f"{db_vars['host']}:{db_vars['port']}/{db_vars['db-name']}"
+        f"{db_vars['host']}:{db_vars['port']}/{db_vars['dbname']}"
         "?charset=utf8mb4&binary_prefix=true"
     )
 
@@ -116,17 +116,18 @@ def create_app():
                     "email": lambda json: json["email"],
                 },
                 "scopes": ["https://www.googleapis.com/auth/userinfo.email"],
-            }
+            },
             "azure": {
                 "client_id": oauth_vars["azure_client_id"],
                 "client_secret": oauth_vars["azure_client_secret"],
-                "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-                "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "authorize_url": "https://login.microsoftonline.com/6a8c0988-6adc-4771-bf76-46fc164061a0/oauth2/v2.0/authorize",
+                "token_url": "https://login.microsoftonline.com/6a8c0988-6adc-4771-bf76-46fc164061a0/oauth2/v2.0/token",
                 "userinfo": {
                     "url": "https://graph.microsoft.com/v1.0/me",
                     "email": lambda json: json["mail"],
                 },
                 "scopes": ["User.Read"],
+            },
         }
     )
 
