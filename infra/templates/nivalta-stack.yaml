@@ -38,6 +38,7 @@ Resources:
   AppStateTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub ${Environment}-app-state
       BillingMode: PAY_PER_REQUEST
