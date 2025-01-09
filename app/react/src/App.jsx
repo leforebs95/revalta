@@ -2,8 +2,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
+import DashboardLayout from './components/dashboard/DashboardLayout';
+import LabResults from './components/dashboard/LabResults';
 import { CSRFProvider } from './providers/CSRFProvider';
 import { AuthProvider } from './providers/AuthProvider';
 
@@ -14,6 +15,7 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
+        <Route path="lab-results" element={<LabResults />} />
         {/* Add other dashboard routes here */}
       </Route>
     </Routes>
