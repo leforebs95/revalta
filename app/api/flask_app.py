@@ -162,9 +162,7 @@ def create_app(config: Optional[dict] = None) -> Flask:
 
     @login_manager.user_loader
     def user_loader(user_id: str) -> User:
-        logger.info(f"Loading user: {user_id}")
         user = User.query.get(int(user_id))
-        logger.info(f"Found user: {user.user_email}")
         return user
 
     from auth import auth as auth_blueprint

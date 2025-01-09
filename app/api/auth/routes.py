@@ -343,7 +343,7 @@ def oauth2_callback(provider):
 def check_session():
     if current_user.is_authenticated:
         logger.info(f"Current user active: {current_user.user_email}")
-        return jsonify({"login": True})
+        return jsonify({"login": True, "user": current_user.to_json()})
     logger.info("No current user active")
     return jsonify({"login": False})
 

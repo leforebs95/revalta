@@ -8,7 +8,7 @@ function About() {
             <div className="relative h-80 lg:-ml-8 lg:h-auto lg:w-full lg:grow">
               <img
                 className="absolute inset-0 h-full w-full bg-gray-50 object-cover"
-                src="/api/placeholder/800/600"
+                // src="/api/placeholder/800/600" Need the actual image path
                 alt="Team collaboration"
               />
             </div>

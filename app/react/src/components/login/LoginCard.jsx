@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../providers/AuthProvider';
 
 const Login = () => {
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState('');
+  const { login, loading } = useAuth();
 
-  const handleLogin = () => {
-    // Implement login logic here
-    console.log('Login with:', userEmail, password);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    
+    try {
+      await login({ userEmail: userEmail, password });
+      // No need to navigate here - useAuth hook handles it
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+    }
   };
 
   const handleOAuthLogin = (provider) => {
@@ -23,8 +33,15 @@ const Login = () => {
           </h2>
         </div>
 
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm w-96">
+          {formError && (
+            <div className="mb-4 p-2 text-sm text-red-600 bg-red-100 rounded">
+              {formError}
+            </div>
+          )}
+
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm w-96 justify-center align-middle">
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <div className="mt-2">
                 <input
@@ -67,16 +84,17 @@ const Login = () => {
               </div>
             </div>
 
-            <div>
-              <button
-                type="button"
-                onClick={handleLogin}
-                className="flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Sign In
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
           </form>
+        </div>
 
           <div>
             <div className="mt-10">

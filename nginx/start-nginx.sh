@@ -24,11 +24,11 @@ sleep 5
 
 # Check service resolution
 check_dns ${FLASK_SERVICE_HOST} || echo "Warning: Could not resolve Flask service"
-check_dns ${SVELTE_SERVICE_HOST} || echo "Warning: Could not resolve Svelte service"
+check_dns ${REACT_SERVICE_HOST} || echo "Warning: Could not resolve Svelte service"
 
 # Generate nginx configuration
 echo "Generating Nginx configuration..."
-envsubst '$FLASK_SERVICE_HOST $SVELTE_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
+envsubst '$FLASK_SERVICE_HOST $REACT_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
 
 # Verify configuration
 echo "Verifying Nginx configuration..."

@@ -1,43 +1,20 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Login from '../components/login/LoginCard';
+import { useAuth } from '../providers/AuthProvider';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  // const { csrfToken, loading: csrfLoading } = useCSRF();
+  const { user, loading: authLoading } = useAuth();
   
-  // We'll need to fetch these from your API or context
-  const [csrfToken, setCsrfToken] = React.useState(null);
-  const [session, setSession] = React.useState({ login: false });
-
-  // Fetch initial data
+  // Redirect if user is already logged in
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        // Replace these with your actual API endpoints
-        const [sessionRes, csrfRes] = await Promise.all([
-          fetch('/api/session'),
-          fetch('/api/csrf-token')
-        ]);
-        
-        const sessionData = await sessionRes.json();
-        const csrfData = await csrfRes.json();
-        
-        setSession(sessionData);
-        setCsrfToken(csrfData.csrfToken);
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
-
-  // Redirect if logged in
-  useEffect(() => {
-    if (session.login) {
+    if (user) {
       navigate('/dashboard');
     }
-  }, [session.login, navigate]);
+  }, [user, navigate]);
+
 
   const handleLogoClick = () => {
     navigate('/');
@@ -66,7 +43,7 @@ const LoginPage = () => {
           </p>
         </div>
         <div className="rounded-lg">
-          <Login csrfToken={csrfToken} />
+          <Login/>
         </div>
       </main>
     </>
