@@ -11,6 +11,11 @@ export const authAPI = {
     return response.data;
   },
 
+  oauthLogin: async (provider) => {
+    const response = await apiClient.get('/oauth2/authorize/' + provider);
+    return response.data;
+  },
+
   getSession: async () => {
     const response = await apiClient.get('/getsession');
     return response.data;
@@ -20,9 +25,4 @@ export const authAPI = {
     const response = await apiClient.get('/getcsrf');
     return response.headers['x-csrftoken'];
   },
-
-  oauthLogin: async (provider) => {
-    const response = await apiClient.get(`/auth/${provider}`);
-    return response.data;
-  }
 };

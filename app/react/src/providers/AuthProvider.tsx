@@ -41,6 +41,21 @@ const useAuthProvider = () => {
       setLoading(false);
     }
   };
+  
+  const oauthLogin = async (provider) => {
+    try {
+      setLoading(true);
+      const response = await authAPI.oauthLogin(provider);
+      setUser(response.user);
+      window.location.href = response.authorizationUrl;
+      return response;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const logout = async () => {
     try {
@@ -61,6 +76,7 @@ const useAuthProvider = () => {
     loading,
     error,
     login,
+    oauthLogin,
     logout
   };
 };

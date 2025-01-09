@@ -1,30 +1,47 @@
 import React from 'react';
 import { useAuth } from '../providers/AuthProvider';
 
-function DashboardPage() {
+const DashboardPage = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Welcome back, {user?.name || 'User'}
-          </h1>
-        </div>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Welcome back, {user?.name || 'User'}
+        </h1>
+        <p className="mt-1 text-gray-500">
+          Here's an overview of your health data
+        </p>
       </header>
-      <main>
-        <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-          {/* Add your dashboard content here */}
-          <div className="px-4 py-6 sm:px-0">
-            <div className="rounded-lg border-4 border-dashed border-gray-200 p-4">
-              <p>Your dashboard content goes here</p>
-            </div>
-          </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Symptom Summary Card */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-900">Recent Symptoms</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Track and monitor your symptoms over time
+          </p>
         </div>
-      </main>
+
+        {/* Lab Results Card */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-900">Lab Results</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            View and manage your lab results
+          </p>
+        </div>
+
+        {/* Family History Card */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-900">Family History</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Track your family health history
+          </p>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default DashboardPage;

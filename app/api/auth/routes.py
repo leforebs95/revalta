@@ -137,7 +137,7 @@ def login():
         )
 
 
-@auth.route("/api/oauth2/authorize/<provider>")
+@auth.route("/api/oauth2/authorize/<provider>", methods=["GET"])
 def oauth2_authorize(provider):
     # Generate state token and timestamp
     try:
@@ -348,7 +348,7 @@ def check_session():
     return jsonify({"login": False})
 
 
-@auth.route("/api/logout")
+@auth.route("/api/logout", methods=["POST"])
 @login_required
 def logout():
     try:

@@ -5,7 +5,7 @@ const Login = () => {
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
-  const { login, loading } = useAuth();
+  const { login, oauthLogin, loading } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,9 +19,12 @@ const Login = () => {
     }
   };
 
-  const handleOAuthLogin = (provider) => {
-    // Implement OAuth login logic here
-    console.log('OAuth login with:', provider);
+  const handleOAuthLogin = async (provider) => {
+    try {  
+      await oauthLogin(provider);
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+    }
   };
 
   return (
