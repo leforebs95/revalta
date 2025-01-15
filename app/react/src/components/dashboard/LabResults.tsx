@@ -5,10 +5,10 @@ import { documentsAPI } from '../../lib/api/documents';
 import FileUpload from '../common/FileUpload';
 
 interface Document {
-  id: string;
-  filename: string;
-  url: string;
-  uploaded_at: string;
+  documentId: string;
+  originalFilename: string;
+  s3Location: string;
+  createdAt: string;
 }
 
 const LabResults = () => {
@@ -33,14 +33,14 @@ const LabResults = () => {
     fetchDocuments();
   }, []);
 
-  const handleUpload = async (files: File[]) => {
+  const handleUpload = async (file: File) => {
     try {
-      setLoading(true);
       setError(null);
-      await documentsAPI.uploadDocuments(files);
+      setLoading(true);
+      await documentsAPI.uploadDocument(file);
       await fetchDocuments();
     } catch (err) {
-      setError('Failed to upload documents');
+      setError('Failed to upload document');
       console.error('Upload error:', err);
     } finally {
       setLoading(false);
@@ -49,8 +49,8 @@ const LabResults = () => {
 
   const handleDelete = async (documentId: string) => {
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
       await documentsAPI.deleteDocument(documentId);
       await fetchDocuments();
     } catch (err) {
@@ -68,45 +68,32 @@ const LabResults = () => {
         
         <FileUpload 
           onUpload={handleUpload}
-          isUploading={loading}
+          loading={loading}
+          error={error}
           accept=".pdf"
+          maxFileSize={50 * 1024 * 1024}
         />
-
-        {error && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
 
         <div className="mt-8">
           <h3 className="font-semibold mb-4">Your Documents</h3>
           <div className="space-y-4">
             {documents.map((doc) => (
               <div
-                key={doc.id}
+                key={doc.documentId}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="font-medium">{doc.filename}</p>
+                    <p className="font-medium text-gray-500">{doc.originalFilename}</p>
                     <p className="text-sm text-gray-500">
-                      Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}
+                      Uploaded on {new Date(doc.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-nivaltaBlue hover:text-indigo-600 text-sm"
-                  >
-                    View
-                  </a>
                   <button
-                    onClick={() => handleDelete(doc.id)}
+                    onClick={() => handleDelete(doc.documentId)}
                     className="text-red-500 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />

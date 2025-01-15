@@ -2,26 +2,38 @@ import apiClient from './client';
 
 export const documentsAPI = {
   getDocuments: async () => {
-    const response = await apiClient.get('/api/documents');
+    const response = await apiClient.get('/documents');
     return response.data;
   },
 
-  uploadDocuments: async (files: File[]) => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
+  uploadDocument: async (file: File) => {
+    // Get presigned URL
+    const response = await apiClient.post('/documents/presign', {
+      filename: file.name,
+      contentType: file.type,
     });
-
-    const response = await apiClient.post('/api/documents/upload', formData, {
+    
+    // Upload directly to S3
+    await fetch(response.data.uploadUrl, {
+      method: 'PUT',
+      body: file,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': file.type,
       }
     });
-    return response.data;
+
+    // Notify backend of completed upload
+    const completeResponse = await apiClient.post('/documents/complete', {
+      s3_key: response.data.s3_key,
+      filename: file.name,
+      contentType: file.type
+    });
+    
+    return completeResponse.data;
   },
 
   deleteDocument: async (documentId: string) => {
-    const response = await apiClient.delete(`/api/documents/${documentId}`);
+    const response = await apiClient.delete(`/documents/${documentId}`);
     return response.data;
   }
 };

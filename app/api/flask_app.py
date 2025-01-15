@@ -2,35 +2,23 @@ from typing import Optional
 from urllib.parse import quote_plus
 from datetime import timedelta
 import logging
-import os
-import secrets
 
 from sqlalchemy.orm import DeclarativeBase
 
 # Flask Imports
-from dynamo_db import DynamoDBStore
-from flask import Flask, jsonify, request, session
-from flask_bcrypt import Bcrypt
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_talisman import Talisman
-from flask_login import LoginManager
-from wtforms.csrf.core import ValidationError
-from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
-from flask_migrate import Migrate
+from utils.dynamo_db import DynamoDBStore
+from flask import Flask, jsonify, request
 
-from environment import get_config
+from flask_cors import CORS
+from wtforms.csrf.core import ValidationError
+from flask_wtf.csrf import generate_csrf, validate_csrf
 
 
 class Base(DeclarativeBase):
     pass
 
 
-bcrypt = Bcrypt()
-csrf = CSRFProtect()
-db = SQLAlchemy(model_class=Base)
-login_manager = LoginManager()
-migrate = Migrate()
+from extensions import db, bcrypt, csrf, login_manager, migrate
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -162,6 +150,8 @@ def create_app(config: Optional[dict] = None) -> Flask:
 
     @login_manager.user_loader
     def user_loader(user_id: str) -> User:
+        from models import User
+
         user = User.query.get(int(user_id))
         return user
 
@@ -176,6 +166,10 @@ def create_app(config: Optional[dict] = None) -> Flask:
     from lab_results import lab_results as lab_results_blueprint
 
     app.register_blueprint(lab_results_blueprint)
+
+    from document_handler import documents as documents_blueprint
+
+    app.register_blueprint(documents_blueprint)
 
     # Migrate(app, db)
 

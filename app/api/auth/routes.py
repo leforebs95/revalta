@@ -23,7 +23,7 @@ from flask_app import logger
 from flask_app import bcrypt
 
 from models import User
-from dynamo_db import OAuthStateStore
+from utils.dynamo_db import OAuthStateStore
 
 
 @auth.route("/api/version", methods=["GET"])

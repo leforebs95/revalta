@@ -1,5 +1,5 @@
 from flask_app import create_app
-from environment import get_config
+from utils.environment import get_config
 
 
 flask_app = create_app(get_config())

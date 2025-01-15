@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
-from sqlalchemy import Integer, String, DateTime, Boolean
+from typing import Dict
+from sqlalchemy import JSON, Integer, String, DateTime, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 
-from flask_app import db
+from extensions import db
 from flask_login import UserMixin
 
 
@@ -124,4 +125,57 @@ class LabResult(BaseModel):
             "name": self.name,
             "description": self.description,
             "s3Location": self.s3_location,
+        }
+
+
+class Document(BaseModel):
+    """Model for storing document metadata"""
+
+    __tablename__ = "documents"
+
+    document_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(127), nullable=False)
+    s3_location: Mapped[str] = mapped_column(String(1024), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.user_id"))
+
+    # Relationships
+    user = db.relationship("User", backref=db.backref("documents", lazy=True))
+
+    def to_json(self):
+        return {
+            "documentId": self.document_id,
+            "title": self.title,
+            "originalFilename": self.original_filename,
+            "mimeType": self.mime_type,
+            "s3Location": self.s3_location,
+            "createdAt": self.created_at,
+            "updatedAt": self.updated_at,
+        }
+
+
+class DocumentPage(BaseModel):
+    """Model for storing individual document pages"""
+
+    __tablename__ = "document_pages"
+
+    page_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[int] = mapped_column(
+        Integer, db.ForeignKey("documents.document_id")
+    )
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    s3_location: Mapped[str] = mapped_column(String(1024), nullable=False)
+
+    # Relationships
+    document = db.relationship("Document", backref=db.backref("pages", lazy=True))
+
+    def to_json(self):
+        return {
+            "pageId": self.page_id,
+            "documentId": self.document_id,
+            "pageNumber": self.page_number,
+            "s3Location": self.s3_location,
+            "createdAt": self.created_at,
+            "updatedAt": self.updated_at,
         }
