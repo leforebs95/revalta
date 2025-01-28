@@ -1,0 +1,22 @@
+#! bin/bash
+
+PROD=$PROD
+HOST=$HOST
+PORT=$PORT
+
+if [ $PROD = true ]; then
+    echo "Building for production"
+    npm run build
+else
+    echo "No Build Required"
+fi
+
+adduser -D sveltekituser && chown -R sveltekituser /usr/src/sveltekit
+
+if [ $PROD = true ]; then
+    echo "Starting Production Grade Sveltekit"
+    node build
+else
+    echo "Starting Dev Grade Sveltekit"
+    npm run dev -- --host $HOST --port $PORT
+fi
