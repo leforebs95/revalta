@@ -1,0 +1,39 @@
+# docker-compose.yaml
+
+name: authentication
+
+volumes:
+  authdb_vol:
+networks:
+  auth-network:
+    driver: bridge
+      
+services:
+  auth-api:
+    container_name: cauth-service
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/authentication
+    ports:
+    - "5000:5000"
+    depends_on:
+      - local-auth-db
+    networks:
+      - auth-network
+    restart: always
+
+  local-auth-db:
+    container_name: clocal-auth-dbase
+    image: mysql:8
+    ports:
+    - "32000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_auth_pass
+      MYSQL_DATABASE: auth
+      MYSQL_USER: local_auth_user
+      MYSQL_PASSWORD: local_auth_pass
+    networks:
+      - auth-network
+    volumes:
+    - authdb_vol:/var/lib/mysql

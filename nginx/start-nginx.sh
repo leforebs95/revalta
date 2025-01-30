@@ -23,12 +23,13 @@ echo "Waiting for services to be ready..."
 sleep 5
 
 # Check service resolution
-check_dns ${FLASK_SERVICE_HOST} || echo "Warning: Could not resolve Flask service"
+check_dns ${AUTHENTICATION_SERVICE_HOST} || echo "Warning: Could not resolve Authentication service"
+check_dns ${FILE_SERVICE_HOST} || echo "Warning: Could not resolve File Service"
 check_dns ${REACT_SERVICE_HOST} || echo "Warning: Could not resolve Svelte service"
 
 # Generate nginx configuration
 echo "Generating Nginx configuration..."
-envsubst '$FLASK_SERVICE_HOST $REACT_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
+envsubst '$AUTHENTICATION_SERVICE_HOST $FILE_SERVICE_HOST $REACT_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
 
 # Verify configuration
 echo "Verifying Nginx configuration..."

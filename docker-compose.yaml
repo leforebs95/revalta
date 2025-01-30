@@ -1,0 +1,111 @@
+# Single shared network for all services
+volumes:
+  authdb_vol:
+  filedb_vol:
+  upload_vol:
+
+networks:
+  app-network:
+    driver: bridge
+  auth-network:
+    external: true
+    name: authentication_auth-network
+  file-network:
+    external: true
+    name: file-service_file-network
+      
+
+services:
+  
+  react-server:
+    volumes:
+      - ./react/src:/usr/src/react/src
+      - ./react/public:/usr/src/react/public
+      - ./react/vite.config.js:/usr/src/react/vite.config.js
+      - ./react/tailwind.config.js:/usr/src/react/tailwind.config.js
+      - ./react/postcss.config.js:/usr/src/react/postcss.config.js
+      - ./react/index.html:/usr/src/react/index.html
+    networks:
+      - app-network
+    build: ./react
+    environment:
+      - PROD=false
+      - HOST=0.0.0.0
+      - PORT=8080
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  auth-api:
+    extends:
+      file: ./python/authentication/docker-compose.yaml
+      service: auth-api
+    networks:
+      - app-network
+      - auth-network
+    depends_on:
+      - local-auth-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  
+  local-auth-db:
+    extends:
+      file: ./python/authentication/docker-compose.yaml
+      service: local-auth-db
+    networks:
+      - auth-network
+    volumes:
+      - authdb_vol:/var/lib/mysql
+
+  file-api:
+    extends:
+      file: ./python/file-service/docker-compose.yaml
+      service: file-api
+    networks:
+      - app-network
+      - file-network
+    volumes:
+      - upload_vol:/usr/src/file-service/uploads
+    depends_on:
+      - local-file-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/files/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+  local-file-db:
+    extends:
+      file: ./python/file-service/docker-compose.yaml
+      service: local-file-db
+    networks:
+      - file-network
+    volumes:
+      - filedb_vol:/var/lib/mysql
+
+  nginx:
+    build: ./nginx
+    environment:
+      - AUTHENTICATION_SERVICE_HOST=auth-api
+      - FILE_SERVICE_HOST=file-api
+      - REACT_SERVICE_HOST=react-server
+    ports:
+      - 80:80
+    networks:
+      - app-network
+    depends_on:
+      auth-api:
+        condition: service_healthy
+      react-server:
+        condition: service_healthy
