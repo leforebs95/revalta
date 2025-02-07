@@ -19,6 +19,7 @@ services:
     networks:
       - file-network
     volumes:
+      - .:/usr/src/file-service
       - upload_vol:/usr/src/file-service/uploads
     restart: always
   local-file-db:

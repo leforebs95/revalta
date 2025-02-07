@@ -9,20 +9,7 @@ networks:
     driver: bridge
       
 services:
-  auth-api:
-    container_name: cauth-service
-    build:
-      context: .
-    volumes:
-      - .:/usr/src/authentication
-    ports:
-    - "5000:5000"
-    depends_on:
-      - local-auth-db
-    networks:
-      - auth-network
-    restart: always
-
+  services:
   local-auth-db:
     container_name: clocal-auth-dbase
     image: mysql:8
@@ -37,3 +24,23 @@ services:
       - auth-network
     volumes:
     - authdb_vol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-api:
+    container_name: cauth-service
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/authentication
+    ports:
+    - "5000:5000"
+    depends_on:
+      local-auth-db:
+        condition: service_healthy
+    networks:
+      - auth-network
+    restart: always

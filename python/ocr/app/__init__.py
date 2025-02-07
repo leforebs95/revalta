@@ -1,14 +1,18 @@
+import json
 import os
 import logging
+from threading import Thread
 
-import redis
-
-from flask import Flask
+from flask import Flask, current_app
 from flask_cors import CORS
 from flask_migrate import Migrate
+import redis
+
+from utils.ocr_processor import OCRProcessor
 
 migrate = Migrate()
 cors = CORS()
+processor = OCRProcessor()
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -47,20 +51,32 @@ def create_app():
     )
 
     from .models import db
+    from .models import DocumentPage
 
     db.init_app(app)
     with app.app_context():
         db.create_all()
     migrate.init_app(app, db)
 
+    # Set up Redis connection
     app.redis = redis.Redis(
         host=app.config["REDIS_HOST"],
         port=app.config["REDIS_PORT"],
         decode_responses=True,
     )
 
-    from .file_api import file as file_blueprint
+    from .ocr_api.routes import start_listener
 
-    app.register_blueprint(file_blueprint)
+    app_context = app.app_context()
+
+    def run_listener():
+        with app_context:
+            start_listener()
+
+    Thread(target=run_listener, daemon=True).start()
+
+    from .ocr_api import ocr as ocr_blueprint
+
+    app.register_blueprint(ocr_blueprint)
 
     return app

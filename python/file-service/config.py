@@ -9,3 +9,5 @@ class LocalFlaskConfig:
     )
     UPLOAD_DIRECTORY = "/usr/src/file-service/uploads"
     MAX_CONTENT_LENGTH = 536_870_912  # 512MB in bytes
+    REDIS_HOST = "redis"
+    REDIS_PORT = 6379

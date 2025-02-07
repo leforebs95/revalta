@@ -1,0 +1,38 @@
+name: ocr-service
+
+volumes:
+  pages_vol:
+  ocrdb_vol:
+networks:
+  ocr-network:
+    driver: bridge
+      
+services:
+  ocr-api:
+    container_name: cocr-service
+    build:
+      context: .
+    ports:
+    - "5002:5002"
+    depends_on:
+      - local-ocr-db
+    volumes:
+      - .:/usr/src/ocr-service
+      - pages_vol:/usr/src/ocr-service/pages
+    networks:
+      - ocr-network
+    restart: always
+
+  local-ocr-db:
+    container_name: clocal-ocr-dbase
+    image: postgres:15
+    ports:
+    - "32002:5432" 
+    environment:
+      POSTGRES_DB: ocr_db
+      POSTGRES_USER: local_ocr_user
+      POSTGRES_PASSWORD: local_ocr_pass
+    volumes:
+      - ocrdb_vol:/var/lib/postgresql/data
+    networks:
+      - ocr-network

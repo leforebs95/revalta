@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import hero from '../assets/images/hero.svg';
 import Login from '../components/login/LoginCard';
 import { useAuth } from '../providers/AuthProvider';
 
@@ -34,7 +35,7 @@ const LoginPage = () => {
       <main className="flex justify-center items-center mx-auto gap-52 border border-black h-screen">
         <div className="flex items-center align-middle justify-center h-auto flex-wrap w-[500px]">
           <img 
-            src="/images/hero.svg" 
+            src={hero} 
             alt="logo" 
             className="mb-20"
           />

@@ -4,8 +4,14 @@ import { authAPI } from '../lib/api/auth';
 
 const AuthContext = createContext(null);
 
+interface User {
+  userId: string;
+  email: string;
+  role: string;
+}
+
 const useAuthProvider = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();

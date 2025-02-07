@@ -16,6 +16,11 @@ export const authAPI = {
     return response.data;
   },
 
+  signUp: async (credentials) => {
+    const response = await authClient.post('/signup', credentials);
+    return response.data;
+  },
+
   getSession: async () => {
     const response = await authClient.get('/getsession');
     return response.data;

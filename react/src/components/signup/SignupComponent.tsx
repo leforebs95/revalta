@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../providers/AuthProvider';
-import { useCSRF } from '../../providers/CSRFProvider';
+import { authAPI } from '../../lib/api/auth';
 
 const SignupComponent = () => {
   const navigate = useNavigate();
-  const { csrfToken } = useCSRF();
-  const { login } = useAuth();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -61,28 +58,21 @@ const SignupComponent = () => {
 
     try {
       // Signup request
-      const signupResponse = await fetch('/api/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({
+      const signupResponse = await authAPI.signUp({
           firstName: formData.firstName,
           lastName: formData.lastName,
           userEmail: formData.userEmail,
           password: formData.password
-        })
-      });
+        });
 
-      if (!signupResponse.ok) {
+      if (!signupResponse.user) {
         throw new Error('Signup failed');
       }
 
       const signupData = await signupResponse.json();
 
       // Login after successful signup
-      await login({
+      await authAPI.login({
         userEmail: signupData.userEmail,
         password: formData.password
       });
@@ -114,7 +104,7 @@ const SignupComponent = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-900">
+                <label htmlFor="firstName" className="block text-sm font-medium text-white-900">
                   First name
                 </label>
                 <input
@@ -123,12 +113,12 @@ const SignupComponent = () => {
                   id="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                  className="block w-full rounded-md border-0 py-1.5 px-2 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-900">
+                <label htmlFor="lastName" className="block text-sm font-medium text-white-900">
                   Last name
                 </label>
                 <input
@@ -137,13 +127,13 @@ const SignupComponent = () => {
                   id="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                  className="block w-full rounded-md border-0 py-1.5 px-2 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="userEmail" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="userEmail" className="block text-sm font-medium text-white-900">
                 Email address
               </label>
               <input
@@ -152,12 +142,12 @@ const SignupComponent = () => {
                 id="userEmail"
                 value={formData.userEmail}
                 onChange={handleChange}
-                className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 px-2 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="password" className="block text-sm font-medium text-white-900">
                 Password
               </label>
               <input
@@ -166,12 +156,12 @@ const SignupComponent = () => {
                 id="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 px-2 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white-900">
                 Confirm Password
               </label>
               <input
@@ -180,7 +170,7 @@ const SignupComponent = () => {
                 id="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 px-2 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
               />
               {formErrors.password && (
                 <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>
@@ -192,7 +182,7 @@ const SignupComponent = () => {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="text-sm font-semibold leading-6 text-gray-900"
+              className="text-sm font-semibold leading-6 text-white-900"
             >
               Cancel
             </button>

@@ -3,6 +3,8 @@ volumes:
   authdb_vol:
   filedb_vol:
   upload_vol:
+  ocrdb_vol:
+  pages_vol:
 
 networks:
   app-network:
@@ -13,9 +15,19 @@ networks:
   file-network:
     external: true
     name: file-service_file-network
+  ocr-network:
+    external: true
+    name: ocr-service_ocr-network
       
 
 services:
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
   
   react-server:
     volumes:
@@ -32,9 +44,6 @@ services:
       - PROD=false
       - HOST=0.0.0.0
       - PORT=8080
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 10s
@@ -77,6 +86,7 @@ services:
     volumes:
       - upload_vol:/usr/src/file-service/uploads
     depends_on:
+      - redis
       - local-file-db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/api/files/version"]
@@ -94,11 +104,39 @@ services:
     volumes:
       - filedb_vol:/var/lib/mysql
 
+  ocr-api:
+    extends:
+      file: ./python/ocr/docker-compose.yaml
+      service: ocr-api
+    networks:
+      - app-network
+      - ocr-network
+    volumes:
+      - pages_vol:/usr/src/ocr-service/pages
+    depends_on:
+      - local-ocr-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/api/ocr/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  local-ocr-db:
+    extends:
+      file: ./python/ocr/docker-compose.yaml
+      service: local-ocr-db
+    networks:
+      - ocr-network
+    volumes:
+      - ocrdb_vol:/var/lib/mysql
+
   nginx:
     build: ./nginx
     environment:
       - AUTHENTICATION_SERVICE_HOST=auth-api
       - FILE_SERVICE_HOST=file-api
+      - OCR_SERVICE_HOST=ocr-api
       - REACT_SERVICE_HOST=react-server
     ports:
       - 80:80

@@ -1,3 +1,10 @@
+import logoSrc from '../../assets/images/nivalta-logo.svg';
+import folderIcon from '../../assets/images/vuesax-linear-open-folder.svg';
+import peopleIcon from '../../assets/images/vuesax-linear-people.svg';
+import settingIcon from '../../assets/images/vuesax-linear-setting2.svg';
+import directInboxIcon from '../../assets/images/vuesax-linear-direct-inbox.svg';
+import taskSquareIcon from '../../assets/images/vuesax-linear-task-square.svg';
+import logoutIcon from '../../assets/images/vuesax-linear-logout.svg';
 import React, { useEffect } from 'react';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import { useAuth } from '../../providers/AuthProvider';
@@ -30,7 +37,7 @@ const DashboardLayout = () => {
           {/* Logo */}
           <div className="h-40 flex items-center justify-center">
             <img 
-              src="/images/nivalta-logo.svg" 
+              src={logoSrc}
               alt="Nivalta Company Logo" 
               className="w-32"
             />
@@ -45,27 +52,27 @@ const DashboardLayout = () => {
             <nav className="space-y-2">
               <NavItem 
                 to="/dashboard"
-                icon="/images/vuesax-linear-direct-inbox.svg"
+                icon={directInboxIcon}
                 text="Dashboard"
               />
               <NavItem 
                 to="/dashboard/symptoms"
-                icon="/images/vuesax-linear-open-folder.svg"
+                icon={folderIcon}
                 text="Symptom Log"
               />
               <NavItem 
                 to="/dashboard/lab-results"
-                icon="/images/vuesax-linear-task-square.svg"
+                icon={taskSquareIcon}
                 text="Lab Results"
               />
               <NavItem 
                 to="/dashboard/family-history"
-                icon="/images/vuesax-linear-people.svg"
+                icon={peopleIcon}
                 text="Family History"
               />
               <NavItem 
                 to="/dashboard/insights"
-                icon="/images/vuesax-linear-people.svg"
+                icon={settingIcon}
                 text="Insights"
               />
             </nav>
@@ -78,7 +85,7 @@ const DashboardLayout = () => {
               
               <NavItem 
                 to="/dashboard/settings"
-                icon="/images/vuesax-linear-setting2.svg"
+                icon={settingIcon}
                 text="Settings"
               />
               
@@ -87,7 +94,7 @@ const DashboardLayout = () => {
                 className="w-full flex items-center gap-3 py-2 px-4 text-red-500 hover:bg-red-50 rounded-full transition-colors"
               >
                 <img 
-                  src="/images/vuesax-linear-logout.svg" 
+                  src={logoutIcon}
                   alt="Logout icon" 
                   className="w-4 h-4"
                 />

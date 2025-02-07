@@ -1,3 +1,5 @@
+import json
+from uuid import UUID
 from flask import jsonify, request, current_app, send_file
 from werkzeug.exceptions import BadRequest, NotFound
 from http import HTTPStatus
@@ -57,6 +59,17 @@ def upload_file():
         db.session.add(file_record)
         db.session.commit()
 
+        current_app.redis.publish(
+            "file_events",
+            json.dumps(
+                {
+                    "event": "file_saved",
+                    "filename": file_record.filename,
+                    "file_id": file_record.file_id,
+                }
+            ),
+        )
+
         return jsonify(file_record.to_json()), HTTPStatus.CREATED
 
     except BadRequest as e:
@@ -83,7 +96,7 @@ def get_user_files(user_id):
         )
 
 
-@file.route("/api/files/<int:file_id>/download", methods=["GET"])
+@file.route("/api/files/<uuid:file_id>/download", methods=["GET"])
 def download_file(file_id):
     try:
         file_record = File.query.get(file_id)
@@ -112,7 +125,7 @@ def download_file(file_id):
         )
 
 
-@file.route("/api/files/<int:file_id>", methods=["DELETE"])
+@file.route("/api/files/<uuid:file_id>", methods=["DELETE"])
 def delete_file(file_id):
     try:
         file_record = File.query.get(file_id)
