@@ -2,5 +2,8 @@
 The main application repository
 
 ## Building
-Currently we utilize docker-compose locally in order to build our application. docker-compose will spin up three containers, `nivalta-nginx` `nivalta-svelte-server` and `nivalta-flask-server`. Upon executing
-```docker compose up --build --remove-orphans``` the three containers will spin up and be accesible through `localhost`. Note, each time you want to re-build the svelte application, it is best to rerun the compose command. Local builds are no longer needed. 
+Currently we utilize docker-compose locally in order to build our application.
+Our containers depend on networks in order to communicate with one another. In order to build the application, first we create the necessary networks with:
+```docker network create ocr-service_ocr-network authentication_auth-network file-service_file-network```
+After we create our networks we can orchestrate our service containers with:
+```docker compose -f docker-compose.yaml up --build --remove-orphans```
