@@ -5,26 +5,26 @@ from werkzeug.exceptions import BadRequest, NotFound
 from http import HTTPStatus
 import os
 
-from . import file
+from . import uploads
 from app import logger
-from app.models import db, File
+from app.models import db, Upload
 from utils.file_storage import LocalFileStorage
 from utils.validation import validate_file
 
 
-@file.route("/api/files/version", methods=["GET"])
+@uploads.route("/api/uploads/version", methods=["GET"])
 def version():
     return jsonify({"version": "0.0.1"})
 
 
-@file.route("/api/files/upload", methods=["POST"])
+@uploads.route("/api/uploads/upload", methods=["POST"])
 def upload_file():
     try:
         # Validate request
-        if "file" not in request.files:
+        if "file" not in request.uploads:
             raise BadRequest("No file provided")
 
-        uploaded_file = request.files["file"]
+        uploaded_file = request.uploads["file"]
         user_id = request.form.get("userId")
 
         if not user_id:
@@ -47,7 +47,7 @@ def upload_file():
             raise BadRequest("Failed to save file")
 
         # Create database record
-        file_record = File(
+        file_record = Upload(
             user_id=user_id,
             filename=stored_filename,
             original_filename=uploaded_file.filename,
@@ -58,17 +58,6 @@ def upload_file():
 
         db.session.add(file_record)
         db.session.commit()
-
-        current_app.redis.publish(
-            "file_events",
-            json.dumps(
-                {
-                    "event": "file_saved",
-                    "filename": file_record.filename,
-                    "file_id": file_record.file_id,
-                }
-            ),
-        )
 
         return jsonify(file_record.to_json()), HTTPStatus.CREATED
 
@@ -82,24 +71,24 @@ def upload_file():
         )
 
 
-@file.route("/api/files/<int:user_id>", methods=["GET"])
-def get_user_files(user_id):
+@uploads.route("/api/uploads/<int:user_id>", methods=["GET"])
+def get_user_uploads(user_id):
     try:
-        files = File.query.filter_by(user_id=user_id, is_deleted=False).all()
-        return jsonify([file.to_json() for file in files])
+        uploads = Upload.query.filter_by(user_id=user_id, is_deleted=False).all()
+        return jsonify([upload.to_json() for upload in uploads])
 
     except Exception as e:
-        logger.error(f"Error retrieving files: {str(e)}")
+        logger.error(f"Error retrieving uploads: {str(e)}")
         return (
             jsonify({"error": "An unexpected error occurred"}),
             HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
 
-@file.route("/api/files/<uuid:file_id>/download", methods=["GET"])
+@uploads.route("/api/uploads/<uuid:file_id>/download", methods=["GET"])
 def download_file(file_id):
     try:
-        file_record = File.query.get(file_id)
+        file_record = Upload.query.get(file_id)
         if not file_record or file_record.is_deleted:
             raise NotFound("File not found")
 
@@ -125,10 +114,10 @@ def download_file(file_id):
         )
 
 
-@file.route("/api/files/<uuid:file_id>", methods=["DELETE"])
+@uploads.route("/api/uploads/<uuid:file_id>", methods=["DELETE"])
 def delete_file(file_id):
     try:
-        file_record = File.query.get(file_id)
+        file_record = Upload.query.get(file_id)
         if not file_record or file_record.is_deleted:
             raise NotFound("File not found")
 

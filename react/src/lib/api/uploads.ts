@@ -1,9 +1,9 @@
-import { filesClient } from './client';
+import { uploadsClient } from './client';
 
 export const documentsAPI = {
-  getFiles: async (userId: string) => {
+  getUploads: async (userId: string) => {
     // const session = await authAPI.getSession()
-    const response = await filesClient.get(`/${userId}`);
+    const response = await uploadsClient.get(`/${userId}`);
     return response.data;
   },
 
@@ -13,7 +13,7 @@ export const documentsAPI = {
     // const session = await authAPI.getSession()
     formData.append('userId', userId); // This should come from auth context
 
-    const response = await filesClient.post('/upload', formData, {
+    const response = await uploadsClient.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -22,8 +22,8 @@ export const documentsAPI = {
     return response.data;
   },
 
-  deleteFile: async (fileId: string) => {
-    const response = await filesClient.delete(`/${fileId}`);
+  deleteUpload: async (fileId: string) => {
+    const response = await uploadsClient.delete(`/${fileId}`);
     return response.data;
   }
 };

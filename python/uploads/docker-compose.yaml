@@ -1,0 +1,39 @@
+name: uploads
+
+volumes:
+  uploadsdb_vol:
+  uploads_vol:
+networks:
+  uploads-network:
+    driver: bridge
+    name: uploads_uploads-network
+      
+services:
+  uploads-api:
+    container_name: cuploads
+    build:
+      context: .
+    ports:
+    - "5001:5001"
+    depends_on:
+      - local-uploads-db
+    networks:
+      - uploads-network
+    volumes:
+      - .:/usr/src/uploads
+      - uploads_vol:/usr/src/uploads/uploads
+    restart: always
+  local-uploads-db:
+    container_name: clocal-uploads-dbase
+    image: mysql:8
+    ports:
+    - "32001:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_uploads_pass
+      MYSQL_DATABASE: uploads_db
+      MYSQL_USER: local_uploads_user 
+      MYSQL_PASSWORD: local_uploads_pass
+    networks:
+      - uploads-network
+    volumes:
+    - uploadsdb_vol:/var/lib/mysql

@@ -9,7 +9,6 @@ networks:
     driver: bridge
       
 services:
-  services:
   local-auth-db:
     container_name: clocal-auth-dbase
     image: mysql:8

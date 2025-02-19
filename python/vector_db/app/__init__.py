@@ -1,18 +1,11 @@
-import json
 import os
 import logging
-from threading import Thread
-
-from flask import Flask, current_app
+from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-import redis
-
-from utils.ocr_processor import OCRProcessor
 
 migrate = Migrate()
 cors = CORS()
-processor = OCRProcessor()
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -51,25 +44,14 @@ def create_app():
     )
 
     from .models import db
-    from .models import DocumentPage
 
     db.init_app(app)
     with app.app_context():
         db.create_all()
     migrate.init_app(app, db)
 
-    from .ocr_api.routes import start_listener
+    from .vector_api import vector as vector_blueprint
 
-    app_context = app.app_context()
-
-    def run_listener():
-        with app_context:
-            start_listener()
-
-    Thread(target=run_listener, daemon=True).start()
-
-    from .ocr_api import ocr as ocr_blueprint
-
-    app.register_blueprint(ocr_blueprint)
+    app.register_blueprint(vector_blueprint)
 
     return app

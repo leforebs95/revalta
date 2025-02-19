@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authClient, filesClient } from '../lib/api/client';
+import { authClient, uploadsClient } from '../lib/api/client';
 import { authAPI } from '../lib/api/auth';
 
 const CSRFContext = createContext(null);
@@ -16,7 +16,7 @@ const useCSRFProvider = () => {
         const token = await authAPI.getCsrfToken();
         setCsrfToken(token);
         authClient.defaults.headers.common['x-csrftoken'] = token;
-        filesClient.defaults.headers.common['x-csrftoken'] = token;
+        uploadsClient.defaults.headers.common['x-csrftoken'] = token;
       } catch (err) {
         console.error('Failed to fetch CSRF token:', err);
         setError(err);

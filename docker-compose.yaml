@@ -1,8 +1,8 @@
 # Single shared network for all services
 volumes:
   authdb_vol:
-  filedb_vol:
-  upload_vol:
+  uploadsdb_vol:
+  uploads_vol:
   ocrdb_vol:
   pages_vol:
 
@@ -12,22 +12,15 @@ networks:
   auth-network:
     external: true
     name: authentication_auth-network
-  file-network:
+  uploads-network:
     external: true
-    name: file-service_file-network
+    name: uploads_uploads-network
   ocr-network:
     external: true
     name: ocr-service_ocr-network
       
 
 services:
-
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
   
   react-server:
     volumes:
@@ -76,33 +69,32 @@ services:
     volumes:
       - authdb_vol:/var/lib/mysql
 
-  file-api:
+  uploads-api:
     extends:
-      file: ./python/file-service/docker-compose.yaml
-      service: file-api
+      file: ./python/uploads/docker-compose.yaml
+      service: uploads-api
     networks:
       - app-network
-      - file-network
+      - uploads-network
     volumes:
-      - upload_vol:/usr/src/file-service/uploads
+      - uploads_vol:/usr/src/uploads/uploads
     depends_on:
-      - redis
-      - local-file-db
+      - local-uploads-db
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/api/files/version"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/uploads/version"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
     
-  local-file-db:
+  local-uploads-db:
     extends:
-      file: ./python/file-service/docker-compose.yaml
-      service: local-file-db
+      file: ./python/uploads/docker-compose.yaml
+      service: local-uploads-db
     networks:
-      - file-network
+      - uploads-network
     volumes:
-      - filedb_vol:/var/lib/mysql
+      - uploadsdb_vol:/var/lib/mysql
 
   ocr-api:
     extends:

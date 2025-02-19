@@ -24,13 +24,13 @@ sleep 5
 
 # Check service resolution
 check_dns ${AUTHENTICATION_SERVICE_HOST} || echo "Warning: Could not resolve Authentication service"
-check_dns ${FILE_SERVICE_HOST} || echo "Warning: Could not resolve File Service"
+check_dns ${UPLOADS_HOST} || echo "Warning: Could not resolve File Service"
 check_dns ${OCR_SERVICE_HOST} || echo "Warning: Could not resolve OCR Service"
 check_dns ${REACT_SERVICE_HOST} || echo "Warning: Could not resolve Svelte service"
 
 # Generate nginx configuration
 echo "Generating Nginx configuration..."
-envsubst '$AUTHENTICATION_SERVICE_HOST $FILE_SERVICE_HOST $OCR_SERVICE_HOST $REACT_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
+envsubst '$AUTHENTICATION_SERVICE_HOST $UPLOADS_HOST $OCR_SERVICE_HOST $REACT_SERVICE_HOST' </etc/nginx/nginx.template.conf >/etc/nginx/nginx.conf
 
 # Verify configuration
 echo "Verifying Nginx configuration..."

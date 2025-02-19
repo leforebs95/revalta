@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, FileText, Trash2, RotateCw } from 'lucide-react';
 import { Dialog, DialogTitle, DialogContent } from "../common/Dialog";
 import { Alert, AlertDescription } from '../common/Alert';
-import { documentsAPI } from '../../lib/api/files';
+import { documentsAPI } from '../../lib/api/uploads';
 import { ocrAPI } from '../../lib/api/ocr';
 import FileUpload from '../common/FileUpload';
 import { useAuth } from '../../providers/AuthProvider';
@@ -154,7 +154,7 @@ const LabResults = () => {
     try {
       setError(null);
       setLoading(true);
-      await documentsAPI.deleteFile(documentId);
+      await documentsAPI.deleteUpload(documentId);
       await ocrAPI.deletePages(documentId);
       await fetchDocumentsWithStatus();
     } catch (err) {

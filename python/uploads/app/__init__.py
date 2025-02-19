@@ -53,14 +53,8 @@ def create_app():
         db.create_all()
     migrate.init_app(app, db)
 
-    app.redis = redis.Redis(
-        host=app.config["REDIS_HOST"],
-        port=app.config["REDIS_PORT"],
-        decode_responses=True,
-    )
+    from .uploads_api import uploads as uploads_blueprint
 
-    from .file_api import file as file_blueprint
-
-    app.register_blueprint(file_blueprint)
+    app.register_blueprint(uploads_blueprint)
 
     return app
