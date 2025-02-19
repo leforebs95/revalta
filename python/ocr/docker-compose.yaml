@@ -8,20 +8,6 @@ networks:
     driver: bridge
       
 services:
-  ocr-api:
-    container_name: cocr-service
-    build:
-      context: .
-    ports:
-    - "5002:5002"
-    depends_on:
-      - local-ocr-db
-    volumes:
-      - .:/usr/src/ocr-service
-      - pages_vol:/usr/src/ocr-service/pages
-    networks:
-      - ocr-network
-    restart: always
 
   local-ocr-db:
     container_name: clocal-ocr-dbase
@@ -36,3 +22,30 @@ services:
       - ocrdb_vol:/var/lib/postgresql/data
     networks:
       - ocr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ocr-api:
+    container_name: cocr-service
+    build:
+      context: .
+    ports:
+    - "5002:5002"
+    depends_on:
+      local-ocr-db:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/ocr-service
+      - pages_vol:/usr/src/ocr-service/pages
+    networks:
+      - ocr-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/api/ocr/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

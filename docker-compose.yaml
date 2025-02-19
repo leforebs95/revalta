@@ -118,7 +118,8 @@ services:
     volumes:
       - pages_vol:/usr/src/ocr-service/pages
     depends_on:
-      - local-ocr-db
+      local-ocr-db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/api/ocr/version"]
       interval: 10s
@@ -134,6 +135,11 @@ services:
       - ocr-network
     volumes:
       - ocrdb_vol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     build: ./nginx
@@ -150,6 +156,8 @@ services:
       auth-api:
         condition: service_healthy
       uploads-api:
+        condition: service_healthy
+      ocr-api:
         condition: service_healthy
       react-server:
         condition: service_healthy
