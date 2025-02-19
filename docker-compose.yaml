@@ -1,163 +1,165 @@
-# Single shared network for all services
+name: nivalta
+
 volumes:
-  authdb_vol:
-  uploadsdb_vol:
-  uploads_vol:
-  ocrdb_vol:
-  pages_vol:
+ authdb_vol:
+ uploadsdb_vol:
+ ocrdb_vol:
+ pages_vol:
+ vectordb_vol:
+ uploads_vol:
 
 networks:
-  app-network:
-    driver: bridge
-  auth-network:
-    external: true
-    name: authentication_auth-network
-  uploads-network:
-    external: true
-    name: uploads_uploads-network
-  ocr-network:
-    external: true
-    name: ocr-service_ocr-network
-      
+ auth-network:
+   driver: bridge
+ uploads-network:
+   driver: bridge
+ ocr-network:
+   driver: bridge
+ vector-network:
+   driver: bridge
+ nivalta-network:
+   driver: bridge
 
 services:
-  
-  react-server:
-    volumes:
-      - ./react/src:/usr/src/react/src
-      - ./react/public:/usr/src/react/public
-      - ./react/vite.config.js:/usr/src/react/vite.config.js
-      - ./react/tailwind.config.js:/usr/src/react/tailwind.config.js
-      - ./react/postcss.config.js:/usr/src/react/postcss.config.js
-      - ./react/index.html:/usr/src/react/index.html
+  authentication-api:
+    container_name: cauthentication
+    build:
+      context: ./python/authentication
+    depends_on:
+      local-auth-db:
+        condition: service_healthy
     networks:
-      - app-network
-    build: ./react
+      - auth-network
+      - nivalta-network
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./python/authentication:/usr/src/authentication
+    restart: always
+
+  ocr-api:
+    container_name: cocr
+    build:
+      context: ./python/ocr
+    depends_on:
+      local-ocr-db:
+        condition: service_healthy
+    networks:
+      - ocr-network
+      - nivalta-network
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./python/ocr:/usr/src/ocr-service
+      - pages_vol:/usr/src/ocr-service/pages
+    restart: always
+
+  uploads-api:
+    container_name: cuploads
+    build:
+      context: ./python/uploads
+    depends_on:
+      local-uploads-db:
+        condition: service_healthy
+    networks:
+      - uploads-network
+      - nivalta-network
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./python/uploads:/usr/src/uploads
+      - uploads_vol:/usr/src/uploads/uploads
+    restart: always
+
+  react-ui:
+    container_name: creact
+    build:
+      context: ./react
+    networks:
+      - nivalta-network
+    ports:
+      - "8080:8080"
     environment:
-      - PROD=false
       - HOST=0.0.0.0
       - PORT=8080
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      - PROD=false
+    restart: always
+
+  nginx-proxy:
+    container_name: cnginx
+    build:
+      context: ./nginx
+    networks:
+      - nivalta-network
+    ports:
+      - "80:80"
+    environment:
+      - AUTHENTICATION_SERVICE_HOST=authentication-api
+      - OCR_SERVICE_HOST=ocr-api
+      - UPLOADS_HOST=uploads-api
+      - REACT_SERVICE_HOST=react-ui
+    restart: always
+    depends_on:
+      - authentication-api
+      - ocr-api
+      - uploads-api
+      - react-ui
 
   local-auth-db:
-    extends:
-      file: ./python/authentication/docker-compose.yaml
-      service: local-auth-db
+    container_name: clocal-auth-dbase
+    image: mysql:8
+    ports:
+      - "32000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_auth_pass
+      MYSQL_DATABASE: auth
+      MYSQL_USER: local_auth_user
+      MYSQL_PASSWORD: local_auth_pass
     networks:
       - auth-network
     volumes:
       - authdb_vol:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  auth-api:
-    extends:
-      file: ./python/authentication/docker-compose.yaml
-      service: auth-api
+  local-ocr-db:
+    container_name: clocal-ocr-dbase
+    image: postgres:15
+    ports:
+      - "32002:5432"
+    environment:
+      POSTGRES_DB: ocr_db
+      POSTGRES_USER: local_ocr_user
+      POSTGRES_PASSWORD: local_ocr_pass
     networks:
-      - app-network
-      - auth-network
-    depends_on:
-      local-auth-db:
-        condition: service_healthy
+      - ocr-network
+    volumes:
+      - ocrdb_vol:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/version"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
-    
+      retries: 5
+
   local-uploads-db:
-    extends:
-      file: ./python/uploads/docker-compose.yaml
-      service: local-uploads-db
+    container_name: clocal-uploads-dbase
+    image: mysql:8
+    ports:
+      - "32001:3306" 
+    environment:
+      MYSQL_ROOT_PASSWORD: root_uploads_pass
+      MYSQL_DATABASE: uploads_db
+      MYSQL_USER: local_uploads_user
+      MYSQL_PASSWORD: local_uploads_pass
     networks:
       - uploads-network
     volumes:
       - uploadsdb_vol:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
-  
-  uploads-api:
-    extends:
-      file: ./python/uploads/docker-compose.yaml
-      service: uploads-api
-    networks:
-      - app-network
-      - uploads-network
-    volumes:
-      - uploads_vol:/usr/src/uploads/uploads
-    depends_on:
-      local-uploads-db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/api/uploads/version"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  ocr-api:
-    extends:
-      file: ./python/ocr/docker-compose.yaml
-      service: ocr-api
-    networks:
-      - app-network
-      - ocr-network
-    volumes:
-      - pages_vol:/usr/src/ocr-service/pages
-    depends_on:
-      local-ocr-db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/api/ocr/version"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  local-ocr-db:
-    extends:
-      file: ./python/ocr/docker-compose.yaml
-      service: local-ocr-db
-    networks:
-      - ocr-network
-    volumes:
-      - ocrdb_vol:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  nginx:
-    build: ./nginx
-    environment:
-      - AUTHENTICATION_SERVICE_HOST=auth-api
-      - UPLOADS_HOST=uploads-api
-      - OCR_SERVICE_HOST=ocr-api
-      - REACT_SERVICE_HOST=react-server
-    ports:
-      - 80:80
-    networks:
-      - app-network
-    depends_on:
-      auth-api:
-        condition: service_healthy
-      uploads-api:
-        condition: service_healthy
-      ocr-api:
-        condition: service_healthy
-      react-server:
-        condition: service_healthy
