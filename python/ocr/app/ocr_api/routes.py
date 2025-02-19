@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from flask import jsonify, current_app, send_file
+from flask import jsonify, current_app, send_file, request
 import json
 from uuid import UUID
 from app.models import db, DocumentPage
@@ -61,118 +61,79 @@ def get_page_image(file_id, page_number):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-def handle_file_event(message):
+@ocr.route("/api/ocr/documents/<uuid:file_id>/pages", methods=["POST"])
+def create_document_pages(file_id):
     try:
-        data = json.loads(message["data"])
-        if data["event"] == "file_saved":
-            lock_name = f"ocr_lock:{data['file_id']}"
+        # Create pending records for all pages
+        pdf_processor = PDFProcessor(current_app.config["PAGES_LOCATION"])
+        file_path = pdf_processor._download_file(file_id)
 
-            # Try to acquire lock with 1 second timeout
-            lock = current_app.redis.set(lock_name, "locked", nx=True, ex=60)
+        if not file_path:
+            current_app.logger.error(f"Failed to download file {file_id}")
+            return jsonify({"error": "Failed to download file"}), 500
 
-            if not lock:
-                # Another worker is processing this file
-                return False
-            try:
-                # First create pending records for all pages
-                pdf_processor = PDFProcessor(current_app.config["PAGES_LOCATION"])
-                file_path = pdf_processor._download_file(
-                    data["file_id"], data["filename"]
-                )
+        page_count = pdf_processor.get_page_count(file_path)
+        current_app.logger.info(f"Processing {page_count} pages")
 
-                if not file_path:
-                    current_app.logger.error(
-                        f"Failed to download file {data['file_id']}"
-                    )
-                    return False
+        # Create pending records for each page
+        pages = []
+        for page_num in range(page_count):
+            page_id, page_filename = pdf_processor.extract_page(file_path, page_num)
+            page = DocumentPage(
+                page_id=page_id,
+                file_id=file_id,
+                page_number=page_num,
+                page_path=page_filename,
+                status="pending",
+            )
+            db.session.add(page)
+            pages.append(page)
 
-                page_count = pdf_processor.get_page_count(file_path)
-                current_app.logger.info(f"Processing {page_count} pages")
+        db.session.commit()
 
-                # Create pending records for each page
-                pages = []
-                for page_num in range(page_count):
-                    page_id, page_filename = pdf_processor.extract_page(
-                        file_path, page_num
-                    )
-                    page = DocumentPage(
-                        page_id=page_id,
-                        file_id=data["file_id"],
-                        page_number=page_num,
-                        page_path=page_filename,
-                        status="pending",
-                    )
-                    db.session.add(page)
-                    pages.append(page)
-                db.session.commit()
+        return jsonify({"pages": [page.to_dict() for page in pages]}), 201
 
-                for page in pages:
-                    current_app.logger.info(f"Proces page id: {page.page_id}")
-                    process_page_task(page.file_id, page.page_number, page.page_path)
-
-                # Now process pages in parallel
-                # with ThreadPoolExecutor(max_workers=4) as executor:
-                #     futures = []
-                #     for page in pages:
-                #         futures.append(
-                #             executor.submit(
-                #                 process_page_task,
-                #                 page.file_id,
-                #                 page.page_number,
-                #                 page.page_path,
-                #             )
-                #         )
-
-                return True
-            finally:
-                current_app.redis.delete(lock_name)
     except Exception as e:
-        current_app.logger.error(f"Error processing file event: {str(e)}")
-    return False
+        current_app.logger.error(f"Error creating document pages: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-def process_page_task(file_id, page_number, page_path):
+@ocr.route("/api/ocr/documents/<uuid:file_id>/process", methods=["POST"])
+def process_document_pages(file_id):
     try:
+        # Get page range from request params if provided
+        start_page = request.args.get("start_page", type=int)
+        end_page = request.args.get("end_page", type=int)
 
-        result = processor.process_page(page_path)
+        # Query pages to process
+        query = DocumentPage.query.filter_by(file_id=file_id, status="pending")
+        if start_page is not None:
+            query = query.filter(DocumentPage.page_number >= start_page)
+        if end_page is not None:
+            query = query.filter(DocumentPage.page_number <= end_page)
 
-        # Update the page record with results
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
+        pages = query.order_by(DocumentPage.page_number).all()
 
-        current_app.logger.info(f"Processing page {page_number}: {result}")
-        current_app.logger.info(f"Page Updates: {page}")
+        if not pages:
+            return jsonify({"message": "No pending pages found"}), 404
 
-        if page:
-            page.page_path = page_path
+        # Process each page
+        for page in pages:
+            result = processor.process_page(page.page_path)
+
             page.text_content = result["text"]
             page.raw_data = result["raw_data"]
             page.confidence = result["confidence"]
             page.status = result["status"]
             page.error_message = result.get("error_message")
+
             db.session.commit()
+
+        return jsonify({"processed_pages": [page.to_dict() for page in pages]})
 
     except Exception as e:
-        current_app.logger.error(f"Error processing page {page_number}: {str(e)}")
-        # Update page status to failed
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
-        if page:
-            page.status = "failed"
-            page.error_message = str(e)
-            db.session.commit()
-
-
-def start_listener():
-    pubsub = current_app.redis.pubsub()
-    pubsub.subscribe("file_events")
-
-    for message in pubsub.listen():
-        current_app.logger.info(f"Received message: {message}")
-        if message["type"] == "message":
-            handle_file_event(message)
+        current_app.logger.error(f"Error processing pages: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 @ocr.route("/api/ocr/pages/<uuid:file_id>/<int:page_number>/retry", methods=["POST"])

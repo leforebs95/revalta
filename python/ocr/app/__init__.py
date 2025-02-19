@@ -58,16 +58,6 @@ def create_app():
         db.create_all()
     migrate.init_app(app, db)
 
-    from .ocr_api.routes import start_listener
-
-    app_context = app.app_context()
-
-    def run_listener():
-        with app_context:
-            start_listener()
-
-    Thread(target=run_listener, daemon=True).start()
-
     from .ocr_api import ocr as ocr_blueprint
 
     app.register_blueprint(ocr_blueprint)
