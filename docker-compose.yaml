@@ -44,22 +44,6 @@ services:
       retries: 3
       start_period: 10s
 
-  auth-api:
-    extends:
-      file: ./python/authentication/docker-compose.yaml
-      service: auth-api
-    networks:
-      - app-network
-      - auth-network
-    depends_on:
-      - local-auth-db
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/version"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-  
   local-auth-db:
     extends:
       file: ./python/authentication/docker-compose.yaml
@@ -68,20 +52,24 @@ services:
       - auth-network
     volumes:
       - authdb_vol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  uploads-api:
+  auth-api:
     extends:
-      file: ./python/uploads/docker-compose.yaml
-      service: uploads-api
+      file: ./python/authentication/docker-compose.yaml
+      service: auth-api
     networks:
       - app-network
-      - uploads-network
-    volumes:
-      - uploads_vol:/usr/src/uploads/uploads
+      - auth-network
     depends_on:
-      - local-uploads-db
+      local-auth-db:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/api/uploads/version"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/version"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -95,6 +83,30 @@ services:
       - uploads-network
     volumes:
       - uploadsdb_vol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  uploads-api:
+    extends:
+      file: ./python/uploads/docker-compose.yaml
+      service: uploads-api
+    networks:
+      - app-network
+      - uploads-network
+    volumes:
+      - uploads_vol:/usr/src/uploads/uploads
+    depends_on:
+      local-uploads-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/uploads/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   ocr-api:
     extends:
@@ -127,7 +139,7 @@ services:
     build: ./nginx
     environment:
       - AUTHENTICATION_SERVICE_HOST=auth-api
-      - FILE_SERVICE_HOST=file-api
+      - UPLOADS_HOST=uploads-api
       - OCR_SERVICE_HOST=ocr-api
       - REACT_SERVICE_HOST=react-server
     ports:
@@ -136,6 +148,8 @@ services:
       - app-network
     depends_on:
       auth-api:
+        condition: service_healthy
+      uploads-api:
         condition: service_healthy
       react-server:
         condition: service_healthy
