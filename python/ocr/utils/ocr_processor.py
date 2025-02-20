@@ -25,16 +25,16 @@ class PDFProcessor(PageProcessor):
     def __init__(self, page_dir: str):
         self.page_dir = page_dir
         os.makedirs(page_dir, exist_ok=True)
-        self.file_service_url = "http://file-api:5001"
+        self.uploads_url = "http://uploads-api:5001"
 
-    def _download_file(self, file_id, filename):
+    def _download_file(self, file_id):
         """Download file from file service."""
         try:
             response = requests.get(
-                f"{self.file_service_url}/api/files/{file_id}/download", stream=True
+                f"{self.uploads_url}/api/uploads/{file_id}/download", stream=True
             )
             if response.status_code == 200:
-                temp_path = os.path.join(self.page_dir, filename)
+                temp_path = os.path.join(self.page_dir, f"{file_id}.pdf")
                 with open(temp_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:

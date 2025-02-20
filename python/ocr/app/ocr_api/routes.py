@@ -61,7 +61,7 @@ def get_page_image(file_id, page_number):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-@ocr.route("/api/ocr/documents/<uuid:file_id>/pages", methods=["POST"])
+@ocr.route("/api/ocr/pages/<uuid:file_id>", methods=["POST"])
 def create_document_pages(file_id):
     try:
         # Create pending records for all pages
@@ -98,7 +98,7 @@ def create_document_pages(file_id):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-@ocr.route("/api/ocr/documents/<uuid:file_id>/process", methods=["POST"])
+@ocr.route("/api/ocr/pages/<uuid:file_id>/process", methods=["POST"])
 def process_document_pages(file_id):
     try:
         # Get page range from request params if provided
