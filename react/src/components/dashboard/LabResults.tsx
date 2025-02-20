@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlertCircle, FileText, Trash2, RotateCw } from 'lucide-react';
 import { Dialog, DialogTitle, DialogContent } from "../common/Dialog";
 import { Alert, AlertDescription } from '../common/Alert';
@@ -36,6 +37,7 @@ const LabResults = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchDocuments = async () => {
     if (!user) return;
@@ -111,21 +113,9 @@ const LabResults = () => {
       setLoading(false);
     }
   }
-
+  
   const handleFileClick = async (doc: Document) => {
-    try {
-      setSelectedDoc(doc);
-      setCurrentPage(1);
-      setLoading(true);
-      const pages = await ocrAPI.getPages(doc.uploadId);
-      setTotalPages(pages.length);
-      fetchPageText(doc, currentPage);
-    } catch (err) {
-      setError('Failed to fetch document pages');
-      console.error('Fetch pages error:', err);
-    } finally {
-      setLoading(false);
-    }
+    navigate(`/dashboard/lab-results/${doc.uploadId}`);
   };
 
   const handlePageChange = async (pageNumber: number) => {
@@ -239,48 +229,6 @@ const LabResults = () => {
           </div>
         </div>
       </div>
-      <Dialog open={selectedDoc !== null} onOpenChange={() => setSelectedDoc(null)}>
-        <DialogTitle>
-          <DialogContent className="min-w-[800px]">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border rounded p-4">
-                <h3 className="font-medium mb-2">Page {currentPage}</h3>
-                <div className="bg-gray-100 h-96">
-                  {selectedDoc && (
-                    <img
-                      src={`/api/ocr/pages/${selectedDoc.uploadId}/${currentPage-1}/image`}
-                      alt={`Page ${currentPage}`}
-                      className="w-full h-full object-contain"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="border rounded p-4">
-                <h3 className="font-medium mb-2">OCR Text</h3>
-                <div className="bg-gray-100 h-96 text-black whitespace-pre-wrap overflow-auto p-4">
-                  {ocrText}
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center gap-4 mt-4">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                className="px-4 py-2 border rounded"
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                className="px-4 py-2 border rounded"
-                disabled={currentPage === totalPages || loading}
-              >
-                Next
-              </button>
-            </div>
-          </DialogContent>
-        </DialogTitle>
-      </Dialog>
     </div>
   );
 };

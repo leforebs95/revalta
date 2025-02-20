@@ -193,7 +193,7 @@ def get_status(file_id):
         }
         current_app.logger.info(f"Status counts: {status_counts}")
 
-        return jsonify({"file_id": file_id, "status": status_counts})
+        return jsonify(status_counts)
 
     except Exception as e:
         current_app.logger.error(f"Error getting status: {str(e)}")
