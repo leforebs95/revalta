@@ -21,10 +21,10 @@ def version():
 def upload_file():
     try:
         # Validate request
-        if "file" not in request.uploads:
+        if "file" not in request.files:
             raise BadRequest("No file provided")
 
-        uploaded_file = request.uploads["file"]
+        uploaded_file = request.files["file"]
         user_id = request.form.get("userId")
 
         if not user_id:

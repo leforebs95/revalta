@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Add curl for healthcheck
 RUN apt-get update && apt-get install -y curl
 
-WORKDIR /usr/src/file-service
+WORKDIR /usr/src/uploads
 
 # Create a non-privileged user that the app will run under.
 ARG UID=10001
@@ -22,19 +22,19 @@ RUN adduser \
     appuser
 
 # Create necessary directories with correct permissions
-RUN mkdir -p /var/log/gunicorn/ /usr/src/file-service/uploads && \
-    chown -R appuser:appuser /var/log/gunicorn/ /usr/src/file-service/uploads && \
-    chmod 755 /var/log/gunicorn/ /usr/src/file-service/uploads
+RUN mkdir -p /var/log/gunicorn/ /usr/src/uploads/uploads && \
+    chown -R appuser:appuser /var/log/gunicorn/ /usr/src/uploads/uploads && \
+    chmod 755 /var/log/gunicorn/ /usr/src/uploads/uploads
 
 # Copy the source code into the container.
 COPY --chown=appuser:appuser . .
 
-ENV PYTHONPATH=/usr/src/file-service
+ENV PYTHONPATH=/usr/src/uploads
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r /usr/src/file-service/requirements.txt
+    python -m pip install -r /usr/src/uploads/requirements.txt
 
 # Switch to the non-privileged user to run the application.
 USER appuser

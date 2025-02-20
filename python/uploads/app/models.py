@@ -41,7 +41,7 @@ class Upload(BaseModel):
 
     def to_json(self):
         return {
-            "uploadId": self.file_id,
+            "uploadId": self.upload_id,
             "userId": self.user_id,
             "filename": self.filename,
             "originalFilename": self.original_filename,
