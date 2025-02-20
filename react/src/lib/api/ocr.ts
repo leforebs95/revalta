@@ -1,6 +1,17 @@
 import { ocrClient } from "./client";
 
 export const ocrAPI = {
+
+    createPages: async (fileId: string) => {
+      const response = await ocrClient.post(`/pages/${fileId}`);
+      return response
+    },
+
+    processPages: async (fileId: string) => {
+      const response = await ocrClient.post(`/pages/${fileId}/process`);
+      return response.data;
+    },
+
     getPages: async (fileId: string) => {
       const response = await ocrClient.get(`/pages/${fileId}`);
       return response.data;

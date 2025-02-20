@@ -8,7 +8,7 @@ import FileUpload from '../common/FileUpload';
 import { useAuth } from '../../providers/AuthProvider';
 
 interface Document {
-  fileId: string; 
+  uploadId: string; 
   originalFilename: string;
   fileSize: number;
   createdAt: string;
@@ -28,7 +28,7 @@ interface DocumentStatus {
 
 const LabResults = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [documentStatuses, setDocumentStatuses] = useState<DocumentStatus[]>([]);
+  const [ocrStatuses, setOcrStatuses] = useState<{[key: string]: 'pending' | 'complete' | 'failed'}>({});
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,34 +37,15 @@ const LabResults = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchDocumentsWithStatus = async () => {
+  const fetchDocuments = async () => {
     if (!user) return;
     try {
       setError(null);
       setLoading(true);
 
       // First get documents
-      const docs = await documentsAPI.getFiles(user.userId);
+      const docs = await documentsAPI.getUploads(user.userId);
       setDocuments(docs);
-
-      // Then try to get statuses
-      try {
-        const statusPromises = docs.map(async (doc) => {
-          const status = await ocrAPI.getStatus(doc.fileId);
-          return {
-            ...doc,
-            status
-          };
-        });
-        const docsWithStatus = await Promise.all(statusPromises); 
-        setDocuments(docsWithStatus);
-        return docsWithStatus;
-      } catch (statusErr) {
-        setError('Failed to fetch document statuses');
-        console.error('Error fetching statuses:', statusErr);
-        return docs; // Return docs without status on error
-      }
-
     } catch (err) {
       setError('Failed to fetch documents');
       console.error('Error fetching documents:', err);
@@ -74,28 +55,53 @@ const LabResults = () => {
     };
    
    useEffect(() => {
-    fetchDocumentsWithStatus();
+    fetchDocuments();
    }, [user]);
 
-  const handleUpload = async (file: File) => {
+  const handleFileUpload = async (file: File) => {
     try {
       setError(null);
       setLoading(true);
-      await documentsAPI.uploadFile(user.userId, file);
-      await fetchDocumentsWithStatus();
-    } catch (err) {
-      setError('Failed to upload document');
-      console.error('Upload error:', err);
-    } finally {
+      const uploadResponse = await documentsAPI.uploadFile(user.userId, file);
       setLoading(false);
+      return uploadResponse;
+    } catch (err) {
+      setLoading(false);
+      setError('Failed to upload document');
+      throw err;
+    }
+  };
+
+  const processOCR = async (fileId: string) => {
+    try {
+      setOcrStatuses(prev => ({...prev, [fileId]: 'pending'}));
+      await ocrAPI.getPages(fileId);
+      await ocrAPI.createPages(fileId);
+      await ocrAPI.processPages(fileId)
+      setOcrStatuses(prev => ({...prev, [fileId]: 'complete'}));
+    } catch (err) {
+      console.error('OCR processing error:', err);
+      setOcrStatuses(prev => ({...prev, [fileId]: 'failed'}));
+    }
+  };
+
+  const handleUpload = async (file: File) => {
+    try {
+      const uploadResponse = await handleFileUpload(file);
+      await fetchDocuments();
+      // Start OCR process but don't wait for it
+      processOCR(uploadResponse.uploadId).catch(console.error);
+    } catch (err) {
+      console.error('Upload error:', err);
     }
   };
 
   const fetchPageText = async (doc: Document, pageNumber: number) => {
+    console.log('Fetching page text:', pageNumber);
     try {
       setError(null);
       setLoading(true);
-      const page = await ocrAPI.getPage(doc.fileId, currentPage-1);
+      const page = await ocrAPI.getPage(doc.uploadId, pageNumber-1);
       const combinedText = page.raw_data.text.join('\n');
       setOcrText(combinedText);
     } catch (err) {
@@ -111,7 +117,7 @@ const LabResults = () => {
       setSelectedDoc(doc);
       setCurrentPage(1);
       setLoading(true);
-      const pages = await ocrAPI.getPages(doc.fileId);
+      const pages = await ocrAPI.getPages(doc.uploadId);
       setTotalPages(pages.length);
       fetchPageText(doc, currentPage);
     } catch (err) {
@@ -123,6 +129,7 @@ const LabResults = () => {
   };
 
   const handlePageChange = async (pageNumber: number) => {
+    console.log('Page change:', pageNumber);
     if (!selectedDoc) return;
     try {
       setCurrentPage(pageNumber);
@@ -141,7 +148,7 @@ const LabResults = () => {
       setError(null);
       setLoading(true);
       await ocrAPI.retryFailedPages(documentId);
-      await fetchDocumentsWithStatus();
+      await fetchDocuments();
     } catch (err) {
       setError('Failed to retry document processing');
       console.error('Retry error:', err);
@@ -149,21 +156,38 @@ const LabResults = () => {
       setLoading(false);
     }
   };
-
-  const handleDelete = async (documentId: string) => {
+  const handleFileDelete = async (fileId: string) => {
     try {
       setError(null);
       setLoading(true);
-      await documentsAPI.deleteUpload(documentId);
-      await ocrAPI.deletePages(documentId);
-      await fetchDocumentsWithStatus();
-    } catch (err) {
-      setError('Failed to delete document');
-      console.error('Delete error:', err);
-    } finally {
+      await documentsAPI.deleteUpload(fileId);
       setLoading(false);
+      return true;
+    } catch (err) {
+      setLoading(false); 
+      setError('Failed to delete document');
+      throw err;
     }
-  };
+   };
+   
+   const cleanupOCR = async (fileId: string) => {
+    try {
+      await ocrAPI.deletePages(fileId);
+    } catch (err) {
+      console.error('OCR cleanup error:', err);
+    }
+   };
+   
+   const handleDelete = async (fileId: string) => {
+    try {
+      await handleFileDelete(fileId);
+      await fetchDocuments();
+      // Cleanup OCR but don't block on it
+      cleanupOCR(fileId).catch(console.error);
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+   };
 
   return (
     <div className="space-y-6">
@@ -199,13 +223,7 @@ const LabResults = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => handleRetry(doc.fileId)} 
-                    className="text-gray-500 hover:text-gray-600"
-                  >
-                    <RotateCw className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(doc.fileId)}
+                    onClick={() => handleDelete(doc.uploadId)}
                     className="text-red-500 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -230,7 +248,7 @@ const LabResults = () => {
                 <div className="bg-gray-100 h-96">
                   {selectedDoc && (
                     <img
-                      src={`/api/ocr/pages/${selectedDoc.fileId}/${currentPage-1}/image`}
+                      src={`/api/ocr/pages/${selectedDoc.uploadId}/${currentPage-1}/image`}
                       alt={`Page ${currentPage}`}
                       className="w-full h-full object-contain"
                     />
