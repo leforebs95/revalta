@@ -79,6 +79,13 @@ services:
       - nivalta-network
     ports:
       - "8080:8080"
+    volumes:
+      - ./react/src:/usr/src/react/src
+      - ./react/public:/usr/src/react/public
+      - ./react/vite.config.js:/usr/src/react/vite.config.js
+      - ./react/tailwind.config.js:/usr/src/react/tailwind.config.js
+      - ./react/postcss.config.js:/usr/src/react/postcss.config.js
+      - ./react/index.html:/usr/src/react/index.html
     environment:
       - HOST=0.0.0.0
       - PORT=8080
