@@ -197,7 +197,7 @@ const LabResults = () => {
           <div className="space-y-4">
             {documents.map((doc) => (
               <div
-                key={doc.fileId}
+                key={doc.uploadId}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
               <div className="flex items-center gap-3">
