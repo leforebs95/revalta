@@ -6,13 +6,10 @@ from threading import Thread
 from flask import Flask, current_app
 from flask_cors import CORS
 from flask_migrate import Migrate
-import redis
 
-from utils.ocr_processor import OCRProcessor
 
 migrate = Migrate()
 cors = CORS()
-processor = OCRProcessor()
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",

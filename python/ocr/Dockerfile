@@ -15,16 +15,15 @@ ARG UID=10001
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
+    --home "/home/appuser" \
     --shell "/sbin/nologin" \
-    --no-create-home \
     --uid "${UID}" \
     appuser
 
 # Create log directory with correct permissions
 RUN mkdir -p /var/log/gunicorn/ && \
-    chown -R appuser:appuser /var/log/gunicorn/ && \
-    chmod 755 /var/log/gunicorn/
+    chown -R appuser:appuser /var/log/gunicorn/ /home/appuser/ && \
+    chmod 755 /var/log/gunicorn/ /home/appuser/
 
 # Copy the source code into the container.
 COPY --chown=appuser:appuser . .

@@ -2,48 +2,40 @@ import { ocrClient } from "./client";
 
 export const ocrAPI = {
 
-    createPages: async (fileId: string) => {
-      const response = await ocrClient.post(`/pages/${fileId}`);
+    extractDocument: async (fileId: string) => {
+      const response = await ocrClient.post(`/document/${fileId}/extract`);
       return response
     },
 
-    processPages: async (fileId: string) => {
-      const response = await ocrClient.post(`/pages/${fileId}/process`);
+    processDocument: async (fileId: string) => {
+      const response = await ocrClient.post(`/document/${fileId}/process`);
       return response.data;
     },
 
-    getPages: async (fileId: string) => {
-      const response = await ocrClient.get(`/pages/${fileId}`);
+    getDocument: async (fileId: string) => {
+      const response = await ocrClient.get(`/document/${fileId}`);
       return response.data;
     },
 
-    getPage: async (fileId: string, pageNumber: number) => {
-      const response = await ocrClient.get(`/pages/${fileId}/${pageNumber}`);
+    getPage: async (pageId: string) => {
+      const response = await ocrClient.get(`/page/${pageId}`);
+      return response.data;
+    },
+
+    getPageImage: async (pageId: string) => {
+      const response = await ocrClient.get(`/page/${pageId}/image`, {
+        responseType: "arraybuffer",
+      });
       return response.data;
     },
   
     getStatus: async (fileId: string) => {
-      const response = await ocrClient.get(`/status/${fileId}`);
-      return response.data;
-    },
-  
-    retryPage: async (fileId: string, pageNumber: number) => {
-      const response = await ocrClient.post(`/pages/${fileId}/${pageNumber}/retry`);
-      return response.data;
-    },
-  
-    retryFailedPages: async (fileId: string) => {
-      const response = await ocrClient.post(`/pages/${fileId}/retry`);
+      const response = await ocrClient.get(`/document/${fileId}/status`);
       return response.data;
     },
 
-    deletePages: async (fileId: string) => {
-      const response = await ocrClient.delete(`/pages/${fileId}`);
-      return response.data;
-    },
-
-    deletePage: async (fileId: string, pageNumber: number) => {
-      const response = await ocrClient.delete(`/pages/${fileId}/${pageNumber}`);
+    deleteDocument: async (fileId: string) => {
+      const response = await ocrClient.delete(`/document/${fileId}`);
       return response.data;
     },
   };

@@ -51,7 +51,10 @@ services:
       - "5002:5002"
     volumes:
       - ./python/ocr:/usr/src/ocr-service
+      - ~/.aws/credentials.tmp:/home/appuser/.aws/credentials
       - pages_vol:/usr/src/ocr-service/pages
+    environment:
+      - AWS_PROFILE=local-containers
     restart: always
 
   uploads-api:

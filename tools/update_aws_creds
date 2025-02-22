@@ -1,0 +1,76 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 -p|--profile <profile-name>"
+    exit 1
+}
+
+# Set default profile
+PROFILE="${AWS_PROFILE:-default}"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    -p | --profile)
+        PROFILE="$2"
+        shift 2
+        ;;
+    *)
+        usage
+        ;;
+    esac
+done
+
+AWS_CREDS_FILE=~/.aws/credentials
+
+# Test if credentials are valid
+if ! aws sts get-caller-identity --profile "$PROFILE" >/dev/null 2>&1; then
+    echo "Credentials invalid or expired. Performing SSO login..."
+    if ! aws sso login --profile "$PROFILE"; then
+        echo "Error: SSO login failed for profile $PROFILE"
+        exit 1
+    fi
+fi
+
+# Export credentials to environment
+if ! creds=$(aws configure export-credentials --profile "$PROFILE" --format env); then
+    echo "Error: Failed to export credentials for profile $PROFILE"
+    exit 1
+fi
+
+# Apply credentials to environment
+eval "$creds"
+
+# Verify credentials were exported
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    echo "Error: Credentials were not properly exported to environment"
+    exit 1
+fi
+
+# Write to credentials file
+if ! awk -v profile="$PROFILE" -v access_key="$AWS_ACCESS_KEY_ID" -v secret_key="$AWS_SECRET_ACCESS_KEY" -v session_token="$AWS_SESSION_TOKEN" '
+   BEGIN { found=0; printed=0 }
+   /^\[.*\]/ { 
+       if (found && !printed) {
+           print "[" profile "]";
+           print "aws_access_key_id=" access_key;
+           print "aws_secret_access_key=" secret_key;
+           print "aws_session_token=" session_token;
+           printed=1;
+           print "";
+       }
+       found=($0 == "[" profile "]")
+   }
+   !found { print }
+   END {
+       if (!printed) {
+           print "[" profile "]";
+           print "aws_access_key_id=" access_key;
+           print "aws_secret_access_key=" secret_key;
+           print "aws_session_token=" session_token;
+       }
+   }' "$AWS_CREDS_FILE" >"${AWS_CREDS_FILE}.tmp" && mv "${AWS_CREDS_FILE}.tmp" "$AWS_CREDS_FILE"; then
+    echo "Error: Failed to update credentials file"
+    exit 1
+fi
+
+echo "Successfully updated credentials for profile $PROFILE"

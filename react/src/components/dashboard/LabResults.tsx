@@ -22,18 +22,9 @@ interface DocumentPage {
   content: string;
 }
 
-interface DocumentStatus {
-  fileId: string;
-  status: string;
-}
 
 const LabResults = () => {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [ocrStatuses, setOcrStatuses] = useState<{[key: string]: 'pending' | 'complete' | 'failed'}>({});
-  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [ocrText, setOcrText] = useState<string>('');
+  const [documents, setDocuments] = useState<Document[]>([]);  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -44,7 +35,6 @@ const LabResults = () => {
     try {
       setError(null);
       setLoading(true);
-
       // First get documents
       const docs = await documentsAPI.getUploads(user.userId);
       setDocuments(docs);
@@ -76,14 +66,10 @@ const LabResults = () => {
 
   const processOCR = async (fileId: string) => {
     try {
-      setOcrStatuses(prev => ({...prev, [fileId]: 'pending'}));
-      await ocrAPI.getPages(fileId);
-      await ocrAPI.createPages(fileId);
-      await ocrAPI.processPages(fileId)
-      setOcrStatuses(prev => ({...prev, [fileId]: 'complete'}));
+      await ocrAPI.extractDocument(fileId);
+      await ocrAPI.processDocument(fileId)
     } catch (err) {
       console.error('OCR processing error:', err);
-      setOcrStatuses(prev => ({...prev, [fileId]: 'failed'}));
     }
   };
 
@@ -97,55 +83,11 @@ const LabResults = () => {
       console.error('Upload error:', err);
     }
   };
-
-  const fetchPageText = async (doc: Document, pageNumber: number) => {
-    console.log('Fetching page text:', pageNumber);
-    try {
-      setError(null);
-      setLoading(true);
-      const page = await ocrAPI.getPage(doc.uploadId, pageNumber-1);
-      const combinedText = page.raw_data.text.join('\n');
-      setOcrText(combinedText);
-    } catch (err) {
-      setError('Failed to fetch page text');
-      console.error('Fetch page text error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
   
   const handleFileClick = async (doc: Document) => {
     navigate(`/dashboard/lab-results/${doc.uploadId}`);
   };
 
-  const handlePageChange = async (pageNumber: number) => {
-    console.log('Page change:', pageNumber);
-    if (!selectedDoc) return;
-    try {
-      setCurrentPage(pageNumber);
-      setLoading(true);
-      fetchPageText(selectedDoc, pageNumber);
-    } catch (err) {
-      setError('Failed to fetch document pages');
-      console.error('Fetch pages error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleRetry = async (documentId: string) => {
-    try {
-      setError(null);
-      setLoading(true);
-      await ocrAPI.retryFailedPages(documentId);
-      await fetchDocuments();
-    } catch (err) {
-      setError('Failed to retry document processing');
-      console.error('Retry error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleFileDelete = async (fileId: string) => {
     try {
       setError(null);
@@ -162,7 +104,7 @@ const LabResults = () => {
    
    const cleanupOCR = async (fileId: string) => {
     try {
-      await ocrAPI.deletePages(fileId);
+      await ocrAPI.deleteDocument(fileId);
     } catch (err) {
       console.error('OCR cleanup error:', err);
     }

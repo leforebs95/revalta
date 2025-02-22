@@ -1,88 +1,86 @@
-import os
-import fitz
-from PIL import Image
-import logging
+from abc import ABC, abstractmethod
+from typing import Dict
+
+import boto3
 import pytesseract
-from typing import Dict, Optional, List
-from datetime import datetime, timezone
-import uuid
-import requests
-
-logger = logging.getLogger(__name__)
+from PIL import Image
 
 
-class PageProcessor:
-    """Base class for handling different document types"""
+class BaseOCRProcessor(ABC):
+    """Base class for OCR processing"""
 
-    def get_page_count(self, file_path: str) -> int:
-        raise NotImplementedError
+    @abstractmethod
+    def process_page(self, page_path: str) -> Dict:
+        """Process a single page and extract text
 
-    def extract_page(self, file_path: str, page_number: int) -> str:
-        raise NotImplementedError
+        Args:
+            page_path: Path to page image file
+
+        Returns:
+            Dict containing OCR results:
+                text: Extracted text content
+                raw_data: Raw OCR data
+                confidence: Confidence score
+                status: Processing status
+                error_message: Optional error message if failed
+        """
+        pass
+
+    def _format_response(
+        self,
+        text: str,
+        raw_data: Dict,
+        confidence: float,
+        status: str,
+        error_message: str = None,
+    ) -> Dict:
+        """Format standard OCR response
+
+        Args:
+            text: Extracted text content
+            raw_data: Raw OCR output data
+            confidence: Confidence score
+            status: Processing status
+            error_message: Optional error message
+
+        Returns:
+            Dict with standard OCR response format
+        """
+        return {
+            "text": text,
+            "raw_data": raw_data,
+            "confidence": confidence,
+            "status": status,
+            "error_message": error_message,
+        }
+
+    def _handle_error(self, error: Exception) -> Dict:
+        """Handle OCR processing error
+
+        Args:
+            error: Exception that occurred
+
+        Returns:
+            Dict with error response format
+        """
+        return self._format_response(
+            text=None,
+            raw_data=None,
+            confidence=0,
+            status="failed",
+            error_message=str(error),
+        )
 
 
-class PDFProcessor(PageProcessor):
-    def __init__(self, page_dir: str):
-        self.page_dir = page_dir
-        os.makedirs(page_dir, exist_ok=True)
-        self.uploads_url = "http://uploads-api:5001"
+class TesseractProcessor(BaseOCRProcessor):
+    """OCR processor using Tesseract"""
 
-    def _download_file(self, file_id):
-        """Download file from file service."""
+    def process_page(self, page_path: str) -> Dict:
         try:
-            response = requests.get(
-                f"{self.uploads_url}/api/uploads/{file_id}/download", stream=True
-            )
-            if response.status_code == 200:
-                temp_path = os.path.join(self.page_dir, f"{file_id}.pdf")
-                with open(temp_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-                return temp_path
-        except Exception as e:
-            logger.error(f"Failed to download file {file_id}: {str(e)}")
-            return None
-
-    def get_page_count(self, file_path: str) -> int:
-        doc = fitz.open(file_path)
-        return len(doc)
-
-    def extract_page(self, file_path: str, page_number: int) -> str:
-        doc = fitz.open(file_path)
-        page = doc[page_number]
-        pix = page.get_pixmap()
-
-        # Generate unique filename for this page
-        page_id = uuid.uuid4()
-        page_filename = os.path.join(self.page_dir, f"{page_id}.png")
-
-        # Save page as PNG
-        pix.save(page_filename)
-
-        return page_id, page_filename
-
-
-class OCRProcessor:
-    """Handles OCR processing using Tesseract."""
-
-    def __init__(self, page_dir="/usr/src/ocr-service/pages"):
-        self.page_dir = page_dir
-        self.processors = {"pdf": PDFProcessor(page_dir)}
-
-    def process_page(self, page_path: str) -> Optional[Dict]:
-        """Process a single page through OCR."""
-        try:
-            # Load page image
             image = Image.open(page_path)
-
-            # Extract text using tesseract
             text = pytesseract.image_to_string(image)
-
-            # Get additional data like confidence scores
             data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
 
-            # Calculate average confidence excluding -1 values
             confidence_scores = [score for score in data["conf"] if score != -1]
             avg_confidence = (
                 sum(confidence_scores) / len(confidence_scores)
@@ -90,83 +88,62 @@ class OCRProcessor:
                 else 0
             )
 
-            return {
-                "text": text,
-                "raw_data": data,
-                "confidence": avg_confidence,
-                "status": "complete",
-                "page_path": page_path,
-            }
+            return self._format_response(
+                text=text, raw_data=data, confidence=avg_confidence, status="complete"
+            )
 
         except Exception as e:
-            logger.error(f"Failed to process page {page_path}: {str(e)}")
-            return {
-                "text": None,
-                "raw_data": None,
-                "confidence": 0,
-                "status": "failed",
-                "error_message": str(e),
-                "page_path": page_path,
-            }
+            return self._handle_error(e)
 
-    def retry_page(self, doc_page) -> bool:
-        """Retry processing a failed page."""
+
+class AWSTextractProcessor(BaseOCRProcessor):
+    """OCR processor using AWS Textract"""
+
+    def __init__(self, region: str = "us-west-2"):
+        self.client = boto3.client("textract", region_name=region)
+
+    def process_page(self, page_path: str) -> Dict:
+        # Implementation to process page using AWS Textract
         try:
-            result = self.process_page(doc_page.page_path)
+            with open(page_path, "rb") as file:
+                response = self.client.detect_document_text(
+                    Document={"Bytes": file.read()}
+                )
 
-            doc_page.text_content = result["text"]
-            doc_page.raw_data = result["raw_data"]
-            doc_page.confidence = result["confidence"]
-            doc_page.status = result["status"]
-            doc_page.error_message = result.get("error_message")
-            doc_page.retry_count += 1
-            doc_page.last_attempt = datetime.now(timezone.utc)
-
-            return doc_page.status == "complete"
-
+            # Extract text blocks
+            text_blocks = []
+            for block in response["Blocks"]:
+                if block["BlockType"] == "LINE":
+                    text_blocks.append(
+                        {
+                            "text": block["Text"],
+                            "confidence": block["Confidence"],
+                            "boundingBox": block["Geometry"]["BoundingBox"],
+                        }
+                    )
+                # For now just take lines
+                # elif block["BlockType"] == "WORD":
+                #     text_blocks.append(
+                #         {
+                #             "text": block["Text"],
+                #             "confidence": block["Confidence"],
+                #             "boundingBox": block["Geometry"]["BoundingBox"],
+                #             "type": "word",
+                #         }
+                #     )
+            
+            confidence_scores = [block["confidence"] for block in text_blocks]
+            avg_confidence = (
+                sum(confidence_scores) / len(confidence_scores)
+                if confidence_scores
+                else 0
+            )
+            
+            return self._format_response(
+                text="\n".join([block["text"] for block in text_blocks]),
+                raw_data=response,
+                confidence=avg_confidence,
+                status="complete",
+            )
         except Exception as e:
-            logger.error(f"Retry failed for page {doc_page.page_path}: {str(e)}")
-            return False
-
-    def _get_file_type(self, file_path: str) -> str:
-        """Determine file type from extension."""
-        return file_path.split(".")[-1].lower()
-
-    def process_file(self, file_id: str, filename: str) -> Dict:
-        """Process all pages in a document."""
-
-        file_path = self._download_file(file_id, filename)
-        try:
-            file_type = self._get_file_type(file_path)
-            processor = self.processors.get(file_type)
-
-            if not processor:
-                raise ValueError(f"Unsupported file type: {file_type}")
-
-            page_count = processor.get_page_count(file_path)
-            successes = 0
-            failures = 0
-            results = []
-
-            # Extract and process each page
-            for page_num in range(page_count):
-                page_path = processor.extract_page(file_path, page_num)
-                result = self.process_page(page_path)
-                result["page_number"] = page_num
-
-                if result["status"] == "complete":
-                    successes += 1
-                else:
-                    failures += 1
-                results.append(result)
-
-            return {
-                "total_pages": page_count,
-                "successful_pages": successes,
-                "failed_pages": failures,
-                "page_results": results,
-            }
-
-        except Exception as e:
-            logger.error(f"Failed to process file {file_path}: {str(e)}")
-            return None
+            return self._handle_error(e)

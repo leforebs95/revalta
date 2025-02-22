@@ -1,13 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
-from flask import jsonify, current_app, send_file, request
-import json
-from uuid import UUID
+from http import HTTPStatus
+import os
+from flask import jsonify, current_app, send_file
 from app.models import db, DocumentPage
-from utils.ocr_processor import OCRProcessor, PDFProcessor
+from utils.ocr_processor import TesseractProcessor, AWSTextractProcessor
+from utils.file_provider import UploadServiceProvider
+from utils.document_extractor import PDFExtractor
 
 from . import ocr
-
-processor = OCRProcessor()
 
 
 @ocr.route("/api/ocr/version")
@@ -15,109 +15,73 @@ def version():
     return jsonify({"version": "1.0.0"})
 
 
-@ocr.route("/api/ocr/pages/<uuid:file_id>")
-def get_pages(file_id):
+@ocr.route("/api/ocr/document/<uuid:file_id>/extract", methods=["POST"])
+def extract_document(file_id):
+    """Extract pages from document and create records"""
     try:
-        pages = (
-            DocumentPage.query.filter_by(file_id=file_id)
-            .order_by(DocumentPage.page_number)
-            .all()
-        )
-        return jsonify([page.to_dict() for page in pages])
-    except Exception as e:
-        current_app.logger.error(f"Error fetching pages: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        # Get document from upload service
+        provider = UploadServiceProvider("http://uploads-api:5001/api/uploads")
+        document = provider.get_file(file_id)
 
+        # Extract pages from document
+        extractor = PDFExtractor(current_app.config["PAGES_LOCATION"])
+        pages = extractor.extract_pages(document)
 
-@ocr.route("/api/ocr/pages/<uuid:file_id>/<int:page_number>")
-def get_page(file_id, page_number):
-    try:
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
-        if not page:
-            return jsonify({"error": "Page not found"}), 404
-
-        return jsonify(page.to_dict())
-
-    except Exception as e:
-        current_app.logger.error(f"Error fetching page: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-
-@ocr.route("/api/ocr/pages/<uuid:file_id>/<int:page_number>/image")
-def get_page_image(file_id, page_number):
-    try:
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
-        if not page:
-            return jsonify({"error": "Page not found"}), 404
-
-        return send_file(page.page_path)
-
-    except Exception as e:
-        current_app.logger.error(f"Error fetching page image: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-
-@ocr.route("/api/ocr/pages/<uuid:file_id>", methods=["POST"])
-def create_document_pages(file_id):
-    try:
-        # Create pending records for all pages
-        pdf_processor = PDFProcessor(current_app.config["PAGES_LOCATION"])
-        file_path = pdf_processor._download_file(file_id)
-
-        if not file_path:
-            current_app.logger.error(f"Failed to download file {file_id}")
-            return jsonify({"error": "Failed to download file"}), 500
-
-        page_count = pdf_processor.get_page_count(file_path)
-        current_app.logger.info(f"Processing {page_count} pages")
-
-        # Create pending records for each page
-        pages = []
-        for page_num in range(page_count):
-            page_id, page_filename = pdf_processor.extract_page(file_path, page_num)
-            page = DocumentPage(
-                page_id=page_id,
+        # Create document pages records
+        for page in pages:
+            doc_page = DocumentPage(
+                page_id=page["page_id"],
                 file_id=file_id,
-                page_number=page_num,
-                page_path=page_filename,
+                page_number=page["page_number"],
+                page_path=page["file_path"],
                 status="pending",
             )
-            db.session.add(page)
-            pages.append(page)
+            db.session.add(doc_page)
 
         db.session.commit()
 
-        return jsonify({"pages": [page.to_dict() for page in pages]}), 201
+        return (
+            jsonify(
+                {
+                    "file_id": file_id,
+                    "page_count": len(pages),
+                    "pages": [
+                        {"page_id": p["page_id"], "page_number": p["page_number"]}
+                        for p in pages
+                    ],
+                }
+            ),
+            HTTPStatus.CREATED,
+        )
 
     except Exception as e:
-        current_app.logger.error(f"Error creating document pages: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        current_app.logger.error(f"Error extracting document: {str(e)}")
+        return (
+            jsonify({"error": "Failed to extract document pages"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
-@ocr.route("/api/ocr/pages/<uuid:file_id>/process", methods=["POST"])
-def process_document_pages(file_id):
+@ocr.route("/api/ocr/document/<uuid:file_id>/process", methods=["POST"])
+def process_document(file_id):
+    """Process extracted pages with OCR"""
     try:
-        # Get page range from request params if provided
-        start_page = request.args.get("start_page", type=int)
-        end_page = request.args.get("end_page", type=int)
-
-        # Query pages to process
-        query = DocumentPage.query.filter_by(file_id=file_id, status="pending")
-        if start_page is not None:
-            query = query.filter(DocumentPage.page_number >= start_page)
-        if end_page is not None:
-            query = query.filter(DocumentPage.page_number <= end_page)
-
-        pages = query.order_by(DocumentPage.page_number).all()
+        pages = (
+            DocumentPage.query.filter_by(file_id=file_id, status="pending")
+            .order_by(DocumentPage.page_number)
+            .all()
+        )
 
         if not pages:
-            return jsonify({"message": "No pending pages found"}), 404
+            return (
+                jsonify({"error": "No pending pages found for document"}),
+                HTTPStatus.NOT_FOUND,
+            )
 
-        # Process each page
+        # processor = TesseractProcessor()
+        processor = AWSTextractProcessor()
+        processed = []
+
         for page in pages:
             result = processor.process_page(page.page_path)
 
@@ -129,118 +93,133 @@ def process_document_pages(file_id):
 
             db.session.commit()
 
-        return jsonify({"processed_pages": [page.to_dict() for page in pages]})
+            processed.append(
+                {
+                    "page_id": page.page_id,
+                    "page_number": page.page_number,
+                    "status": page.status,
+                }
+            )
+
+        return jsonify({"file_id": file_id, "processed_pages": processed})
 
     except Exception as e:
-        current_app.logger.error(f"Error processing pages: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        current_app.logger.error(f"Error processing document: {str(e)}")
+        return (
+            jsonify({"error": "Failed to process document"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
-@ocr.route("/api/ocr/pages/<uuid:file_id>/<int:page_number>/retry", methods=["POST"])
-def retry_page(file_id, page_number):
+@ocr.route("/api/ocr/document/<uuid:file_id>")
+def get_document(file_id):
+    """Get OCR results for a document"""
     try:
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
-        if not page:
-            return jsonify({"error": "Page not found"}), 404
+        pages = (
+            DocumentPage.query.filter_by(file_id=file_id)
+            .order_by(DocumentPage.page_number)
+            .all()
+        )
 
-        success = processor.retry_page(page)
-        db.session.commit()
+        if not pages:
+            return jsonify({"error": "Document not found"}), HTTPStatus.NOT_FOUND
+
+        return jsonify([page.to_dict() for page in pages])
+
+    except Exception as e:
+        current_app.logger.error(f"Error getting document: {str(e)}")
+        return (
+            jsonify({"error": "Failed to get document"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
+@ocr.route("/api/ocr/document/<uuid:file_id>/status")
+def get_status(file_id):
+    """Get document processing status"""
+    try:
+        pages = DocumentPage.query.filter_by(file_id=file_id).all()
+
+        if not pages:
+            return jsonify({"error": "Document not found"}), HTTPStatus.NOT_FOUND
+
+        status = {
+            "total": len(pages),
+            "complete": sum(1 for p in pages if p.status == "complete"),
+            "pending": sum(1 for p in pages if p.status == "pending"),
+            "failed": sum(1 for p in pages if p.status == "failed"),
+        }
+
+        return jsonify(status)
+
+    except Exception as e:
+        current_app.logger.error(f"Error getting status: {str(e)}")
+        return (
+            jsonify({"error": "Failed to get status"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
+@ocr.route("/api/ocr/page/<uuid:page_id>")
+def get_page(page_id):
+    """Get OCR result for specific page"""
+    try:
+        page = DocumentPage.query.filter_by(page_id=page_id).first()
+
+        if not page:
+            return jsonify({"error": "Page not found"}), HTTPStatus.NOT_FOUND
 
         return jsonify(page.to_dict())
 
     except Exception as e:
-        current_app.logger.error(f"Error retrying page: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        current_app.logger.error(f"Error getting page: {str(e)}")
+        return (
+            jsonify({"error": "Failed to get page"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
-@ocr.route("/api/ocr/pages/<uuid:file_id>/retry", methods=["POST"])
-def retry_failed_pages(file_id):
+@ocr.route("/api/ocr/page/<uuid:page_id>/image")
+def get_page_image(page_id):
+    """Get page image"""
     try:
-        failed_pages = DocumentPage.query.filter_by(
-            file_id=file_id, status="failed"
-        ).all()
-        if not failed_pages:
-            return jsonify({"error": "No failed pages found"}), 404
+        page = DocumentPage.query.filter_by(page_id=page_id).first()
 
-        results = []
-        for page in failed_pages:
-            success = processor.retry_page(page)
-            results.append({"page_number": page.page_number, "success": success})
-
-        db.session.commit()
-
-        return jsonify({"file_id": file_id, "results": results})
-
-    except Exception as e:
-        current_app.logger.error(f"Error retrying pages: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-
-@ocr.route("/api/ocr/status/<uuid:file_id>")
-def get_status(file_id):
-    try:
-        pages = DocumentPage.query.filter_by(file_id=file_id).all()
-        if not pages:
-            return jsonify({"error": "File not found"}), 404
-
-        status_counts = {
-            "total": len(pages),
-            "complete": sum(1 for p in pages if p.status == "complete"),
-            "failed": sum(1 for p in pages if p.status == "failed"),
-            "pending": sum(1 for p in pages if p.status == "pending"),
-        }
-        current_app.logger.info(f"Status counts: {status_counts}")
-
-        return jsonify(status_counts)
-
-    except Exception as e:
-        current_app.logger.error(f"Error getting status: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-
-@ocr.route("/api/ocr/pages/<uuid:file_id>", methods=["DELETE"])
-def delete_pages(file_id):
-    try:
-        pages = DocumentPage.query.filter_by(file_id=file_id).all()
-        if not pages:
-            return jsonify({"error": "File not found"}), 404
-
-        for page in pages:
-            db.session.delete(page)
-        db.session.commit()
-
-        return jsonify({"message": "All pages deleted successfully"})
-
-    except Exception as e:
-        current_app.logger.error(f"Error deleting pages: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-
-@ocr.route("/api/ocr/pages/<uuid:file_id>/<int:page_number>", methods=["DELETE"])
-def delete_page(file_id, page_number):
-    try:
-        page = DocumentPage.query.filter_by(
-            file_id=file_id, page_number=page_number
-        ).first()
         if not page:
-            return jsonify({"error": "Page not found"}), 404
+            return jsonify({"error": "Page not found"}), HTTPStatus.NOT_FOUND
 
-        db.session.delete(page)
+        return send_file(page.page_path)
 
-        # Update page numbers for pages greater than the deleted page
-        pages_to_update = DocumentPage.query.filter(
-            DocumentPage.file_id == file_id, DocumentPage.page_number > page_number
-        ).all()
+    except Exception as e:
+        current_app.logger.error(f"Error getting page image: {str(e)}")
+        return (
+            jsonify({"error": "Failed to get page image"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
-        for p in pages_to_update:
-            p.page_number -= 1
+
+@ocr.route("/api/ocr/document/<uuid:file_id>", methods=["DELETE"])
+def delete_document(file_id):
+    """Delete document pages and extracted images"""
+    try:
+        pages = DocumentPage.query.filter_by(file_id=file_id).all()
+
+        if not pages:
+            return jsonify({"error": "Document not found"}), HTTPStatus.NOT_FOUND
+
+        # Delete page images
+        for page in pages:
+            if os.path.exists(page.page_path):
+                os.remove(page.page_path)
+            db.session.delete(page)
 
         db.session.commit()
 
-        return jsonify({"message": "Page deleted successfully"})
+        return jsonify({"message": "Document deleted successfully"}), HTTPStatus.OK
 
     except Exception as e:
-        current_app.logger.error(f"Error deleting page: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        current_app.logger.error(f"Error deleting document: {str(e)}")
+        return (
+            jsonify({"error": "Failed to delete document"}),
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
