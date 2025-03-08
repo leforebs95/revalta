@@ -1,5 +1,5 @@
 .vscode/*
-envs/*
+**/envs/*
 **.ipynb
 **/__pycache__/*
 .DS_Store
