@@ -1,9 +1,19 @@
 from abc import ABC, abstractmethod
+import os
 from typing import Dict
 
 import boto3
 import pytesseract
 from PIL import Image
+from dotenv import load_dotenv
+
+from utils.llm_clients.anthropic import AnthropicClient
+import logging
+
+load_dotenv()
+# Configure logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class BaseOCRProcessor(ABC):
@@ -131,16 +141,22 @@ class AWSTextractProcessor(BaseOCRProcessor):
                 #             "type": "word",
                 #         }
                 #     )
-            
+
             confidence_scores = [block["confidence"] for block in text_blocks]
             avg_confidence = (
                 sum(confidence_scores) / len(confidence_scores)
                 if confidence_scores
                 else 0
             )
-            
+
+            text = "\n".join([block["text"] for block in text_blocks])
+            improver = AnthropicClient(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            logger.info(f"Original text: {text}")
+            improved_text = improver.generate(prompt=text)
+            logger.info(f"Improved text: {improved_text}")
+
             return self._format_response(
-                text="\n".join([block["text"] for block in text_blocks]),
+                text=improved_text,
                 raw_data=response,
                 confidence=avg_confidence,
                 status="complete",
