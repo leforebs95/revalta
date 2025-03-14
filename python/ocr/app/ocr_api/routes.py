@@ -11,13 +11,41 @@ from utils.vector_client import VectorClient
 from . import ocr
 
 
-def get_vector_client():
+def get_ocr_client(processor_name="tesseract"):
+    """Get or create OCR processor from app context
+    
+    Args:
+        processor_name: Name of OCR processor to use ('tesseract' or 'textract')
+        
+    Returns:
+        OCR processor instance
+    """
+    if not hasattr(current_app, 'ocr_processor'):
+        if processor_name.lower() == "textract":
+            current_app.ocr_processor = AWSTextractProcessor()
+        else:
+            current_app.ocr_processor = TesseractProcessor()
+    return current_app.ocr_processor
+
+
+
+def get_vector_client(user_id: int = None):
     """Get or create vector client from app context"""
     if not hasattr(current_app, 'vector_client'):
         current_app.vector_client = VectorClient(
-            base_url=current_app.config.get('VECTOR_API_URL', 'http://vector-api:5000')
+            base_url=current_app.config.get('VECTOR_API_URL', 'http://vector-api:5003')
         )
+    if user_id is not None:
+        current_app.vector_client.user_id = user_id
     return current_app.vector_client
+
+def get_upload_client():
+    """Get or create upload client from app context"""
+    if not hasattr(current_app, 'upload_client'):
+        current_app.upload_client = UploadServiceProvider(
+            base_url=current_app.config.get('UPLOADS_API_URL', 'http://uploads-api:5001')
+        )
+    return current_app.upload_client
 
 
 @ocr.route("/api/ocr/version")
@@ -30,7 +58,7 @@ def extract_document(file_id):
     """Extract pages from document and create records"""
     try:
         # Get document from upload service
-        provider = UploadServiceProvider("http://uploads-api:5001/api/uploads")
+        provider = get_upload_client()
         document = provider.get_file(file_id)
 
         # Extract pages from document
@@ -89,7 +117,7 @@ def process_document(file_id):
             )
 
         # processor = TesseractProcessor()
-        processor = AWSTextractProcessor()
+        processor = get_ocr_client("textract")
         processed = []
 
         for page in pages:
@@ -270,7 +298,7 @@ def upsert_document_to_vector_db(file_id):
             )
 
         # Get vector client and insert document
-        vector_client = get_vector_client()
+        vector_client = get_vector_client(user_id=user_id)
         result = vector_client.insert_document(
             user_id=user_id,
             text=document_text

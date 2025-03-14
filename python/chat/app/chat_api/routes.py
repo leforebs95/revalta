@@ -18,10 +18,12 @@ def get_llm_client():
     return current_app.llm_client
 
 
-def get_vector_client():
+def get_vector_client(user_id: int = None):
     """Get or create vector client from app context"""
     if not hasattr(current_app, 'vector_client'):
         current_app.vector_client = VectorClient()
+    if user_id is not None:
+        current_app.vector_client.user_id = user_id
     return current_app.vector_client
 
 
@@ -93,7 +95,7 @@ def send_message(conversation_id):
         db.session.add(user_message)
         
         # Get relevant context from vector DB
-        vector_client = get_vector_client()
+        vector_client = get_vector_client(user_id=data["userId"])
         context_results = vector_client.similarity_search(
             user_id=data["userId"],
             query_text=data["content"]
