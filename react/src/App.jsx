@@ -8,7 +8,6 @@ import DashboardLayout from './components/dashboard/DashboardLayout';
 import LabResults from './components/dashboard/LabResults';
 import LabResultDetails from './components/dashboard/LabResultDetails';
 import Insights from './components/dashboard/Insights';
-import { CSRFProvider } from './providers/CSRFProvider';
 
 function AppRoutes() {
   return (
@@ -30,9 +29,7 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <CSRFProvider>
-        <AppRoutes />
-      </CSRFProvider>
+      <AppRoutes />
     </Router>
   );
 }

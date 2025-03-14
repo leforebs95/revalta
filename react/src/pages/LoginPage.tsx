@@ -6,7 +6,6 @@ import { useAuth } from '../hooks/useAuth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  // const { csrfToken, loading: csrfLoading } = useCSRF();
   const { user, isLoading } = useAuth();
   
   // Redirect if user is already logged in
