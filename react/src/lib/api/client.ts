@@ -5,6 +5,7 @@ const FILE_API_BASE_URL = 'http://localhost/api/uploads';
 const OCR_API_BASE_URL = 'http://localhost/api/ocr';
 const CHAT_API_BASE_URL = 'http://localhost/api/chat';
 
+// Create API clients
 export const authClient = axios.create({
   baseURL: AUTH_API_BASE_URL,
   withCredentials: true, // Important for handling cookies/sessions
@@ -36,6 +37,32 @@ export const chatClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// List of all API clients for bulk operations
+const apiClients = [authClient, uploadsClient, ocrClient, chatClient];
+
+// Function to update user ID in all API clients
+export const updateUserIdInClients = (userId: string | null) => {
+  apiClients.forEach(client => {
+    // Add userId to query params for GET requests
+    client.interceptors.request.use(config => {
+      if (userId && config.method === 'get') {
+        config.params = { ...config.params, userId };
+      }
+      
+      // Add userId to body for POST/PUT requests
+      if (userId && (config.method === 'post' || config.method === 'put')) {
+        if (config.data instanceof FormData) {
+          config.data.append('userId', userId);
+        } else {
+          config.data = { ...config.data, userId };
+        }
+      }
+      
+      return config;
+    });
+  });
+};
 
 // Response interceptor for handling unauthorized access
 authClient.interceptors.response.use(

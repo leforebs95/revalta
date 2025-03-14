@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authAPI } from '../lib/api/auth';
+import { updateUserIdInClients } from '../lib/api/client';
 
 interface User {
   id: string;
@@ -19,6 +20,11 @@ export const useAuth = () => {
     isLoading: true,
     error: null
   });
+
+  // Update API clients whenever user changes
+  useEffect(() => {
+    updateUserIdInClients(authState.user?.id || null);
+  }, [authState.user]);
 
   const login = async (credentials: { email: string; password: string }) => {
     try {

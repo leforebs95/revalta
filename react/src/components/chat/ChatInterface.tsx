@@ -23,7 +23,7 @@ export const ChatInterface: React.FC = () => {
       if (!user || isLoading) return;
       
       try {
-        const userConversations = await chatApi.getConversations(user.id);
+        const userConversations = await chatApi.getConversations();
         setConversations(userConversations);
       } catch (error) {
         console.error('Failed to load conversations:', error);
@@ -38,7 +38,6 @@ export const ChatInterface: React.FC = () => {
     
     try {
       const conversation = await chatApi.createConversation({
-        userId: user.id,
         title: 'New Conversation'
       });
       setConversations([...conversations, conversation]);
@@ -49,28 +48,28 @@ export const ChatInterface: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!currentConversation || !user || !messageInput.trim() || isLoading) return;
-
+    if (!currentConversation || !messageInput.trim()) return;
+    
+    const currentInput = messageInput.trim();
+    setMessageInput('');
     setIsLoadingMessages(true);
+    
     try {
-      const response = await chatApi.sendMessage(currentConversation.id, {
-        userId: user.id,
-        content: messageInput.trim()
+      const message = await chatApi.createMessage({
+        content: currentInput,
+        conversationId: currentConversation.id
       });
-
-      const updatedConversation = {
-        ...currentConversation,
-        messages: [
-          ...(currentConversation.messages || []),
-          response.user_message,
-          response.assistant_message
-        ]
-      };
-
-      setCurrentConversation(updatedConversation);
-      setMessageInput('');
+      
+      // Update conversation with new message
+      if (currentConversation) {
+        setCurrentConversation({
+          ...currentConversation,
+          messages: [...currentConversation.messages, message]
+        });
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
+      setMessageInput(currentInput); // Restore message input on error
     } finally {
       setIsLoadingMessages(false);
     }

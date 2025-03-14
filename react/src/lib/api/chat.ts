@@ -1,67 +1,50 @@
-import apiClient from './client';
+import { chatClient } from './client';
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
   content: string;
-  created_at: string;
+  role: 'user' | 'assistant';
+  createdAt: string;
+  conversationId: string;
 }
 
 export interface Conversation {
   id: string;
   title: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-  messages?: Message[];
+  createdAt: string;
+  updatedAt: string;
+  messages: Message[];
 }
 
 export interface CreateConversationRequest {
-  userId: string;
   title: string;
 }
 
-export interface SendMessageRequest {
-  userId: string;
+export interface CreateMessageRequest {
   content: string;
+  conversationId: string;
 }
 
-export interface SendMessageResponse {
-  user_message: Message;
-  assistant_message: Message;
-}
-
-class ChatApi {
-  private baseUrl = 'http://localhost/api/chat';
-
-  async createConversation(data: CreateConversationRequest): Promise<Conversation> {
-    const response = await apiClient.post(`${this.baseUrl}/conversations`, data);
+class ChatAPI {
+  async getConversations(): Promise<Conversation[]> {
+    const response = await chatClient.get('/conversations');
     return response.data;
   }
 
-  async getConversations(userId: string): Promise<Conversation[]> {
-    const response = await apiClient.get(`${this.baseUrl}/conversations`, {
-      params: { user_id: userId }
-    });
+  async createConversation(request: CreateConversationRequest): Promise<Conversation> {
+    const response = await chatClient.post('/conversations', request);
     return response.data;
   }
 
-  async getConversation(conversationId: string): Promise<Conversation> {
-    const response = await apiClient.get(`${this.baseUrl}/conversations/${conversationId}`);
+  async getConversation(id: string): Promise<Conversation> {
+    const response = await chatClient.get(`/conversations/${id}`);
     return response.data;
   }
 
-  async sendMessage(conversationId: string, data: SendMessageRequest): Promise<SendMessageResponse> {
-    const response = await apiClient.post(
-      `${this.baseUrl}/conversations/${conversationId}/messages`,
-      data
-    );
+  async createMessage(request: CreateMessageRequest): Promise<Message> {
+    const response = await chatClient.post('/messages', request);
     return response.data;
-  }
-
-  async deleteConversation(conversationId: string): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/conversations/${conversationId}`);
   }
 }
 
-export const chatApi = new ChatApi();
+export const chatApi = new ChatAPI();
