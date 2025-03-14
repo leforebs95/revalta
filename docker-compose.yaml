@@ -34,11 +34,13 @@ services:
     networks:
       - auth-network
       - nivalta-network
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
     ports:
       - "5000:5000"
     volumes:
       - ./python/authentication:/usr/src/authentication:delegated
-    restart: always
+    # restart: always
 
   uploads-api:
     container_name: cuploads
@@ -50,6 +52,8 @@ services:
     networks:
       - uploads-network
       - nivalta-network
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
     ports:
       - "5001:5001"
     volumes:
@@ -74,6 +78,7 @@ services:
       - ~/.aws/credentials.tmp:/home/appuser/.aws/credentials
       - pages_vol:/usr/src/ocr-service/pages
     environment:
+      - SECRET_KEY=${SECRET_KEY}
       - AWS_PROFILE=local-containers
     restart: always
 
@@ -89,6 +94,8 @@ services:
       - "5003:5003"
     volumes:
       - ./python/vector_db:/usr/src/vector_db:delegated
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       local-vector-db:
         condition: service_healthy
@@ -106,6 +113,7 @@ services:
     volumes:
       - ./python/chat:/usr/src/chat:delegated
     environment:
+      - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=postgresql://local_chat_user:local_chat_pass@local-chat-db:5432/chat_db
       - VECTOR_API_URL=http://vector-api:5003
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}

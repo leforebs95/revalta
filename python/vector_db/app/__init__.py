@@ -38,9 +38,9 @@ def create_app(config=None):
         app,
         resources={
             r"/api/*": {
-                "origins": ["http://localhost:3000"],
+                "origins": ["http://localhost:8080", "http://localhost"],
                 "supports_credentials": True,
-                "allow_headers": ["Content-Type"],
+                "allow_headers": ["Content-Type", "X-CSRFToken"],
                 "max_age": 3600,
             }
         },

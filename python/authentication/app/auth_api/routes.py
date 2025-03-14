@@ -1,14 +1,12 @@
-from datetime import datetime
-from datetime import timezone
-
-from flask import jsonify, request, current_app, redirect, url_for
+from datetime import datetime, timezone, timedelta
+from flask import jsonify, request, current_app, redirect, url_for, make_response
 from flask_login import (
     login_required,
     login_user,
     current_user,
     logout_user,
 )
-
+import jwt
 from werkzeug.exceptions import BadRequest, Unauthorized
 from email_validator import validate_email, EmailNotValidError
 from http import HTTPStatus
@@ -18,10 +16,8 @@ import requests
 
 from . import auth
 from app.models import db
-
 from app import logger
 from app import bcrypt
-
 from app.models import User
 from utils.dynamo_db import OAuthStateStore
 
@@ -83,7 +79,22 @@ def signup():
             # Log success without sensitive data
             logger.info(f"New user registered: {user_email}")
 
-            return jsonify(user.to_json()), HTTPStatus.CREATED
+            # Log the user in
+            login_user(user, fresh=True, remember=True)
+            
+            # Create JWT and set cookie
+            token = create_token(user.user_id)
+            response = make_response(jsonify(user.to_json()))
+            response.set_cookie(
+                'auth_token',
+                token,
+                httponly=True,
+                secure=True,
+                samesite='Strict',
+                max_age=86400  # 1 day
+            )
+            
+            return response, HTTPStatus.CREATED
 
         except Exception as e:
             db.session.rollback()
@@ -97,13 +108,23 @@ def signup():
         return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
 
 
+def create_token(user_id: int) -> str:
+    """Create a JWT token containing the user ID."""
+    payload = {
+        'sub': user_id,
+        'iat': datetime.utcnow(),
+        'exp': datetime.utcnow() + timedelta(days=1)
+    }
+    return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+
 @auth.route("/api/auth/login", methods=["POST"])
 def login():
     try:
         login_data = request.get_json()
         if not login_data:
             raise BadRequest("Missing JSON data")
-        logger.info(f"Login attempt: {login_data}")
+        
         user_email = login_data.get("userEmail", "").lower()
         password = login_data.get("password")
 
@@ -113,7 +134,6 @@ def login():
         user = User.query.filter_by(user_email=user_email).first()
 
         if user is None or not bcrypt.check_password_hash(user.password, password):
-            # Use same message for both cases to prevent email enumeration
             raise Unauthorized("Invalid credentials")
 
         if user.is_deleted:
@@ -125,16 +145,27 @@ def login():
         user.last_login = datetime.now(timezone.utc)
         db.session.commit()
 
-        return jsonify({"login": True, "user": user.to_json()}), HTTPStatus.OK
+        # Create JWT
+        token = create_token(user.user_id)
+        
+        # Create response with token in HTTP-only cookie
+        response = make_response(jsonify({"login": True, "user": user.to_json()}))
+        response.set_cookie(
+            'auth_token',
+            token,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+            max_age=86400  # 1 day
+        )
+        
+        return response, HTTPStatus.OK
 
     except (BadRequest, Unauthorized) as e:
         return jsonify({"error": str(e)}), e.code
     except Exception as e:
         current_app.logger.error(f"Login error: {str(e)}")
-        return (
-            jsonify({"error": "An unexpected error occurred"}),
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
+        return jsonify({"error": "An unexpected error occurred"}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @auth.route("/api/auth/oauth2/authorize/<provider>", methods=["GET"])
@@ -328,8 +359,19 @@ def oauth2_callback(provider):
         user.last_login = datetime.now(timezone.utc)
         db.session.commit()
 
-        # return jsonify({"login": True, "user": user.to_json()}), HTTPStatus.OK
-        return redirect("/dashboard")
+        # Create JWT and set cookie
+        token = create_token(user.user_id)
+        response = make_response(redirect("/dashboard"))
+        response.set_cookie(
+            'auth_token',
+            token,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+            max_age=86400  # 1 day
+        )
+
+        return response
 
     except Exception as e:
         logger.error(f"OAuth callback error: {str(e)}")
@@ -352,13 +394,15 @@ def check_session():
 @login_required
 def logout():
     try:
-        user_email = current_user.user_email  # Store before logout
+        user_email = current_user.user_email
         logout_user()
+        
+        # Create response that clears the auth cookie
+        response = make_response(jsonify({"logout": True}))
+        response.set_cookie('auth_token', '', expires=0)
+        
         current_app.logger.info(f"User logged out: {user_email}")
-        return jsonify({"logout": True}), HTTPStatus.OK
+        return response, HTTPStatus.OK
     except Exception as e:
         current_app.logger.error(f"Logout error: {str(e)}")
-        return (
-            jsonify({"error": "An unexpected error occurred"}),
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
+        return jsonify({"error": "An unexpected error occurred"}), HTTPStatus.INTERNAL_SERVER_ERROR

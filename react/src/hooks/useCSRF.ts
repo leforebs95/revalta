@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { authClient, uploadsClient, ocrClient, chatClient } from '../lib/api/client';
-import { authAPI } from '../lib/api/auth';
 
 interface CSRFState {
   csrfToken: string | null;
@@ -29,15 +28,24 @@ export const useCSRF = () => {
         }
 
         // Start a new token fetch
-        tokenPromise = authAPI.getCsrfToken();
+        tokenPromise = (async () => {
+          const response = await authClient.get('/getcsrf');
+          const token = response.headers['x-csrftoken'];
+          
+          if (!token) {
+            throw new Error('No CSRF token found in response');
+          }
+          
+          // Update headers for all API clients
+          const clients = [authClient, uploadsClient, ocrClient, chatClient];
+          clients.forEach(client => {
+            client.defaults.headers.common['X-CSRFToken'] = token;
+          });
+          
+          return token;
+        })();
+
         const token = await tokenPromise;
-        console.log('CSRF token:', token);
-        // Update headers for all API clients
-        const clients = [authClient, uploadsClient, ocrClient, chatClient];
-        clients.forEach(client => {
-          client.defaults.headers.common['X-CSRFToken'] = token;
-        });
-        
         setCsrfState({ csrfToken: token, isLoading: false, error: null });
       } catch (error) {
         console.error('Failed to fetch CSRF token:', error);

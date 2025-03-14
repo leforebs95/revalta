@@ -4,6 +4,11 @@ import os
 # Environment-specific settings
 env = os.environ.get("ENVIRONMENT", "development")
 
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
+    os.environ["SECRET_KEY"] = SECRET_KEY
+
 # Base configuration
 bind = "0.0.0.0:5001"
 worker_class = "gevent"  # Using gevent for async support
@@ -68,6 +73,10 @@ def on_reload(server):
 def when_ready(server):
     """Called just after the server is started."""
     pass
+
+def post_fork(server, worker):
+    """Ensure each worker has the same SECRET_KEY."""
+    os.environ["SECRET_KEY"] = SECRET_KEY
 
 def on_exit(server):
     """Called just before the server exits."""

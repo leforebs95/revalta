@@ -4,12 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import os
 
+cors = CORS()
 migrate = Migrate()
 db = SQLAlchemy()
 
 def create_app(config=None):
     app = Flask(__name__)
-    CORS(app)
     
     # Default configuration
     app.config.update(
@@ -22,6 +22,18 @@ def create_app(config=None):
     # Override with any passed config
     if config:
         app.config.update(config)
+
+    cors.init_app(
+        app,
+        resources={
+            r"/api/chat/*": {
+                "origins": ["http://localhost:8080", "http://localhost"],
+                "supports_credentials": True,
+                "allow_headers": ["Content-Type", "X-CSRFToken"],
+                "max_age": 3600,
+            }
+        },
+    )
     
     # Initialize extensions
     db.init_app(app)

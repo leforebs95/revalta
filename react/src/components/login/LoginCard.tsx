@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginCredentials {
-  email: string;
+  userEmail: string;
   password: string;
 }
 
@@ -33,7 +33,7 @@ const Login: React.FC = () => {
     setLoading(true);
     
     try {
-      await login({ email: userEmail, password });
+      await login( userEmail, password );
       navigate('/dashboard');
     } catch (err) {
       const error = err as ApiError;

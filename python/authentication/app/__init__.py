@@ -46,10 +46,11 @@ def create_app():
     cors.init_app(
         app,
         resources={
-            r"/api/*": {
-                "origins": ["http://localhost:8080"],
+            r"/api/auth/*": {
+                "origins": ["http://localhost:8080", "http://localhost"],
                 "supports_credentials": True,
                 "allow_headers": ["Content-Type", "X-CSRFToken"],
+                "expose_headers": ["X-CSRFToken"],
                 "max_age": 3600,
             }
         },

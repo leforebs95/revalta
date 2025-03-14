@@ -38,7 +38,7 @@ def create_app():
         app,
         resources={
             r"/api/uploads/*": {
-                "origins": ["http://localhost:8080"],
+                "origins": ["http://localhost:8080", "http://localhost"],
                 "supports_credentials": True,
                 "allow_headers": ["Content-Type", "X-CSRFToken"],
                 "max_age": 3600,

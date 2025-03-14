@@ -1,114 +1,48 @@
 import axios from 'axios';
 
-const AUTH_API_BASE_URL = 'http://localhost/api/auth';
-const FILE_API_BASE_URL = 'http://localhost/api/uploads';
-const OCR_API_BASE_URL = 'http://localhost/api/ocr';
-const CHAT_API_BASE_URL = 'http://localhost/api/chat';
-
-// Create API clients
+// Create API clients for different services
 export const authClient = axios.create({
-  baseURL: AUTH_API_BASE_URL,
-  withCredentials: true, // Important for handling cookies/sessions
+  baseURL: 'http://localhost:5000/api/auth',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const uploadsClient = axios.create({
-  baseURL: FILE_API_BASE_URL,
-  withCredentials: true, // Important for handling cookies/sessions
+  baseURL: 'http://localhost:5001/api/uploads',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const ocrClient = axios.create({
-  baseURL: OCR_API_BASE_URL,
-  withCredentials: true, // Important for handling cookies/sessions
+  baseURL: 'http://localhost:5002/api/ocr',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const chatClient = axios.create({
-  baseURL: CHAT_API_BASE_URL,
-  withCredentials: true, // Important for handling cookies/sessions
+  baseURL: 'http://localhost:5004/api/chat',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// List of all API clients for bulk operations
-const apiClients = [uploadsClient, ocrClient, chatClient];
-
-// Function to update user ID in all API clients
-export const updateUserIdInClients = (userId: string | null) => {
-  apiClients.forEach(client => {
-    // Add userId to query params for GET requests
-    client.interceptors.request.use(config => {
-      if (!userId) return config;
-
-      // Add userId to query params for GET requests
-      if (config.method === 'get') {
-        config.params = { ...config.params, userId };
-      }
-      
-      // Add userId to body for POST/PUT requests
-      if (config.method === 'post' || config.method === 'put') {
-        if (config.data instanceof FormData) {
-          // Only append if not already present
-          if (!config.data.has('userId')) {
-            config.data.append('userId', userId);
-          }
-        } else if (typeof config.data === 'object') {
-          config.data = { ...config.data, userId };
-        } else if (!config.data) {
-          config.data = { userId };
-        }
-      }
-      
-      return config;
-    });
-  });
+// Add response interceptor to handle unauthorized access
+const handleUnauthorized = (error: any) => {
+  if (error.response && error.response.status === 401) {
+    // Redirect to login page
+    window.location.href = '/login';
+  }
+  return Promise.reject(error);
 };
 
-// Response interceptor for handling unauthorized access
-authClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-uploadsClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-ocrClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-chatClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+authClient.interceptors.response.use((response) => response, handleUnauthorized);
+uploadsClient.interceptors.response.use((response) => response, handleUnauthorized);
+ocrClient.interceptors.response.use((response) => response, handleUnauthorized);
+chatClient.interceptors.response.use((response) => response, handleUnauthorized);

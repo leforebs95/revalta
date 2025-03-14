@@ -1,7 +1,7 @@
 import { authClient } from './client';
 
 interface LoginCredentials {
-  email: string;
+  userEmail: string;
   password: string;
 }
 
@@ -26,7 +26,7 @@ export const authAPI = {
     return response.data;
   },
 
-  signUp: async (credentials: SignUpCredentials) => {
+  signup: async (credentials: SignUpCredentials) => {
     const response = await authClient.post('/signup', credentials);
     return response.data;
   },
