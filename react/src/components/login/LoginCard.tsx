@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface OAuthResponse {
+  authorizationUrl: string;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
+const Login: React.FC = () => {
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
@@ -10,7 +27,7 @@ const Login = () => {
   const { user, login, oauthLogin } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError('');
     setLoading(true);
@@ -19,22 +36,32 @@ const Login = () => {
       await login({ email: userEmail, password });
       navigate('/dashboard');
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+      const error = err as ApiError;
+      setFormError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOAuthLogin = async (provider) => {
+  const handleOAuthLogin = async (provider: string) => {
     try {
       setLoading(true);
-      const response = await oauthLogin(provider);
+      const response = await oauthLogin(provider) as OAuthResponse;
       window.location.href = response.authorizationUrl;
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+      const error = err as ApiError;
+      setFormError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUserEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
   };
 
   return (
@@ -53,61 +80,61 @@ const Login = () => {
             </div>
           )}
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm w-96 justify-center align-middle">
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Email address"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  className="block w-full rounded-md border-0 py-1.5 pl-4 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block pl-4 w-full rounded-md border-0 py-1.5 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  required
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <a
-                    href="/login/forgotpassword"
-                    className="font-semibold leading-6 text-nivaltaBlue hover:text-indigo-600"
-                  >
-                    Forgot Password
-                  </a>
+          <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm w-96 justify-center align-middle">
+            <form className="space-y-6" onSubmit={handleLogin}>
+              <div>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email address"
+                    value={userEmail}
+                    onChange={handleEmailChange}
+                    className="block w-full rounded-md border-0 py-1.5 pl-4 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    required
+                  />
                 </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-        </div>
+              <div>
+                <div className="mb-2">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    className="block pl-4 w-full rounded-md border-0 py-1.5 text-white-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <a
+                      href="/login/forgotpassword"
+                      className="font-semibold leading-6 text-nivaltaBlue hover:text-indigo-600"
+                    >
+                      Forgot Password
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex w-full justify-center rounded-md bg-nivaltaBlue px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+          </div>
 
           <div>
             <div className="mt-10">
