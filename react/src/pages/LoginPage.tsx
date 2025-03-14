@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Login from '../components/login/LoginCard';
-import heroImage from '../assets/hero.svg';
+import heroImage from '../assets/images/hero.svg';
 
 const LoginPage: React.FC = () => {
   const { user, isLoading } = useAuth();

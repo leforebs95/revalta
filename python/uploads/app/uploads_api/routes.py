@@ -71,12 +71,18 @@ def upload_file():
         )
 
 
-@uploads.route("/api/uploads/<int:user_id>", methods=["GET"])
-def get_user_uploads(user_id):
+@uploads.route("/api/uploads", methods=["GET"])
+def get_user_uploads():
     try:
+        user_id = request.args.get("userId")
+        if not user_id:
+            raise BadRequest("User ID is required")
+
         uploads = Upload.query.filter_by(user_id=user_id, is_deleted=False).all()
         return jsonify([upload.to_json() for upload in uploads])
 
+    except BadRequest as e:
+        return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
     except Exception as e:
         logger.error(f"Error retrieving uploads: {str(e)}")
         return (

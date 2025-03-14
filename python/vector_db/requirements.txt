@@ -1,0 +1,24 @@
+# Web Framework
+flask==3.0.2
+flask-sqlalchemy==3.1.1
+flask-cors==4.0.0
+flask-migrate==4.0.5
+
+# Database
+psycopg2-binary==2.9.9
+pgvector==0.2.5
+
+# Embeddings
+numpy<2.0.0  # Ensure compatibility with torch
+sentence-transformers==2.5.1
+torch==2.2.0
+transformers==4.38.2
+
+# Production Server
+gunicorn==21.2.0
+gevent==23.9.1
+greenlet==3.0.3
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.31.0 

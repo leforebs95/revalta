@@ -1,7 +1,17 @@
 import { authClient } from './client';
 
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface SignUpCredentials extends LoginCredentials {
+  firstName?: string;
+  lastName?: string;
+}
+
 export const authAPI = {
-  login: async (credentials) => {
+  login: async (credentials: LoginCredentials) => {
     const response = await authClient.post('/login', credentials);
     return response.data;
   },
@@ -11,12 +21,12 @@ export const authAPI = {
     return response.data;
   },
 
-  oauthLogin: async (provider) => {
+  oauthLogin: async (provider: string) => {
     const response = await authClient.get('/oauth2/authorize/' + provider);
     return response.data;
   },
 
-  signUp: async (credentials) => {
+  signUp: async (credentials: SignUpCredentials) => {
     const response = await authClient.post('/signup', credentials);
     return response.data;
   },
@@ -28,7 +38,11 @@ export const authAPI = {
 
   getCsrfToken: async () => {
     const response = await authClient.get('/getcsrf');
-    console.log(response.headers['x-csrftoken']);
-    return response.headers['x-csrftoken'];
+    const token = response.headers['x-csrftoken'];
+    if (!token) {
+      console.error('No CSRF token found in response headers:', response.headers);
+      throw new Error('No CSRF token found in response');
+    }
+    return token;
   },
 };

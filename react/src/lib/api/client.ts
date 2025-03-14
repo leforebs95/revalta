@@ -39,23 +39,31 @@ export const chatClient = axios.create({
 });
 
 // List of all API clients for bulk operations
-const apiClients = [authClient, uploadsClient, ocrClient, chatClient];
+const apiClients = [uploadsClient, ocrClient, chatClient];
 
 // Function to update user ID in all API clients
 export const updateUserIdInClients = (userId: string | null) => {
   apiClients.forEach(client => {
     // Add userId to query params for GET requests
     client.interceptors.request.use(config => {
-      if (userId && config.method === 'get') {
+      if (!userId) return config;
+
+      // Add userId to query params for GET requests
+      if (config.method === 'get') {
         config.params = { ...config.params, userId };
       }
       
       // Add userId to body for POST/PUT requests
-      if (userId && (config.method === 'post' || config.method === 'put')) {
+      if (config.method === 'post' || config.method === 'put') {
         if (config.data instanceof FormData) {
-          config.data.append('userId', userId);
-        } else {
+          // Only append if not already present
+          if (!config.data.has('userId')) {
+            config.data.append('userId', userId);
+          }
+        } else if (typeof config.data === 'object') {
           config.data = { ...config.data, userId };
+        } else if (!config.data) {
+          config.data = { userId };
         }
       }
       

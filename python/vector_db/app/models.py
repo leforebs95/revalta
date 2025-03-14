@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 import uuid
 from sqlalchemy import Text, String, Integer, BigInteger, DateTime, Boolean, ForeignKey, Index, ForeignKeyConstraint, CheckConstraint
-from sqlalchemy.dialects.postgresql import UUID, VECTOR, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from flask_sqlalchemy import SQLAlchemy
@@ -57,7 +58,7 @@ class DocumentChunk(BaseModel):
     document = relationship("Document", back_populates="chunks")
     chunk_seq_number: Mapped[int] = mapped_column(Integer, nullable=False)
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[list] = mapped_column(VECTOR(384))
+    embedding: Mapped[list] = mapped_column(Vector(384))
     chunk_metadata: Mapped[dict] = mapped_column(JSONB, nullable=True)
 
     __table_args__ = (

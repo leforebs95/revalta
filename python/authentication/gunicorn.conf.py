@@ -1,8 +1,15 @@
 import multiprocessing
 import os
+import secrets
 
 # Environment-specific settings
 env = os.environ.get("ENVIRONMENT", "development")
+
+# Generate a secret key at startup if not provided
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
+    os.environ["SECRET_KEY"] = SECRET_KEY
 
 # Base configuration
 bind = "0.0.0.0:5000"
@@ -68,6 +75,10 @@ def on_reload(server):
 def when_ready(server):
     """Called just after the server is started."""
     pass
+
+def post_fork(server, worker):
+    """Ensure each worker has the same SECRET_KEY."""
+    os.environ["SECRET_KEY"] = SECRET_KEY
 
 def on_exit(server):
     """Called just before the server exits."""

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authClient, uploadsClient } from '../lib/api/client';
+import { authClient, uploadsClient, ocrClient, chatClient } from '../lib/api/client';
 import { authAPI } from '../lib/api/auth';
 
 interface CSRFState {
@@ -31,10 +31,12 @@ export const useCSRF = () => {
         // Start a new token fetch
         tokenPromise = authAPI.getCsrfToken();
         const token = await tokenPromise;
-        
+        console.log('CSRF token:', token);
         // Update headers for all API clients
-        authClient.defaults.headers.common['x-csrftoken'] = token;
-        uploadsClient.defaults.headers.common['x-csrftoken'] = token;
+        const clients = [authClient, uploadsClient, ocrClient, chatClient];
+        clients.forEach(client => {
+          client.defaults.headers.common['X-CSRFToken'] = token;
+        });
         
         setCsrfState({ csrfToken: token, isLoading: false, error: null });
       } catch (error) {

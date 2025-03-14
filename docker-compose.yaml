@@ -4,9 +4,9 @@ volumes:
  authdb_vol:
  uploadsdb_vol:
  ocrdb_vol:
- pages_vol:
  vectordb_vol:
  chatdb_vol:
+ pages_vol:
  uploads_vol:
 
 networks:
@@ -37,7 +37,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./python/authentication:/usr/src/authentication
+      - ./python/authentication:/usr/src/authentication:delegated
     restart: always
 
   uploads-api:
@@ -53,7 +53,7 @@ services:
     ports:
       - "5001:5001"
     volumes:
-      - ./python/uploads:/usr/src/uploads
+      - ./python/uploads:/usr/src/uploads:delegated
       - uploads_vol:/usr/src/uploads/uploads
     restart: always
 
@@ -70,7 +70,7 @@ services:
     ports:
       - "5002:5002"
     volumes:
-      - ./python/ocr:/usr/src/ocr-service
+      - ./python/ocr:/usr/src/ocr-service:delegated
       - ~/.aws/credentials.tmp:/home/appuser/.aws/credentials
       - pages_vol:/usr/src/ocr-service/pages
     environment:
@@ -80,7 +80,7 @@ services:
   vector-api:
     container_name: cvector
     build:
-      context: ./python/vector
+      context: ./python/vector_db
     restart: always
     networks:
       - vector-network
@@ -88,7 +88,10 @@ services:
     ports:
       - "5003:5003"
     volumes:
-      - ./python/vector:/usr/src/vector
+      - ./python/vector_db:/usr/src/vector_db:delegated
+    depends_on:
+      local-vector-db:
+        condition: service_healthy
 
   chat-api:
     container_name: cchat
@@ -101,7 +104,14 @@ services:
     ports:
       - "5004:5004"
     volumes:
-      - ./python/chat:/usr/src/chat
+      - ./python/chat:/usr/src/chat:delegated
+    environment:
+      - DATABASE_URL=postgresql://local_chat_user:local_chat_pass@local-chat-db:5432/chat_db
+      - VECTOR_API_URL=http://vector-api:5003
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      local-chat-db:
+        condition: service_healthy
 
   react-ui:
     container_name: creact
@@ -203,6 +213,46 @@ services:
       - uploadsdb_vol:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  local-vector-db:
+    container_name: clocal-vector-dbase
+    image: ankane/pgvector
+    ports:
+      - "32003:5432"
+    environment:
+      POSTGRES_DB: local_vector_db
+      POSTGRES_USER: local_vector_user
+      POSTGRES_PASSWORD: local_vector_pass
+    networks:
+      - vector-network
+    volumes:
+      - vectordb_vol:/var/lib/postgresql/data
+      - ./python/vector_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  local-chat-db:
+    container_name: clocal-chat-dbase
+    image: postgres:15
+    ports:
+      - "32004:5432"
+    environment:
+      POSTGRES_DB: chat_db
+      POSTGRES_USER: local_chat_user
+      POSTGRES_PASSWORD: local_chat_pass
+    networks:
+      - chat-network
+    volumes:
+      - chatdb_vol:/var/lib/postgresql/data
+      - ./python/chat/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5

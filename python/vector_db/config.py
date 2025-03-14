@@ -5,7 +5,7 @@ import secrets
 class LocalFlaskConfig:
     SECRET_KEY = os.getenv("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = (
-        "postgresql://vector_user:vector_pass@vector-db:5432/vector_db"
+        "postgresql://local_vector_user:local_vector_pass@local-vector-db:5432/local_vector_db"
     )
     DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
     CHUNK_SIZE = 512

@@ -16,21 +16,23 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Create a non-privileged user
+# Create a non-privileged user with a proper home directory
 ARG UID=10001
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
+    --home "/home/appuser" \
+    --shell "/bin/bash" \
     --uid "${UID}" \
     appuser
 
 # Create necessary directories with correct permissions
 RUN mkdir -p /var/log/gunicorn/ && \
     chown -R appuser:appuser /var/log/gunicorn/ && \
-    chmod 755 /var/log/gunicorn/
+    chmod 755 /var/log/gunicorn/ && \
+    mkdir -p /home/appuser/.cache && \
+    chown -R appuser:appuser /home/appuser && \
+    chmod 755 /home/appuser
 
 # Copy requirements first to leverage Docker cache
 COPY --chown=appuser:appuser requirements.txt .

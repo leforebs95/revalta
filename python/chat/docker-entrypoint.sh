@@ -24,7 +24,7 @@ wait_for_service() {
 # Wait for required services
 if [ "$ENVIRONMENT" != "development" ]; then
     # Add service dependencies here
-    wait_for_service "vector-api" 5000 "Vector API"
+    wait_for_service "vector-api" 5003 "Vector API"
     wait_for_service "auth-api" 5000 "Auth API"
 fi
 

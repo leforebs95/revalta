@@ -14,21 +14,28 @@ services:
     ports:
     - "5003:5003"
     depends_on:
-      - vector-db
+      local-vector-db:
+        condition: service_healthy
     networks:
       - vector-network
     restart: always
 
-  vector-db:
+  local-vector-db:
     container_name: cvector-dbase
     image: ankane/pgvector
     ports:
     - "32003:5432"
     environment:
-      POSTGRES_DB: vector_db
-      POSTGRES_USER: vector_user
-      POSTGRES_PASSWORD: vector_pass
+      POSTGRES_DB: local_vector_db
+      POSTGRES_USER: local_vector_user
+      POSTGRES_PASSWORD: local_vector_pass
     volumes:
       - vectordb_vol:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - vector-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

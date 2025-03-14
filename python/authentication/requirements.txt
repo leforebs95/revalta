@@ -11,6 +11,8 @@ Flask-SQLAlchemy==3.1.1
 flask-talisman==1.1.0
 Flask-WTF==1.2.1
 gunicorn==22.0.0
+gevent==23.9.1
+greenlet==3.0.3
 PyMySQL==1.1.1
 PyMySQL[rsa]
 requests==2.32.3

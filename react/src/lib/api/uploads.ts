@@ -2,7 +2,7 @@ import { uploadsClient } from './client';
 
 export const documentsAPI = {
   getUploads: async () => {
-    const response = await uploadsClient.get('/');
+    const response = await uploadsClient.get('');
     return response.data;
   },
 

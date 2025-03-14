@@ -1,38 +1,56 @@
-FROM python:3.11-slim
+ARG PYTHON_VERSION=3.11.7
+FROM python:${PYTHON_VERSION}-slim AS base
 
-WORKDIR /app
+# Prevents Python from writing pyc files and enables unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app
+ENV ENVIRONMENT=development
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
+    curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
+
+# Create a non-privileged user
+ARG UID=10001
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    appuser
+
+# Create necessary directories with correct permissions
+RUN mkdir -p /var/log/gunicorn/ && \
+    chown -R appuser:appuser /var/log/gunicorn/ && \
+    chmod 755 /var/log/gunicorn/
+
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+COPY --chown=appuser:appuser requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create log directory for production
-RUN mkdir -p /var/log/gunicorn && \
-    chown -R nobody:nogroup /var/log/gunicorn
+# Copy application code and config files
+COPY --chown=appuser:appuser . .
 
-# Copy application code and gunicorn config
-COPY . .
-
-# Set environment variables
-ENV FLASK_APP=app
-ENV ENVIRONMENT=development
-ENV PYTHONUNBUFFERED=1
-
-# Switch to non-root user
-USER nobody
-
-# Expose port
-EXPOSE 5000
-
-# Use entrypoint script for initialization
-COPY docker-entrypoint.sh /
+# Copy and set up entrypoint script
+COPY --chown=appuser:appuser docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
+
+# Switch to non-privileged user
+USER appuser
+
+# Expose the application port
+EXPOSE 5004
+
+# Use entrypoint script
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-# Default command (can be overridden)
+# Default command
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:create_app()"] 

@@ -3,9 +3,13 @@ import { authAPI } from '../lib/api/auth';
 import { updateUserIdInClients } from '../lib/api/client';
 
 interface User {
-  id: string;
-  email: string;
-  name?: string;
+  userId: string;
+  userEmail: string;
+  firstName: string;
+  lastName: string;
+  isEmailVerified: boolean;
+  createdAt: string;
+  lastLogin: string;
 }
 
 interface AuthState {
@@ -23,7 +27,7 @@ export const useAuth = () => {
 
   // Update API clients whenever user changes
   useEffect(() => {
-    updateUserIdInClients(authState.user?.id || null);
+    updateUserIdInClients(authState.user?.userId || null);
   }, [authState.user]);
 
   const login = async (credentials: { email: string; password: string }) => {
