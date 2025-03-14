@@ -18,7 +18,7 @@ services:
     networks:
       - chat-network
     ports:
-      - "5003:5000"
+      - "5004:5004"
     volumes:
       - .:/usr/src/chat
     environment:
