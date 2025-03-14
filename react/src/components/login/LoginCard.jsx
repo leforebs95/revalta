@@ -1,29 +1,39 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
-  const { login, oauthLogin, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { user, login, oauthLogin } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setFormError('');
+    setLoading(true);
     
     try {
-      await login({ userEmail: userEmail, password });
-      // No need to navigate here - useAuth hook handles it
+      await login({ email: userEmail, password });
+      navigate('/dashboard');
     } catch (err) {
       setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleOAuthLogin = async (provider) => {
-    try {  
-      await oauthLogin(provider);
+    try {
+      setLoading(true);
+      const response = await oauthLogin(provider);
+      window.location.href = response.authorizationUrl;
     } catch (err) {
       setFormError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

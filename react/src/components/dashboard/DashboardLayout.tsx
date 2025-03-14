@@ -7,18 +7,24 @@ import taskSquareIcon from '../../assets/images/vuesax-linear-task-square.svg';
 import logoutIcon from '../../assets/images/vuesax-linear-logout.svg';
 import React, { useEffect } from 'react';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
+
+interface NavItemProps {
+  to: string;
+  icon: string;
+  text: string;
+}
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
 
   // Protect route
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
   const handleLogout = async () => {
     try {
@@ -113,7 +119,7 @@ const DashboardLayout = () => {
   );
 };
 
-const NavItem = ({ to, icon, text }) => (
+const NavItem = ({ to, icon, text }: NavItemProps) => (
   <Link
     to={to}
     className="flex items-center gap-3 py-2 px-4 text-gray-800 hover:bg-gray-100 rounded-full transition-colors"

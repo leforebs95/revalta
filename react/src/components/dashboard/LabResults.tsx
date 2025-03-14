@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from '../common/Alert';
 import { documentsAPI } from '../../lib/api/uploads';
 import { ocrAPI } from '../../lib/api/ocr';
 import FileUpload from '../common/FileUpload';
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Document {
   uploadId: string; 
@@ -27,16 +27,16 @@ const LabResults = () => {
   const [documents, setDocuments] = useState<Document[]>([]);  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const fetchDocuments = async () => {
-    if (!user) return;
+    if (!user || isLoading) return;
     try {
       setError(null);
       setLoading(true);
       // First get documents
-      const docs = await documentsAPI.getUploads(user.userId);
+      const docs = await documentsAPI.getUploads(user.id);
       setDocuments(docs);
     } catch (err) {
       setError('Failed to fetch documents');
@@ -44,17 +44,18 @@ const LabResults = () => {
     } finally {
       setLoading(false);
     }
-    };
+  };
    
-   useEffect(() => {
+  useEffect(() => {
     fetchDocuments();
-   }, [user]);
+  }, [user, isLoading]);
 
   const handleFileUpload = async (file: File) => {
+    if (!user || isLoading) return;
     try {
       setError(null);
       setLoading(true);
-      const uploadResponse = await documentsAPI.uploadFile(user.userId, file);
+      const uploadResponse = await documentsAPI.uploadFile(user.id, file);
       setLoading(false);
       return uploadResponse;
     } catch (err) {

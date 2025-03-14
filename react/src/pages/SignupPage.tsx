@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../hooks/useAuth';
 import SignupComponent from '../components/signup/SignupComponent';
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   // Redirect if user is already logged in
   useEffect(() => {
-    if (user) {
+    if (!isLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
   const handleLogoClick = () => {
     navigate('/');

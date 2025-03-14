@@ -1,0 +1,47 @@
+name: chat-service
+
+volumes:
+  chatdb_vol:
+
+networks:
+  chat-network:
+    driver: bridge
+
+services:
+  chat-api:
+    container_name: cchat
+    build:
+      context: .
+    depends_on:
+      local-chat-db:
+        condition: service_healthy
+    networks:
+      - chat-network
+    ports:
+      - "5003:5000"
+    volumes:
+      - .:/usr/src/chat
+    environment:
+      - DATABASE_URL=postgresql://local_chat_user:local_chat_pass@local-chat-db:5432/chat_db
+      - VECTOR_API_URL=http://vector-api:5000
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: always
+
+  local-chat-db:
+    container_name: clocal-chat-dbase
+    image: postgres:15
+    ports:
+      - "32003:5432"
+    environment:
+      POSTGRES_DB: chat_db
+      POSTGRES_USER: local_chat_user
+      POSTGRES_PASSWORD: local_chat_pass
+    networks:
+      - chat-network
+    volumes:
+      - chatdb_vol:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5 

@@ -6,6 +6,7 @@ volumes:
  ocrdb_vol:
  pages_vol:
  vectordb_vol:
+ chatdb_vol:
  uploads_vol:
 
 networks:
@@ -16,6 +17,8 @@ networks:
  ocr-network:
    driver: bridge
  vector-network:
+   driver: bridge
+ chat-network:
    driver: bridge
  nivalta-network:
    driver: bridge
@@ -35,6 +38,23 @@ services:
       - "5000:5000"
     volumes:
       - ./python/authentication:/usr/src/authentication
+    restart: always
+
+  uploads-api:
+    container_name: cuploads
+    build:
+      context: ./python/uploads
+    depends_on:
+      local-uploads-db:
+        condition: service_healthy
+    networks:
+      - uploads-network
+      - nivalta-network
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./python/uploads:/usr/src/uploads
+      - uploads_vol:/usr/src/uploads/uploads
     restart: always
 
   ocr-api:
@@ -57,22 +77,31 @@ services:
       - AWS_PROFILE=local-containers
     restart: always
 
-  uploads-api:
-    container_name: cuploads
+  vector-api:
+    container_name: cvector
     build:
-      context: ./python/uploads
-    depends_on:
-      local-uploads-db:
-        condition: service_healthy
+      context: ./python/vector
+    restart: always
     networks:
-      - uploads-network
+      - vector-network
       - nivalta-network
     ports:
-      - "5001:5001"
+      - "5003:5003"
     volumes:
-      - ./python/uploads:/usr/src/uploads
-      - uploads_vol:/usr/src/uploads/uploads
+      - ./python/vector:/usr/src/vector
+
+  chat-api:
+    container_name: cchat
+    build:
+      context: ./python/chat
     restart: always
+    networks:
+      - chat-network
+      - nivalta-network
+    ports:
+      - "5004:5004"
+    volumes:
+      - ./python/chat:/usr/src/chat
 
   react-ui:
     container_name: creact
@@ -108,12 +137,16 @@ services:
       - OCR_SERVICE_HOST=ocr-api
       - UPLOADS_HOST=uploads-api
       - REACT_SERVICE_HOST=react-ui
+      - VECTOR_SERVICE_HOST=vector-api
+      - CHAT_SERVICE_HOST=chat-api  
     restart: always
     depends_on:
       - authentication-api
       - ocr-api
       - uploads-api
       - react-ui
+      - vector-api
+      - chat-api
 
   local-auth-db:
     container_name: clocal-auth-dbase

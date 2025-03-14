@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../../lib/api/auth';
+import { useAuth } from '../../hooks/useAuth';
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  userEmail: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface FormErrors {
+  password: string;
+  fields: string;
+}
 
 const SignupComponent = () => {
   const navigate = useNavigate();
+  const { signup, login } = useAuth();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     userEmail: '',
@@ -13,12 +27,12 @@ const SignupComponent = () => {
     confirmPassword: ''
   });
 
-  const [formErrors, setFormErrors] = useState({
+  const [formErrors, setFormErrors] = useState<FormErrors>({
     password: '',
     fields: ''
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -28,13 +42,14 @@ const SignupComponent = () => {
 
   const validateForm = () => {
     let isValid = true;
-    const errors = {
+    const errors: FormErrors = {
       password: '',
       fields: ''
     };
 
     // Check if any field is empty
-    if (!Object.values(formData).every(val => val)) {
+    if (!formData.firstName || !formData.lastName || !formData.userEmail || 
+        !formData.password || !formData.confirmPassword) {
       errors.fields = 'Please fill in all fields';
       isValid = false;
     }
@@ -49,7 +64,7 @@ const SignupComponent = () => {
     return isValid;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -58,22 +73,15 @@ const SignupComponent = () => {
 
     try {
       // Signup request
-      const signupResponse = await authAPI.signUp({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          userEmail: formData.userEmail,
-          password: formData.password
-        });
-
-      if (!signupResponse.user) {
-        throw new Error('Signup failed');
-      }
-
-      const signupData = await signupResponse.json();
+      await signup({
+        email: formData.userEmail,
+        password: formData.password,
+        name: `${formData.firstName} ${formData.lastName}`
+      });
 
       // Login after successful signup
-      await authAPI.login({
-        userEmail: signupData.userEmail,
+      await login({
+        email: formData.userEmail,
         password: formData.password
       });
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { ocrAPI } from '../../lib/api/ocr';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Page {
   fileId: string;
@@ -12,61 +13,71 @@ interface Page {
 }
 
 const LabResultDetails = () => {
- const { docId } = useParams();
- const [pages, setPages] = useState<Page[]>([]);
- const [currentPage, setCurrentPage] = useState<Page>();
- const [currentPageText, setCurrentPageText] = useState<string>('');
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState<string | null>(null);
+  const { docId } = useParams();
+  const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+  const [pages, setPages] = useState<Page[]>([]);
+  const [currentPage, setCurrentPage] = useState<Page | undefined>();
+  const [currentPageText, setCurrentPageText] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
- const [stats, setStats] = useState({
-   complete: 0,
-   pending: 0,
-   failed: 0
- });
+  const [stats, setStats] = useState({
+    complete: 0,
+    pending: 0,
+    failed: 0
+  });
 
- useEffect(() => {
-   const fetchPages = async () => {
-     try {
-      setLoading(true);
-      const response = await ocrAPI.getDocument(docId!);
-      const filteredPages = response.map((page: any) => ({
-        pageId: page.page_id,
-        pageNumber: page.page_number,
-        textContent: page.text_content,
-        fileId: page.file_id
-      }));
-      setPages(filteredPages);
-      setCurrentPage(filteredPages[0]);
-      setCurrentPageText(filteredPages[0].textContent);
-       
-      // Calculate stats
-      const statusCounts = await ocrAPI.getStatus(docId!);
-      setStats(statusCounts);
-    } catch (err) {
-      console.error('Error fetching pages:', err);
-      setError('Failed to load document pages');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/login');
+      return;
     }
-  };
 
-  if (docId) {
-    fetchPages();
-  }
-}, [docId]);
+    const fetchPages = async () => {
+      try {
+        setLoading(true);
+        const response = await ocrAPI.getDocument(docId!);
+        const filteredPages = response.map((page: any) => ({
+          pageId: page.page_id,
+          pageNumber: page.page_number,
+          textContent: page.text_content,
+          fileId: page.file_id
+        }));
+        setPages(filteredPages);
+        if (filteredPages.length > 0) {
+          setCurrentPage(filteredPages[0]);
+          setCurrentPageText(filteredPages[0].textContent);
+        }
+         
+        // Calculate stats
+        const statusCounts = await ocrAPI.getStatus(docId!);
+        setStats(statusCounts);
+      } catch (err) {
+        console.error('Error fetching pages:', err);
+        setError('Failed to load document pages');
+      } finally {
+        setLoading(false);
+      }
+    };
 
- const handlePageChange = async (pageNumber: number) => {
-  if (pageNumber >= 0 && pageNumber < pages.length) {
-    const page = pages.find(p => p.pageNumber === pageNumber);
-    setCurrentPage(page);
-    setCurrentPageText(page?.textContent)
+    if (docId && !isLoading) {
+      fetchPages();
+    }
+  }, [docId, user, navigate, isLoading]);
+
+  const handlePageChange = async (pageNumber: number) => {
+    if (pageNumber >= 0 && pageNumber < pages.length) {
+      const page = pages.find(p => p.pageNumber === pageNumber);
+      if (page) {
+        setCurrentPage(page);
+        setCurrentPageText(page.textContent);
+      }
     }
   };
 
   if (loading && pages.length === 0) return <div>Loading...</div>;
   if (error && pages.length === 0) return <div className="text-red-500">{error}</div>;
-
 
   return (
     <div className="space-y-6">
@@ -89,21 +100,21 @@ const LabResultDetails = () => {
         {/* Page View */}
         <div className="border rounded p-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium">Page {currentPage?.pageNumber + 1}</h3>
+            <h3 className="font-medium">Page {currentPage?.pageNumber ? currentPage.pageNumber + 1 : 0}</h3>
             <div className="flex gap-2">
               <button
-                onClick={() => handlePageChange(currentPage?.pageNumber - 1)}
-                disabled={currentPage?.pageNumber === 0}
+                onClick={() => handlePageChange(currentPage?.pageNumber ?? 0 - 1)}
+                disabled={!currentPage || currentPage.pageNumber === 0}
                 className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <span className="py-2">
-                {currentPage?.pageNumber + 1} / {pages.length}
+                {currentPage?.pageNumber ? currentPage.pageNumber + 1 : 0} / {pages.length}
               </span>
               <button
-                onClick={() => handlePageChange(currentPage?.pageNumber + 1)}
-                disabled={currentPage?.pageNumber === pages.length - 1}
+                onClick={() => handlePageChange(currentPage?.pageNumber ?? 0 + 1)}
+                disabled={!currentPage || currentPage.pageNumber === pages.length - 1}
                 className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -111,11 +122,13 @@ const LabResultDetails = () => {
             </div>
           </div>
           <div className="bg-gray-100 h-96">
-            <img
-              src={`/api/ocr/page/${currentPage?.pageId}/image`}
-              alt={`Page ${currentPage?.pageNumber + 1}`}
-              className="w-full h-full object-contain"
-            />
+            {currentPage && (
+              <img
+                src={`/api/ocr/page/${currentPage.pageId}/image`}
+                alt={`Page ${currentPage.pageNumber + 1}`}
+                className="w-full h-full object-contain"
+              />
+            )}
           </div>
         </div>
 

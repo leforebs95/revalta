@@ -2,19 +2,19 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import hero from '../assets/images/hero.svg';
 import Login from '../components/login/LoginCard';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   // const { csrfToken, loading: csrfLoading } = useCSRF();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   
   // Redirect if user is already logged in
   useEffect(() => {
-    if (user) {
+    if (!isLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
 
   const handleLogoClick = () => {

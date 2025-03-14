@@ -3,6 +3,7 @@ import axios from 'axios';
 const AUTH_API_BASE_URL = 'http://localhost/api/auth';
 const FILE_API_BASE_URL = 'http://localhost/api/uploads';
 const OCR_API_BASE_URL = 'http://localhost/api/ocr';
+const CHAT_API_BASE_URL = 'http://localhost/api/chat';
 
 export const authClient = axios.create({
   baseURL: AUTH_API_BASE_URL,
@@ -22,6 +23,14 @@ export const uploadsClient = axios.create({
 
 export const ocrClient = axios.create({
   baseURL: OCR_API_BASE_URL,
+  withCredentials: true, // Important for handling cookies/sessions
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const chatClient = axios.create({
+  baseURL: CHAT_API_BASE_URL,
   withCredentials: true, // Important for handling cookies/sessions
   headers: {
     'Content-Type': 'application/json',
@@ -50,6 +59,16 @@ uploadsClient.interceptors.response.use(
 );
 
 ocrClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+chatClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {

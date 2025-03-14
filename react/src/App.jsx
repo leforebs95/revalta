@@ -7,8 +7,8 @@ import DashboardPage from './pages/DashboardPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import LabResults from './components/dashboard/LabResults';
 import LabResultDetails from './components/dashboard/LabResultDetails';
+import Insights from './components/dashboard/Insights';
 import { CSRFProvider } from './providers/CSRFProvider';
-import { AuthProvider } from './providers/AuthProvider';
 
 function AppRoutes() {
   return (
@@ -20,6 +20,7 @@ function AppRoutes() {
         <Route index element={<DashboardPage />} />
         <Route path="lab-results" element={<LabResults />} />
         <Route path="lab-results/:docId" element={<LabResultDetails />} />
+        <Route path="insights" element={<Insights />} />
         {/* Add other dashboard routes here */}
       </Route>
     </Routes>
@@ -30,9 +31,7 @@ function App() {
   return (
     <Router>
       <CSRFProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
+        <AppRoutes />
       </CSRFProvider>
     </Router>
   );
