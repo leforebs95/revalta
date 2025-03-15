@@ -1,4 +1,4 @@
-# nivalta
+# revalta
 The main application repository
 
 ## Building
